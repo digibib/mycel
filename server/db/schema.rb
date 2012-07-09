@@ -24,6 +24,10 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.string :hwaddr, :null => false
     t.string :ipaddr, :null => false
+    t.boolean :guest_adult, :default => false
+    t.boolean :guest_child, :default => false
+    t.integer :age_lower
+    t.integer :age_higher
     t.string :homepage
     t.string :printeraddr
     t.integer :department_id
