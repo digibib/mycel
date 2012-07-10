@@ -26,10 +26,7 @@ class Department < ActiveRecord::Base
   validates_presence_of :name
 
   def homepage
-    if not self.read_attribute(:homepage)
-      return Branch.find(self.branch_id).homepage
-    end
-    read_attribute(:homepage)
+    read_attribute(:homepage) || Branch.find(self.branch_id).homepage
   end
 end
 
@@ -39,9 +36,6 @@ class Client < ActiveRecord::Base
   validates_presence_of :name, :hwaddr
 
   def homepage
-    if not self.read_attribute(:homepage)
-      return Department.find(self.department_id).homepage
-    end
-    read_attribute(:homepage)
+    read_attribute(:homepage) || Department.find(self.department_id).homepage
   end
 end
