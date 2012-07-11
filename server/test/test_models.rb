@@ -45,10 +45,22 @@ class HierarchyTest < Clean::Test::TestCase
   end
 
   test_that "if homepage not set in client, fetches it from dept or branch" do
-    assert_equal "www.nrk.no", Client.find(1).homepage
+    assert_equal "www.nrk.no", Client.first.homepage
+  end
+
+  test_that "openinghours cascades down from org to branch to dept if not set" do
+    Given { @hours = OpeningHours.create(:monday_opens=> '09:00',
+            :monday_closes=> '19:00', :tuesday_opens=>'09:00', :tuesday_closes => '17:00')
+    }
+    When { @org.opening_hours = @hours }
+    Then { assert_equal Department.first.opening_hours, @org.opening_hours }
   end
 
   def teardown
     @org.destroy
   end
+end
+
+class OpeningHoursTest < Clean::Test::TestCase
+
 end

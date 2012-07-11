@@ -5,7 +5,7 @@ class Organization < ActiveRecord::Base
   
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
-  has_one :opening_hours
+  has_one :opening_hours, :as => :owner_hours
 
   validates_presence_of :name
 end
@@ -13,21 +13,35 @@ end
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
-  has_one :opening_hours
+  has_one :opening_hours, :as => :owner_hours
 
   validates_presence_of :name
+
+  def homepage
+    read_attribute(:homepage) || Organization.find(self.organization_id).homepage
+  end
+
+  def opening_hours
+    read_attribute(:opening_hours) || Organization.find(self.organization_id).opening_hours
+  end
+
 end
 
 class Department < ActiveRecord::Base
   belongs_to :branch
   has_many :clients, :dependent => :destroy
-  has_one :opening_hours
+  has_one :opening_hours, :as => :owner_hours
 
   validates_presence_of :name
 
   def homepage
     read_attribute(:homepage) || Branch.find(self.branch_id).homepage
   end
+
+  def opening_hours
+    read_attribute(:opening_hours) || Branch.find(self.branch_id).opening_hours
+  end
+
 end
 
 class Client < ActiveRecord::Base
@@ -38,4 +52,9 @@ class Client < ActiveRecord::Base
   def homepage
     read_attribute(:homepage) || Department.find(self.department_id).homepage
   end
+
+end
+
+class OpeningHours < ActiveRecord::Base
+  belongs_to :owner_hours, :polymorphic => true
 end
