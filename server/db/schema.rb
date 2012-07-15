@@ -38,7 +38,7 @@ ActiveRecord::Schema.define do
 
   create_table :opening_hours, :force => true do |t|
     t.boolean :monday_closed, :default => false
-    t.time :monday_opens #null = 'closed'
+    t.time :monday_opens
     t.time :monday_closes
     t.boolean :tuesday_closed, :default => false
     t.time :tuesday_opens
@@ -58,7 +58,15 @@ ActiveRecord::Schema.define do
     t.boolean :sunday_closed, :default => false
     t.time :sunday_opens
     t.time :sunday_closes
+
     t.integer :owner_hours_id
     t.integer :owner_hours_type
+  end
+
+  create_table :admins, :force => true do |t|
+    t.boolean :superadmin, :default => false
+    t.string :username, :null => false
+    t.string :password, :null => false
+    t.string :email
   end
 end
