@@ -1,0 +1,23 @@
+test:
+  adapter: em_mysql2
+  database: myceltest
+  username: mycel
+  password: test
+  host: localhost
+  pool: 5
+
+development:
+  adapter: em_mysql2
+  database: myceldev
+  username: mycel
+  password: test
+  host: localhost
+  pool: 5
+
+production:
+  adapter: em_mysql2
+  database: mycel
+  username: secret
+  password: secret
+  host: example.com
+  pool: 5
