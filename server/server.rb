@@ -16,7 +16,6 @@ class Server < Goliath::API
       :urls => ['/favicon.ico', '/css', '/js', '/img'])
 
   def response(env)
-
     [200, {}, slim(:index, :locals => {:org => @@org})]
   end
 end
