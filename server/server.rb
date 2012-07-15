@@ -5,7 +5,7 @@ require "slim"
 require "./models"
 
 dbconfig = YAML::load(File.open("config/database.yml"))
-ActiveRecord::Base.establish_connection(dbconfig[Goliath.env])
+ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
 class Server < Goliath::API
   include Goliath::Rack::Templates
