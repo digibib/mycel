@@ -1,5 +1,6 @@
 require "rake/testtask"
-
+require "em-synchrony/activerecord"
+require "./models"
 
 task :default => [:test]
 
@@ -9,30 +10,32 @@ Rake::TestTask.new do |test|
   test.verbose = true
 end
 
-# TODO, db:setup stuff
 namespace :db do
-  desc 'Build the MySQL database'
-  task :build do
-    puts "building"     
-  end
+  desc 'Build tables and seed MySQL for development'
+  task :seed do
+    dbconfig = YAML::load(File.open("config/database.yml"))
+    ActiveRecord::Base.establish_connection(dbconfig["development"])
 
-  desc "drop the tables"
-  task :drop do
-    puts "dropping"
+    load "db/schema.rb"
+
+    seed = YAML::load(File.open("db/seed.yml"))
+    org = Organization.create(:name => seed['organization'])
+
+    seed['branches'].each do |branch|
+      b = Branch.create(:name => branch['name'])
+      org.branches << b
+      branch['departments'].each do |department|
+        d = Department.create(:name => department['name'])
+        b.departments << d
+        department['clients'].each do |client|
+          c = Client.new(:name => client['name'], :ipaddr => client['IPaddr'],
+                         :hwaddr => client['HWaddr'])
+          d.clients << c
+        end
+      end  
+    end     
   end
 end
-
-#require 'yaml'
-
-# desc "Migrate the database through scripts in db/migrate. Target specific version with VERSION=x"
-# task :migrate => :environment do
-#   ActiveRecord::Migrator.migrate('db/migrate', ENV["VERSION"] ? ENV["VERSION"].to_i : nil )
-# end
-
-# task :environment do
-#   ActiveRecord::Base.establish_connection(YAML::load(File.open('database.yml')))
-#   ActiveRecord::Base.logger = Logger.new(File.open('database.log', 'a'))
-# end
 
 # se ellers:
 # https://github.com/rails/rails/blob/master/activerecord/Rakefile

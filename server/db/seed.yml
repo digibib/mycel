@@ -1,0 +1,116 @@
+organization: Deichmanske bibliotek
+branches:
+  -
+    name: Hovedbiblioteket
+    homepage: 'http://www.deichman.no'
+    departments:
+      -
+        name: Musikkavdelingen
+        homepage: 'http://blogg.deichman.no/musikk/'
+        clients:
+          -
+            name: musikkklient1
+            HWaddr: 00:13:21:d4:4e:12
+            IPaddr: 192.168.200.111
+      -
+        name: Unge Deichman
+        clients:
+          -
+            name: ungeklient1
+            HWaddr: 00:01:2e:3a:e5:22
+            IPaddr: 192.168.200.22
+          -
+            name: ungeklient2
+            HWaddr: 00:01:2e:3a:e5:15
+            IPaddr: 192.168.200.23
+          -
+            name: ungeklient3
+            HWaddr: 00:01:2e:3a:e5:3d
+            IPaddr: 192.168.200.24
+      -
+        name: Voksenavdelingen
+        printeraddr: 'socket://192.168.200.29:9100'
+        clients:
+          -
+            name: hovedklient1
+            HWaddr: 00:01:2e:bc:c8:7d
+            IPaddr: 192.168.200.101
+          -
+            name: hovedklient2
+            HWaddr: 00:01:2e:bc:c8:9d
+            IPaddr: 192.168.200.102
+          -
+            name: hovedklient3
+            HWaddr: 00:01:2e:bc:c8:bb
+            IPaddr: 192.168.200.103
+          -
+            name: hovedklient4
+            HWaddr: 00:01:2e:bc:c9:74
+            IPaddr: 192.168.200.104
+          -
+            name: hovedklient5
+            HWaddr: 00:01:2e:bc:c9:8d
+            IPaddr: 192.168.200.105
+          -
+            name: hovedklient6
+            HWaddr: 00:01:2e:bc:c8:6a
+            IPaddr: 192.168.200.106
+          -
+            name: hovedklient7
+            HWaddr: 00:01:2e:bc:c9:3f
+            IPaddr: 192.168.200.107
+          -
+            name: hovedklient8
+            HWaddr: 00:01:2e:bc:c8:9c
+            IPaddr: 192.168.200.108
+          -
+            name: hovedklient9
+            HWaddr: 00:01:2e:bc:c8:9d
+            IPaddr: 192.168.200.102
+          -
+            name: hovedklient10
+            HWaddr: 00:01:2e:bc:c8:ce
+            IPaddr: 192.168.200.109
+  -
+    name: Grünerløkka
+    homepage: 'http://www.deichmanske-bibliotek.oslo.kommune.no/avdelinger_apningstider/grnerlokka/'
+    departments:
+      -
+        name: Barneavdelingen
+        clients:
+          -
+            name: grybarn1
+            HWaddr: 00:00:00:00:00:0a
+            IPaddr: 192.168.200.x
+      -
+        name: Serieteket
+        clients:
+          -
+            name: serieteket1
+            HWaddr: 00:00:00:00:00:0b
+            IPaddr: 192.168.200.x
+      -
+        name: Voksenavdelingen
+        clients:
+          -
+            name: gryvoksen1
+            HWaddr: 00:00:00:00:00:0c
+            IPaddr: 192.168.200.x
+  -
+    name: Rommen
+    departments:
+      -
+        name: Rommen
+        clients:
+          -
+            name: rommenklient1
+            HWaddr: 00:00:00:00:00:0a
+            IPaddr: 192.168.200.x
+          -
+            name: rommenklient2
+            HWaddr: 00:00:00:00:00:0b
+            IPaddr: 192.168.200.y
+          -
+            name: rommenklient3
+            HWaddr: 00:00:00:00:00:0c
+            IPaddr: 192.168.200.z
