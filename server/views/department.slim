@@ -6,7 +6,7 @@ div class="main"
     h2 #{department.branch.name}: #{department.name}
 
   h3 Gjestebrukere
-  p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger der.
+  p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger som skulle tilsi noe annet.
   div class="divdot inputf"
     button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
     table class="userform"
@@ -29,14 +29,28 @@ div class="main"
         
     
   h2 Klienter
+  table class="clients occupied" id="dummyclient"
+    tr
+      td style="width:40px": img src="/img/pc_green.png" class="pc"
+      td dummyklient
+      td[colspan='2']Petter Goksøyr Åsen
+      td: button[type='button' id="user_throw_out" class="occupied_options"]  = "Kast ut!"
+    tr
+      td style="width:40px"
+      td
+      td[id="petter_minutes_left"] 32 min igjen
+      td[style="text-align:right"]
+        input[type="text" name="add_time" id="add_time" class="nr occupied_options"]
+      td: button[type='button' id="useraddtime" class="occupied_options"]  = "Gi mer tid"
+
   - for client in department.clients
     table class="clients available"
       tr
         td style="width:40px": img src="/img/pc_black.png" class="pc"
         td: #{client.name} 
-        td ikke i bruk
+        td Ikke i bruk
         td
-        td: button[type='button' class="instillinger" id="optionsbutton"] = "instillinger"
+        td: button[type='button' class="innstillinger" id="optionsbutton"] = "innstillinger"
       tr class="clientoptions"
         td style="width:40px"
         td MAC-addresse
@@ -103,7 +117,7 @@ div class="main"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
 
   h3 Aldersbegrensninger
-  p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe:
+  p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
   div class="divdot inputf"
     table class="genform"
       tr
@@ -112,7 +126,19 @@ div class="main"
         td øvre aldergrense
         td: input[type="text" name="age_higher" id="age_higher" class="nr"]
         td: button[type='button' id="agesave" ]  = "Lagre"
-        
+
+  
+  h3 Tidsbegrensninger
+  p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td minutter per dag
+        td: input[type="text" name="minutes_limit" id="minutes_limit" class="nr"]
+        td fri bruk?
+        td: input[type="checkbox" name="minutes_unlimited" id="minutes_unlimited"]
+        td: button[type='button' id="use_save"]  = "Lagre"
+
   h3 Printer
   div class="divdot inputf"
     table class="genform"
@@ -126,7 +152,8 @@ div class="main"
    
     $(document).ready(function () {
       $('table.userform').hide();
-      $(':button.instillinger').hide();
+      $(':button.innstillinger').hide();
+      $('.occupied_options').hide();
       $('tr.clientoptions').hide();
 
      $("button#optionsbutton").on("click", function() {
@@ -152,6 +179,8 @@ div class="main"
 
       $('input#age_lower').setMask('99');
       $('input#age_higher').setMask('99');
+      $('input#minutes_limit').setMask('999');
+      $('input#add_time').setMask('999');
 
 
       $("table.clients.available").hover(
@@ -190,6 +219,40 @@ div class="main"
         $(':input.hour').val('');
         $(':input.hour').removeAttr("disabled");
         $(':input.chk').removeAttr('checked');
+      });
+
+      $('button#user_throw_out').on('click', function () {
+        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
+      });
+
+      $("table.clients.occupied").hover(
+        function() {
+          $(this).find(":button").show();
+          $(this).find(":input").show();
+        },
+        function() {
+          $(this).find(":button").hide();
+          $(this).find(":input").hide();
+        });
+
+      $('input#minutes_unlimited').change(function () {
+        if($(this).attr("checked"))
+        {
+          $('input#minutes_limit').attr("disabled", "disabled");
+        } else {
+          $('input#minutes_limit').removeAttr("disabled");
+        }
+      });
+
+      $('button#useraddtime').on('click', function () {
+        min1 = parseInt($('input#add_time').val());
+        if (isNaN(min1)) {
+          return;
+        }
+        min2 = parseInt($('td#petter_minutes_left').html());
+        min = min1+min2;
+        $('td#petter_minutes_left').html(min+' min igjen');
+        $('input#add_time').val('');
       });
 
     });

@@ -8,7 +8,7 @@ pre         { background-color: #ef9384; border: 1px solid #c03019;
 a:link, a:visited { color: #5740e6; text-decoration: none }
 a:hover     { text-decoration: underline }
 div.main    { width: 800px; margin: auto; }
-div#header  { background-color: #e65740;}
+div#header  { background-color: #888;}
 div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
                 font-family: monospace; font-size: 12px; padding:5px;}
 img.logo    { margin-top: 10px; margin-left:10px;}
@@ -32,7 +32,8 @@ table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
 .deptlist td   { min-width: 160px; padding: 7px; background-color:#fff;}
 
 table.clients  { margin-left: 10px; font-size:14px; border:1px solid white; }
-.clients td    { width: 130px; text-align: left; padding: 6px; vertical-align: middle;}
+.clients td    { width: 130px; text-align: left; padding: 6px; height: 26px;
+                 vertical-align: middle;}
 .clients:hover { border: 1px solid #ccc;}
 .clientoptions { font-family: monospace; font-size: 12px; font-weight: bold;}
 .clientoptions td { text-align: right; }
