@@ -1,5 +1,17 @@
 div id="footer"
-  span Systemet kjører 
+  span Versjon 
   a href="https://github.com/digibib/mycel" Mycel 0.0.1-pre
   span .&nbsp;Send tilbakemeldinger til 
   a href="mailto:petter.goksoyr.asen@kul.oslo.kommune.no" Petter Goksøyr Åsen
+
+javascript:
+  function debug(str) {
+    $("#debug").append("<pre>" + str + "</pre>");
+  };
+
+  $(document).ready(function () {
+    if (!("WebSocket" in window)) {
+      debug('Nettleseren din støtter ikke websockets, og systemet derfor ikke kunne oppdateres i sanntid.\nDu vil allikevel kunne administrere klientene, men for best funksjonalitet bør du bruke en nyere nettleser.');
+      return;
+    };
+  });

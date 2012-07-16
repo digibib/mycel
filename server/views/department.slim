@@ -1,0 +1,28 @@
+== render :slim, :'_header'
+div class="main"
+  - if department.name == department.branch.name
+    h2 #{department.branch.name}
+  - else
+    h2 #{department.branch.name}: #{department.name}
+
+  h3 Lag gjestebruker
+  div class="divdot"
+    button[type='button' class='guest']  = "gjestebruker barn"
+    button[type='button' class='guest']  = "gjestebruker voksen"
+
+  h2 Klienter
+  - for client in department.clients
+    table class="clients available"
+      tr
+        td style="width:40px": img src="/img/pc_black.png" class="pc"
+        td: #{client.name} 
+        td ikke i bruk
+        td: button[type='button' class="instillinger"]  = "instillinger"
+      
+  h2 Lokale innstillinger
+  h3 Åpningstider
+  h3 Aldersbegrensninger
+  h3 Printer
+
+
+  == render :slim, :'_footer'
