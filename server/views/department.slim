@@ -5,11 +5,29 @@ div class="main"
   - else
     h2 #{department.branch.name}: #{department.name}
 
-  h3 Lag gjestebruker
-  div class="divdot"
-    button[type='button' class='guest']  = "gjestebruker barn"
-    button[type='button' class='guest']  = "gjestebruker voksen"
-
+  h3 Gjestebrukere
+  p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger der.
+  div class="divdot inputf"
+    button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+    table class="userform"
+      tr
+        td brukernavn
+        td: input[type="text" name="username"]
+        td passord
+        td: input[type="text" name="password"]
+      tr
+        td alder
+        td: select[name="age"]
+          |<option value="adult">voksen</option>
+          |<option value="child">barn</option>
+        td minutter
+        td: input[type="text" name="minutes" class="nr" id="userminutes"]
+      tr
+        td: button[type='button' id="usersave"]  = "Lagre bruker"
+        td: button[type='button' id="usercancel"]  = "Avbryt"
+        td 
+        
+    
   h2 Klienter
   - for client in department.clients
     table class="clients available"
@@ -17,12 +35,163 @@ div class="main"
         td style="width:40px": img src="/img/pc_black.png" class="pc"
         td: #{client.name} 
         td ikke i bruk
-        td: button[type='button' class="instillinger"]  = "instillinger"
-      
+        td
+        td: button[type='button' class="instillinger" id="optionsbutton"] = "instillinger"
+      tr class="clientoptions"
+        td style="width:40px"
+        td MAC-addresse
+        td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
+        td IP-addresse
+        td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
+      tr class="clientoptions"
+        td style="width:40px"
+        td navn
+        td: input[type="text" value="#{client.name}" disabled="disabled"] 
+        td
+        td
+
   h2 Lokale innstillinger
   h3 Åpningstider
-  h3 Aldersbegrensninger
-  h3 Printer
+  p Brukerne vil bli logget av X minutter før stengetid.
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td
+        td fra
+        td til
+        td stengt?
+        td
+        td fra
+        td til
+        td stengt?
+      tr
+        td mandag
+        td: input[type="text" name="monday_opens" id="monday_opens" class="hour"] -
+        td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="monday_closed"]
+        td fredag
+        td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] - 
+        td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="friday_closed"]
+      tr
+        td tirsdag
+        td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] - 
+        td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="tuesday_closed"]
+        td lørdag
+        td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] - 
+        td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="saturday_closed"]
+      tr
+        td onsdag
+        td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] - 
+        td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="wednsday_closed"]
+        td søndag
+        td: input[type="text" name="sunday_opens" id="sunday_opens" class="hour"] -
+        td: input[type="text" name="sunday_closes" id="sunday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="sunday_closed"]
+      tr
+        td torsdag
+        td: input[type="text" name="thursday_opens" id="thursday_opens" class="hour"] -
+        td: input[type="text" name="thursday_closes" id="thursday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="thursday_closed"]
+        td
+        td
+    div[class="hoursbuttons"]=
+    button[type='button' id="hoursrsave" class="gen"]  = "Lagre"
+    button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
 
+  h3 Aldersbegrensninger
+  p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe:
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td nedre aldergrense
+        td: input[type="text" name="age_lower" id="age_lower" class="nr"]
+        td øvre aldergrense
+        td: input[type="text" name="age_higher" id="age_higher" class="nr"]
+        td: button[type='button' id="agesave" ]  = "Lagre"
+        
+  h3 Printer
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td  printeradresse
+        td: input[type="text" name="printer" class="printer"]
+        td: button[type='button' id="printersave"]  = "Lagre"
+
+  script src="/js/jquery.meio.mask.min.js"
+  javascript:
+   
+    $(document).ready(function () {
+      $('table.userform').hide();
+      $(':button.instillinger').hide();
+      $('tr.clientoptions').hide();
+
+     $("button#optionsbutton").on("click", function() {
+        $s = $(this).parents("tr").siblings("tr.clientoptions")
+        $s.toggle();
+        if (($s).is(':visible')) {
+          $s.parents('table').addClass("options_open");
+        } else {
+          $s.parents('table').removeClass("options_open");
+        }
+        
+      }); 
+
+      $("button#adduser").on("click", function() {
+        $('table.userform').toggle();
+      }); 
+      $("button#usercancel").on("click", function() {
+        $('table.userform').hide();
+      });
+
+      // max 999 minutes allowed!
+      $('input#userminutes').setMask('999');
+
+      $('input#age_lower').setMask('99');
+      $('input#age_higher').setMask('99');
+
+
+      $("table.clients.available").hover(
+        function() {
+          $(this).find(":button").show()
+        },
+        function() {
+          $(this).find(":button").hide()
+          $('tr.clientoptions').hide();
+          $('table.options_open').removeClass('options_open');
+        }); 
+
+      $(':input.chk').change(function () {
+        if($(this).attr("checked"))
+        {
+          var id = $(this).attr("name").slice(0, -6);
+          $("#"+id+"opens").attr("disabled", "disabled");
+          $("#"+id+"closes").attr("disabled", "disabled");
+        } else {
+          var id = $(this).attr("name").slice(0, -6);
+          $("#"+id+"opens").removeAttr("disabled");
+          $("#"+id+"closes").removeAttr("disabled");
+        }
+      });
+
+      
+      $(':input.hour').setMask('29:59').keypress(function() {
+        var currentMask = $(this).data('mask').mask;
+        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
+        if (newMask != currentMask) {
+          $(this).setMask(newMask);
+        }
+        });
+
+      $('button#hoursclear').on('click', function () {
+        $(':input.hour').val('');
+        $(':input.hour').removeAttr("disabled");
+        $(':input.chk').removeAttr('checked');
+      });
+
+    });
 
   == render :slim, :'_footer'
