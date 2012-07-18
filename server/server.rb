@@ -8,6 +8,12 @@ require "cgi"
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
+class Persistense < Goliath::API
+  def response(env)
+    [200, {}, 'saved..']
+  end
+end
+
 class Server < Goliath::API
   include Goliath::Rack::Templates
   #use Goliath::Rack::Validation::RequestMethod, %w(GET)
@@ -22,6 +28,11 @@ class Server < Goliath::API
     # (not to elegant) URL-routing:
     # I will try to implement this in Grape, as soon as I find out how
     # to serve template views from Grape endpoints
+    if env['REQUEST_METHOD'] == 'POST'
+      puts "its a post!"
+      Persistense.new.call(env)
+    end
+
     path = CGI.unescape(env['PATH_INFO']).split('/')
     case path.length
     when 0    # matches /
