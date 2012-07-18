@@ -1,0 +1,24 @@
+== render :slim, :'_header'
+div class="main"
+  h2 Hva er dette?
+  p Mycel er et system under utvikling laget for å administrere Deichmans publikumsmaskiner.
+  p Denne siden er hovedsaklig for superbruker (IT-admin); klikk deg inn på filial- eller avdelingsnivå for å gjøre endringer og se systemet i aksjon.
+  p Hilsen Petter:)
+
+  h2 Filialer
+  p Følgende #{org.branches.size} filialer er underordnet organisasjonen #{org.name}:
+  - org.branches.each do |branch|
+      h3 #{branch.name}
+      table class="deptlist"
+        - branch.departments.each do |dept|
+          tr
+            td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
+            td 0 av #{dept.clients.size} klient#{'er' if dept.clients.size > 1} i bruk
+
+  h2 Globale innstillinger
+  p Følgende innstillinger vil gjelde på alle klienter, med mindre de overstyres på filial- eller avdelingsnivå:
+  pre ingen tilgang
+
+
+  == render :slim, :'_footer'
+

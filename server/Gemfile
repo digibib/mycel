@@ -2,5 +2,5 @@ source "http://rubygems.org"
 gem "goliath"
 gem "em-synchrony"
 gem "mysql2"
-gem "yajl-ruby"
+gem "slim"
 gem "clean_test", :require => false

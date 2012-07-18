@@ -1,0 +1,53 @@
+@import url("/css/normalize.css");
+
+body        { font-family: Arial; font-size:16px;}
+h2          { border-bottom: 1px solid #ccc;}
+h3          { margin-top: 26px;}
+pre         { background-color: #ef9384; border: 1px solid #c03019;
+              border-radius: 3px; font-size: 13px; line-height: 19px;
+              padding: 6px 10px;}
+a:link, a:visited { color: #5740e6; text-decoration: none }
+a:hover     { text-decoration: underline }
+div.main    { width: 800px; margin: auto; }
+div#header  { background-color: #888;}
+div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
+                font-family: monospace; font-size: 12px; padding:5px;}
+img.logo    { margin-top: 10px; margin-left:10px;}
+img.pc      { }
+
+span.info   { display: none; }
+span.error  { display: none; color: #c03019; font-weight: bold; }
+
+.inputmissing { background: yellow;}
+
+input       { width: 120px;}
+input.chk   { width: 20px;}
+input.nr    { width: 40px; margin-right:20px;}
+input.hour  { width: 40px; margin-right:8px;}
+input.printer { width: 160px; }
+div.inputf  { font-size:12px; font-family: monospace;}
+
+div.divdot    { border: 1px dotted #ccc; padding:14px; background-color: #f8f8f8;}
+button        { background-color: #e8e8e8; border: 1px solid #888; border-radius: 2px;
+                padding: 3px; color: #160b57; font-size: 12px; font-family: monospace;}
+button:active { background:#ddd; position:relative; top: 1px; }
+button.guest  { }
+button.gen    { margin-right:10px;}
+
+table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
+.deptlist td   { min-width: 160px; padding: 7px; background-color:#fff;}
+
+table.clients  { margin-left: 10px; font-size:14px; border:1px solid white; }
+.clients td    { width: 136px; text-align: left; padding: 4px; margin:0; height: 36px;
+                 vertical-align: middle;}
+.clients:hover { border: 1px solid #ccc;}
+.clientoptions { font-family: monospace; font-size: 12px; font-weight: bold;}
+.clientoptions td { text-align: right; }
+
+table.userform { margin-top: 20px }
+.userform td   { padding: 7px; font-weight: bold;}
+
+table.genform  {  }
+.genform td    { padding: 7px; font-weight: bold;}
+
+div.hoursbuttons { margin-top:20px;}

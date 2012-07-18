@@ -1,0 +1,286 @@
+== render :slim, :'_header'
+div class="main"
+  - if department.name == department.branch.name
+    h2 #{department.branch.name}
+  - else
+    h2 #{department.branch.name}: #{department.name}
+
+  h3 Gjestebrukere
+  p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger som skulle tilsi noe annet.
+  div class="divdot inputf"
+    button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+    form id="add_user_form"
+      table class="userform"
+        tr
+          td brukernavn
+          td: input[type="text" name="username" id="username"]
+          td passord
+          td: input[type="text" name="password" id="user_password"]
+        tr
+          td alder
+          td: select[name="age" id="user_age"]
+            |<option value="adult">voksen</option>
+            |<option value="child">barn</option>
+          td minutter
+          td: input[type="text" name="minutes" class="nr" id="userminutes"]
+        tr
+          td: button[type='button' id="usersave"]  = "Lagre bruker"
+          td: button[type='button' id="usercancel"]  = "Avbryt"
+          td 
+        
+    
+  h2 Klienter
+  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk. 
+  table class="clients occupied" id="dummyclient"
+    tr
+      td style="width:40px": img src="/img/pc_green.png" class="pc"
+      td dummyklient
+      td[colspan='2']Petter Goksøyr Åsen
+      td: button[type='button' id="user_throw_out" class="occupied_options"]  = "Kast ut!"
+    tr
+      td style="width:40px"
+      td
+      td[id="petter_minutes_left"] 32 min igjen
+      td[style="text-align:right"]
+        input[type="text" name="add_time" id="add_time" class="nr occupied_options"]
+      td: button[type='button' id="useraddtime" class="occupied_options"]  = "Gi mer tid"
+
+  - for client in department.clients
+    table class="clients available"
+      tr
+        td style="width:40px": img src="/img/pc_black.png" class="pc"
+        td: #{client.name} 
+        td Ikke i bruk
+        td
+        td: button[type='button' class="innstillinger" id="optionsbutton"] = "innstillinger"
+      tr class="clientoptions"
+        td style="width:40px"
+        td MAC-addresse
+        td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
+        td IP-addresse
+        td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
+      tr class="clientoptions"
+        td style="width:40px"
+        td navn
+        td: input[type="text" value="#{client.name}" disabled="disabled"] 
+        td korttidsmaskin (ingen pålogging)
+        td[style="text-align:center"]: input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
+
+  h2 Lokale innstillinger
+  p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
+  h3 Åpningstider
+  p Brukerne vil bli logget av X minutter før stengetid.
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td
+        td fra
+        td til
+        td stengt?
+        td
+        td fra
+        td til
+        td stengt?
+      tr
+        td mandag
+        td: input[type="text" name="monday_opens" id="monday_opens" class="hour"] -
+        td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="monday_closed"]
+        td fredag
+        td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] - 
+        td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="friday_closed"]
+      tr
+        td tirsdag
+        td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] - 
+        td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="tuesday_closed"]
+        td lørdag
+        td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] - 
+        td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="saturday_closed"]
+      tr
+        td onsdag
+        td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] - 
+        td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="wednsday_closed"]
+        td søndag
+        td: input[type="text" name="sunday_opens" id="sunday_opens" class="hour"] -
+        td: input[type="text" name="sunday_closes" id="sunday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="sunday_closed"]
+      tr
+        td torsdag
+        td: input[type="text" name="thursday_opens" id="thursday_opens" class="hour"] -
+        td: input[type="text" name="thursday_closes" id="thursday_closes" class="hour"]
+        td: input[type="checkbox" class="chk" name="thursday_closed"]
+        td
+        td
+    div[class="hoursbuttons"]=
+    button[type='button' id="hoursrsave" class="gen"]  = "Lagre"
+    button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
+
+  h3 Aldersbegrensninger
+  p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td nedre aldergrense
+        td: input[type="text" name="age_lower" id="age_lower" class="nr"]
+        td øvre aldergrense
+        td: input[type="text" name="age_higher" id="age_higher" class="nr"]
+        td: button[type='button' id="agesave" ]  = "Lagre"
+
+  
+  h3 Tidsbegrensninger
+  p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td minutter per dag
+        td: input[type="text" name="minutes_limit" id="minutes_limit" class="nr"]
+        td fri bruk?
+        td: input[type="checkbox" name="minutes_unlimited" id="minutes_unlimited"]
+        td: button[type='button' id="use_save"]  = "Lagre"
+
+  h3 Printer
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td  printeradresse
+        td: input[type="text" name="printer" class="printer"]
+        td: button[type='button' id="printersave"]  = "Lagre"
+
+  script src="/js/jquery.meio.mask.min.js"
+  javascript:
+   
+    $(document).ready(function () {
+      $('table.userform').hide();
+      $(':button.innstillinger').hide();
+      $('.occupied_options').hide();
+      $('tr.clientoptions').hide();
+
+     $("button#optionsbutton").on("click", function() {
+        $s = $(this).parents("tr").siblings("tr.clientoptions")
+        $s.toggle();
+        if (($s).is(':visible')) {
+          $s.parents('table').addClass("options_open");
+        } else {
+          $s.parents('table').removeClass("options_open");
+        }
+        
+      }); 
+
+      $("button#adduser").on("click", function() {
+        $('table.userform').toggle();
+      }); 
+      $("button#usercancel").on("click", function() {
+        $('table.userform').hide();
+      });
+
+      // max 999 minutes allowed!
+      $('input#userminutes').setMask('999');
+
+      $('input#age_lower').setMask('99');
+      $('input#age_higher').setMask('99');
+      $('input#minutes_limit').setMask('999');
+      $('input#add_time').setMask('999');
+
+
+      $("table.clients.available").hover(
+        function() {
+          $(this).find(":button").show()
+        },
+        function() {
+          $(this).find(":button").hide()
+          $('tr.clientoptions').hide();
+          $('table.options_open').removeClass('options_open');
+        }); 
+
+      $(':input.chk').change(function () {
+        if($(this).attr("checked"))
+        {
+          var id = $(this).attr("name").slice(0, -6);
+          $("#"+id+"opens").attr("disabled", "disabled");
+          $("#"+id+"closes").attr("disabled", "disabled");
+        } else {
+          var id = $(this).attr("name").slice(0, -6);
+          $("#"+id+"opens").removeAttr("disabled");
+          $("#"+id+"closes").removeAttr("disabled");
+        }
+      });
+
+      
+      $(':input.hour').setMask('29:59').keypress(function() {
+        var currentMask = $(this).data('mask').mask;
+        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
+        if (newMask != currentMask) {
+          $(this).setMask(newMask);
+        }
+        });
+
+      $('button#hoursclear').on('click', function () {
+        $(':input.hour').val('');
+        $(':input.hour').removeAttr("disabled");
+        $(':input.chk').removeAttr('checked');
+      });
+
+      $('button#user_throw_out').on('click', function () {
+        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
+      });
+
+      $("table.clients.occupied").hover(
+        function() {
+          $(this).find(":button").show();
+          $(this).find(":input").show();
+        },
+        function() {
+          $(this).find(":button").hide();
+          $(this).find(":input").removeClass('inputmissing').hide();
+        });
+
+      $('input#minutes_unlimited').change(function () {
+        if($(this).attr("checked"))
+        {
+          $('input#minutes_limit').attr("disabled", "disabled");
+        } else {
+          $('input#minutes_limit').removeAttr("disabled");
+        }
+      });
+
+      $('button#useraddtime').on('click', function () {
+        if ($('input#add_time').val() == ''){
+          $('input#add_time').addClass('inputmissing');
+          return;
+        }
+        var min1 = parseInt($('input#add_time').val());
+        var min2 = parseInt($('td#petter_minutes_left').html());
+        min = min1+min2;
+        $('td#petter_minutes_left').html(min+' min igjen');
+        $('input#add_time').val('');
+      });
+
+      $('button#usersave').on('click', function () {
+        var request = $.ajax({
+          url: '/usersave',
+          type: 'POST',
+          data: {username: $('input#username').val()}
+          });
+        
+        request.done(function(msg) {
+          console.log(msg);
+        });
+        
+        request.fail(function(jqXHR, textStatus) {
+          console.log("Request failed: " + textStatus);
+        })
+      });
+
+      $(':input').focus(function () {
+        if ($(this).hasClass('inputmissing')) {
+          $(this).removeClass('inputmissing');
+        }
+      })
+
+    });
+
+  == render :slim, :'_footer'
