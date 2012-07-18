@@ -2,6 +2,7 @@
 
 body        { font-family: Arial; font-size:16px;}
 h2          { border-bottom: 1px solid #ccc;}
+h3          { margin-top: 26px;}
 pre         { background-color: #ef9384; border: 1px solid #c03019;
               border-radius: 3px; font-size: 13px; line-height: 19px;
               padding: 6px 10px;}
@@ -13,6 +14,11 @@ div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
                 font-family: monospace; font-size: 12px; padding:5px;}
 img.logo    { margin-top: 10px; margin-left:10px;}
 img.pc      { }
+
+span.info   { display: none; }
+span.error  { display: none; color: #c03019; font-weight: bold; }
+
+.inputmissing { background: yellow;}
 
 input       { width: 120px;}
 input.chk   { width: 20px;}
@@ -32,7 +38,7 @@ table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
 .deptlist td   { min-width: 160px; padding: 7px; background-color:#fff;}
 
 table.clients  { margin-left: 10px; font-size:14px; border:1px solid white; }
-.clients td    { width: 130px; text-align: left; padding: 6px; height: 26px;
+.clients td    { width: 136px; text-align: left; padding: 4px; margin:0; height: 36px;
                  vertical-align: middle;}
 .clients:hover { border: 1px solid #ccc;}
 .clientoptions { font-family: monospace; font-size: 12px; font-weight: bold;}

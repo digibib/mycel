@@ -9,26 +9,28 @@ div class="main"
   p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger som skulle tilsi noe annet.
   div class="divdot inputf"
     button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
-    table class="userform"
-      tr
-        td brukernavn
-        td: input[type="text" name="username"]
-        td passord
-        td: input[type="text" name="password"]
-      tr
-        td alder
-        td: select[name="age"]
-          |<option value="adult">voksen</option>
-          |<option value="child">barn</option>
-        td minutter
-        td: input[type="text" name="minutes" class="nr" id="userminutes"]
-      tr
-        td: button[type='button' id="usersave"]  = "Lagre bruker"
-        td: button[type='button' id="usercancel"]  = "Avbryt"
-        td 
+    form id="add_user_form"
+      table class="userform"
+        tr
+          td brukernavn
+          td: input[type="text" name="username" id="username"]
+          td passord
+          td: input[type="text" name="password" id="user_password"]
+        tr
+          td alder
+          td: select[name="age" id="user_age"]
+            |<option value="adult">voksen</option>
+            |<option value="child">barn</option>
+          td minutter
+          td: input[type="text" name="minutes" class="nr" id="userminutes"]
+        tr
+          td: button[type='button' id="usersave"]  = "Lagre bruker"
+          td: button[type='button' id="usercancel"]  = "Avbryt"
+          td 
         
     
   h2 Klienter
+  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk. 
   table class="clients occupied" id="dummyclient"
     tr
       td style="width:40px": img src="/img/pc_green.png" class="pc"
@@ -61,10 +63,11 @@ div class="main"
         td style="width:40px"
         td navn
         td: input[type="text" value="#{client.name}" disabled="disabled"] 
-        td
-        td
+        td korttidsmaskin (ingen pålogging)
+        td[style="text-align:center"]: input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
 
   h2 Lokale innstillinger
+  p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
   h3 Åpningstider
   p Brukerne vil bli logget av X minutter før stengetid.
   div class="divdot inputf"
@@ -232,7 +235,7 @@ div class="main"
         },
         function() {
           $(this).find(":button").hide();
-          $(this).find(":input").hide();
+          $(this).find(":input").removeClass('inputmissing').hide();
         });
 
       $('input#minutes_unlimited').change(function () {
@@ -245,15 +248,38 @@ div class="main"
       });
 
       $('button#useraddtime').on('click', function () {
-        min1 = parseInt($('input#add_time').val());
-        if (isNaN(min1)) {
+        if ($('input#add_time').val() == ''){
+          $('input#add_time').addClass('inputmissing');
           return;
         }
-        min2 = parseInt($('td#petter_minutes_left').html());
+        var min1 = parseInt($('input#add_time').val());
+        var min2 = parseInt($('td#petter_minutes_left').html());
         min = min1+min2;
         $('td#petter_minutes_left').html(min+' min igjen');
         $('input#add_time').val('');
       });
+
+      $('button#usersave').on('click', function () {
+        var request = $.ajax({
+          url: '/usersave',
+          type: 'POST',
+          data: {username: $('input#username').val()}
+          });
+        
+        request.done(function(msg) {
+          console.log(msg);
+        });
+        
+        request.fail(function(jqXHR, textStatus) {
+          console.log("Request failed: " + textStatus);
+        })
+      });
+
+      $(':input').focus(function () {
+        if ($(this).hasClass('inputmissing')) {
+          $(this).removeClass('inputmissing');
+        }
+      })
 
     });
 
