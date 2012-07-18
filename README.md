@@ -11,14 +11,17 @@ The system is quite easy to set up. Both server and client is written in Ruby.
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
 
 The client is written in Ruby, so obviously you should have Ruby installed. Development is done on version 1.9.3. Simply run bundle install and the client should be good to go. You may have to install some development headers in order to compile the gtk2-gem. On Debian-based systems you can try
-  ```sudo apt-get install libgtk2.0-dev```
+
+```sudo apt-get install libgtk2.0-dev```
 
 Also development libraries for mysql client is needed for server
-  ```sudo apt-get install libmysqlclient-dev```
+
+```sudo apt-get install libmysqlclient-dev```
     
 ### Server
 The server is written using the asynchronous web server framework [Goliath]. It provides its own server. To get it up running, simply do a bundle install and, start the server using:
-    ruby mycel.rb -e production
+
+```ruby server.rb -e production```
 
 Goliath is not tied to any particular Ruby, but recommended is MRI Ruby 1.9.3.
 
