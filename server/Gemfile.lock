@@ -1,8 +1,21 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    activemodel (3.2.6)
+      activesupport (= 3.2.6)
+      builder (~> 3.0.0)
+    activerecord (3.2.6)
+      activemodel (= 3.2.6)
+      activesupport (= 3.2.6)
+      arel (~> 3.0.2)
+      tzinfo (~> 0.3.29)
+    activesupport (3.2.6)
+      i18n (~> 0.6)
+      multi_json (~> 1.0)
+    arel (3.0.2)
     async-rack (0.5.1)
       rack (~> 1.1)
+    builder (3.0.0)
     clean_test (1.0.0)
       faker
     em-synchrony (1.0.2)
@@ -21,13 +34,6 @@ GEM
       rack (>= 1.2.2)
       rack-contrib
       rack-respond_to
-    grape (0.2.1)
-      hashie (~> 1.2)
-      multi_json
-      multi_xml
-      rack
-      rack-mount
-    hashie (1.2.0)
     http_parser.rb (0.5.3)
     http_router (0.9.7)
       rack (>= 1.0.0)
@@ -35,21 +41,20 @@ GEM
     i18n (0.6.0)
     log4r (1.1.10)
     multi_json (1.3.6)
-    multi_xml (0.5.1)
     mysql2 (0.3.11)
     rack (1.4.1)
     rack-accept-media-types (0.9)
     rack-contrib (1.1.0)
       rack (>= 0.9.1)
-    rack-mount (0.8.3)
-      rack (>= 1.0.0)
     rack-respond_to (0.9.8)
       rack-accept-media-types (>= 0.6)
     slim (1.2.2)
       temple (~> 0.4.0)
       tilt (~> 1.3.3)
+    sqlite3 (1.3.6)
     temple (0.4.0)
     tilt (1.3.3)
+    tzinfo (0.3.33)
     url_mount (0.2.1)
       rack
 
@@ -57,9 +62,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activerecord
   clean_test
   em-synchrony
   goliath
-  grape
   mysql2
   slim
+  sqlite3

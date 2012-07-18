@@ -1,4 +1,6 @@
 source "http://rubygems.org"
+gem "activerecord"
+gem "sqlite3"
 gem "goliath"
 gem "em-synchrony"
 gem "mysql2"

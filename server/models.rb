@@ -46,7 +46,7 @@ class Department < ActiveRecord::Base
   end
 
   def printer_addr
-    read_attribute(:printer_add) || Branch.find(self.branch_id).printer_addr
+    read_attribute(:printer_addr) || Branch.find(self.branch_id).printer_addr
   end
 
 end
@@ -61,7 +61,7 @@ class Client < ActiveRecord::Base
   end
 
   def printer_addr
-    read_attribute(:printer_add) || Department.find(self.department_id).printer_addr
+    read_attribute(:printer_addr) || Department.find(self.department_id).printer_addr
   end
 
 end

@@ -2,7 +2,7 @@ require "em-synchrony/activerecord"
 require "goliath"
 require 'goliath/rack/templates'
 require "slim"
-require "./models"
+require_relative "./models"
 require "cgi"
 
 dbconfig = YAML::load(File.open("config/database.yml"))
