@@ -8,15 +8,28 @@ require "cgi"
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
-class Persistense < Goliath::API
+class SaveUser < Goliath::API
+  use Goliath::Rack::Validation::RequestMethod, %w(POST)
+  use Goliath::Rack::Validation::RequiredParam, {:key => 'password'} 
+
   def response(env)
-    [200, {}, 'saved..']
+    puts params.to_s
+    [200, {}, 'user saved']
+  end
+end
+
+class Persistense < Goliath::API
+ 
+  def response(env)
+    SaveUser.new.call(env)
+    #[200, {}, 'saved..']
   end
 end
 
 class Server < Goliath::API
-  include Goliath::Rack::Templates
-  #use Goliath::Rack::Validation::RequestMethod, %w(GET)
+  use Goliath::Rack::Params          # parse & merge query and body parameters
+  include Goliath::Rack::Templates   # serve templates from /views
+  
   use(Rack::Static,
       :root => Goliath::Application.app_path('public'),
       :urls => ['/favicon.ico', '/css', '/js', '/img'])
