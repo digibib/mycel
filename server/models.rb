@@ -55,6 +55,7 @@ class Client < ActiveRecord::Base
   belongs_to :department
 
   validates_presence_of :name, :hwaddr
+  has_one :user
 
   def homepage
     read_attribute(:homepage) || Department.find(self.department_id).homepage
@@ -68,6 +69,10 @@ end
 
 class OpeningHours < ActiveRecord::Base
   belongs_to :owner_hours, :polymorphic => true
+end
+
+class User < ActiveRecord::Base
+  validates_presence_of :username, :password, :age, :minutes
 end
 
 class Admin < ActiveRecord::Base

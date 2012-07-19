@@ -9,20 +9,33 @@ dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
 class SaveUser < Goliath::API
-  use Goliath::Rack::Validation::RequestMethod, %w(POST)
-  use Goliath::Rack::Validation::RequiredParam, {:key => 'password'} 
+
+  def response(env)
+    puts params.to_s
+    puts params['username']
+    puts params['password']
+    puts params['age']
+    puts params['minutes']
+
+    if params['age'] == 'adult'
+      age = 20
+    else
+      age = 10
+    end
+    
+    newuser = User.create(:name => params['username'], :password => params['password'],
+      :age => age, :minutes => params['minutes'])
+
+    [200, {}, 'Brukeren #{newuser.name} lagret.']
+  end
+end
+
+
+class SaveClientOptions < Goliath::API
 
   def response(env)
     puts params.to_s
     [200, {}, 'user saved']
-  end
-end
-
-class Persistense < Goliath::API
- 
-  def response(env)
-    SaveUser.new.call(env)
-    #[200, {}, 'saved..']
   end
 end
 
@@ -43,7 +56,14 @@ class Server < Goliath::API
     # to serve template views from Grape endpoints
     if env['REQUEST_METHOD'] == 'POST'
       puts "its a post!"
-      Persistense.new.call(env)
+      case env['PATH_INFO']
+      when '/saveuser'
+        SaveUser.new.call(env)
+      when '/saveclientoptions'
+        SaveClientOptions.new.call(env)
+      else
+        raise Goliath::Validation::BadRequestError
+      end      
     end
 
     path = CGI.unescape(env['PATH_INFO']).split('/')

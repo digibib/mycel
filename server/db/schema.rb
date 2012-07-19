@@ -69,4 +69,12 @@ ActiveRecord::Schema.define do
     t.string :password, :null => false
     t.string :email
   end
+
+  create_table :users, :force => true do |t|
+    t.string :username, :null => false
+    t.string :password
+    t.integer :minutes
+    t.integer :ageend
+  end
+  
 end

@@ -13,20 +13,23 @@ div class="main"
       table class="userform"
         tr
           td brukernavn
-          td: input[type="text" name="username" id="username"]
+          td: input[type="text" id="username" class="required"]
           td passord
-          td: input[type="text" name="password" id="user_password"]
+          td: input[type="text" id="user_password" class="required"]
         tr
           td alder
           td: select[name="age" id="user_age"]
             |<option value="adult">voksen</option>
             |<option value="child">barn</option>
           td minutter
-          td: input[type="text" name="minutes" class="nr" id="userminutes"]
+          td: input[type="text" class="nr required" id="user_minutes"]
         tr
           td: button[type='button' id="usersave"]  = "Lagre bruker"
           td: button[type='button' id="usercancel"]  = "Avbryt"
-          td 
+          td
+          td[id="user_form_response"]
+            span[class='info']
+            span[class='error']
         
     
   h2 Klienter
@@ -71,51 +74,52 @@ div class="main"
   h3 Åpningstider
   p Brukerne vil bli logget av X minutter før stengetid.
   div class="divdot inputf"
-    table class="genform"
-      tr
-        td
-        td fra
-        td til
-        td stengt?
-        td
-        td fra
-        td til
-        td stengt?
-      tr
-        td mandag
-        td: input[type="text" name="monday_opens" id="monday_opens" class="hour"] -
-        td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="monday_closed"]
-        td fredag
-        td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] - 
-        td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="friday_closed"]
-      tr
-        td tirsdag
-        td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] - 
-        td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="tuesday_closed"]
-        td lørdag
-        td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] - 
-        td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="saturday_closed"]
-      tr
-        td onsdag
-        td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] - 
-        td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="wednsday_closed"]
-        td søndag
-        td: input[type="text" name="sunday_opens" id="sunday_opens" class="hour"] -
-        td: input[type="text" name="sunday_closes" id="sunday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="sunday_closed"]
-      tr
-        td torsdag
-        td: input[type="text" name="thursday_opens" id="thursday_opens" class="hour"] -
-        td: input[type="text" name="thursday_closes" id="thursday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="thursday_closed"]
-        td
-        td
-    div[class="hoursbuttons"]=
+    form id="add_hours_form"
+      table class="genform"
+        tr
+          td
+          td fra
+          td til
+          td stengt?
+          td
+          td fra
+          td til
+          td stengt?
+        tr
+          td mandag
+          td: input[type="text" name="monday_opens" id="monday_opens" class="hour"] -
+          td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="monday_closed"]
+          td fredag
+          td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] - 
+          td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="friday_closed"]
+        tr
+          td tirsdag
+          td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] - 
+          td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="tuesday_closed"]
+          td lørdag
+          td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] - 
+          td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="saturday_closed"]
+        tr
+          td onsdag
+          td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] - 
+          td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="wednsday_closed"]
+          td søndag
+          td: input[type="text" name="sunday_opens" id="sunday_opens" class="hour"] -
+          td: input[type="text" name="sunday_closes" id="sunday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="sunday_closed"]
+        tr
+          td torsdag
+          td: input[type="text" name="thursday_opens" id="thursday_opens" class="hour"] -
+          td: input[type="text" name="thursday_closes" id="thursday_closes" class="hour"]
+          td: input[type="checkbox" class="chk" name="thursday_closed"]
+          td
+          td
+      div[class="hoursbuttons"]=
     button[type='button' id="hoursrsave" class="gen"]  = "Lagre"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
 
@@ -154,6 +158,7 @@ div class="main"
   javascript:
    
     $(document).ready(function () {
+      // TODO make theese hidden by default (CSS display: none) 
       $('table.userform').hide();
       $(':button.innstillinger').hide();
       $('.occupied_options').hide();
@@ -178,7 +183,7 @@ div class="main"
       });
 
       // max 999 minutes allowed!
-      $('input#userminutes').setMask('999');
+      $('input#user_minutes').setMask('999');
 
       $('input#age_lower').setMask('99');
       $('input#age_higher').setMask('99');
@@ -219,6 +224,7 @@ div class="main"
         });
 
       $('button#hoursclear').on('click', function () {
+        $('#add_hours_form')[0].reset();
         $(':input.hour').val('');
         $(':input.hour').removeAttr("disabled");
         $(':input.chk').removeAttr('checked');
@@ -260,18 +266,34 @@ div class="main"
       });
 
       $('button#usersave').on('click', function () {
+        var missing = 0;
+        $('#add_user_form').find('input.required').each(function() {
+          if ($(this).val() == '' ) {
+            $(this).addClass('inputmissing');
+            missing = 1;
+          }
+        });
+
+        if (missing) { return; }
+
         var request = $.ajax({
-          url: '/usersave',
+          url: '/saveuser',
           type: 'POST',
-          data: {username: $('input#username').val()}
+          data: {username: $('input#username').val(),
+                 password: $('input#user_password').val(),
+                 age: $('select#user_age').val(),
+                 minutes: $('input#user_minutes').val()}
           });
         
         request.done(function(msg) {
-          console.log(msg);
+          $('td#user_form_response').find('span.info').html("Suksess! Brukeren er lagret.")
+            .show().fadeOut(10000);
+          $('#add_user_form')[0].reset();
         });
         
-        request.fail(function(jqXHR, textStatus) {
-          console.log("Request failed: " + textStatus);
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('td#user_form_response').find('span.error')
+            .html("En feil oppstod. Brukeren ble ikke lagret.").show().fadeOut(10000);
         })
       });
 
