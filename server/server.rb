@@ -22,7 +22,7 @@ class SaveUser < Goliath::API
     else
       age = 10
     end
-    
+
     newuser = User.create(:name => params['username'], :password => params['password'],
       :age => age, :minutes => params['minutes'])
 
@@ -42,7 +42,7 @@ end
 class Server < Goliath::API
   use Goliath::Rack::Params          # parse & merge query and body parameters
   include Goliath::Rack::Templates   # serve templates from /views
-  
+
   use(Rack::Static,
       :root => Goliath::Application.app_path('public'),
       :urls => ['/favicon.ico', '/css', '/js', '/img'])
@@ -63,7 +63,7 @@ class Server < Goliath::API
         SaveClientOptions.new.call(env)
       else
         raise Goliath::Validation::BadRequestError
-      end      
+      end
     end
 
     path = CGI.unescape(env['PATH_INFO']).split('/')
@@ -93,5 +93,5 @@ class Server < Goliath::API
     else      # matches everything else
       raise Goliath::Validation::NotFoundError
     end
-  end    
+  end
 end

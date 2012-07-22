@@ -2,7 +2,7 @@ require "em-synchrony/activerecord"
 
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
-  
+
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
   has_one :opening_hours, :as => :owner_hours
@@ -72,7 +72,18 @@ class OpeningHours < ActiveRecord::Base
 end
 
 class User < ActiveRecord::Base
-  validates_presence_of :username, :password, :age, :minutes
+  validates_presence_of  :minutes
+end
+
+class LibraryUser < User
+  validates_presence_of :username, :age
+end
+
+class GuestUser < User
+  validates_presence_of :username, :password, :age
+end
+
+class AnonymousUser < User
 end
 
 class Admin < ActiveRecord::Base

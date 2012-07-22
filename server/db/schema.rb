@@ -71,10 +71,11 @@ ActiveRecord::Schema.define do
   end
 
   create_table :users, :force => true do |t|
-    t.string :username, :null => false
+    t.string :username
     t.string :password
     t.integer :minutes
-    t.integer :ageend
+    t.integer :age
+    t.string :type
   end
-  
+
 end
