@@ -15,7 +15,7 @@ class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
   has_many :admins
-  has_one :opening_hours, :as => :owner_hours
+  has_one :opening_hours, :as => :owner_hours, :dependent => :destroy
 
   validates_presence_of :name
 
@@ -33,7 +33,7 @@ class Department < ActiveRecord::Base
   belongs_to :branch
   has_many :clients, :dependent => :destroy
   has_many :admins
-  has_one :opening_hours, :as => :owner_hours
+  has_one :opening_hours, :as => :owner_hours, :dependent => :destroy
 
   validates_presence_of :name
 
@@ -46,7 +46,7 @@ class Department < ActiveRecord::Base
   end
 
   def printer_addr
-    read_attribute(:printer_add) || Branch.find(self.branch_id).printer_addr
+    read_attribute(:printer_addr) || Branch.find(self.branch_id).printer_addr
   end
 
 end
@@ -62,7 +62,7 @@ class Client < ActiveRecord::Base
   end
 
   def printer_addr
-    read_attribute(:printer_add) || Department.find(self.department_id).printer_addr
+    read_attribute(:printer_addr) || Department.find(self.department_id).printer_addr
   end
 
 end
