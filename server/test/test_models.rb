@@ -38,3 +38,17 @@ describe "Users" do
   end
 
 end
+
+describe "Users", "Validation" do
+  include Clean::Test::Any
+
+  it "must have an unique username, if not anonymous" do
+    @guest_user1 = GuestUser.create :minutes => any_int, :username => 'guest',
+                                    :password => any_string, :age => any_int
+    @guest_user2 = GuestUser.new :minutes => any_int, :username => 'guest',
+                                    :password => any_string, :age => any_int
+    refute @guest_user2.valid?
+  end
+end
+
+

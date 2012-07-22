@@ -77,10 +77,12 @@ end
 
 class LibraryUser < User
   validates_presence_of :username, :age
+  validates :username, :uniqueness => true
 end
 
 class GuestUser < User
   validates_presence_of :username, :password, :age
+  validates :username, :uniqueness => true
 end
 
 class AnonymousUser < User
