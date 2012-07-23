@@ -76,6 +76,7 @@ ActiveRecord::Schema.define do
     t.integer :minutes
     t.integer :age
     t.string :type
+    t.timestamps
   end
 
 end

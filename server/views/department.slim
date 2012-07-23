@@ -30,10 +30,10 @@ div class="main"
           td[id="user_form_response"]
             span[class='info']
             span[class='error']
-        
-    
+
+
   h2 Klienter
-  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk. 
+  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk.
   table class="clients occupied" id="dummyclient"
     tr
       td style="width:40px": img src="/img/pc_green.png" class="pc"
@@ -52,7 +52,7 @@ div class="main"
     table class="clients available"
       tr
         td style="width:40px": img src="/img/pc_black.png" class="pc"
-        td: #{client.name} 
+        td: #{client.name}
         td Ikke i bruk
         td
         td: button[type='button' class="innstillinger" id="optionsbutton"] = "innstillinger"
@@ -65,7 +65,7 @@ div class="main"
       tr class="clientoptions"
         td style="width:40px"
         td navn
-        td: input[type="text" value="#{client.name}" disabled="disabled"] 
+        td: input[type="text" value="#{client.name}" disabled="disabled"]
         td korttidsmaskin (ingen pålogging)
         td[style="text-align:center"]: input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
 
@@ -91,21 +91,21 @@ div class="main"
           td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
           td: input[type="checkbox" class="chk" name="monday_closed"]
           td fredag
-          td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] - 
+          td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] -
           td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
           td: input[type="checkbox" class="chk" name="friday_closed"]
         tr
           td tirsdag
-          td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] - 
+          td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] -
           td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
           td: input[type="checkbox" class="chk" name="tuesday_closed"]
           td lørdag
-          td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] - 
+          td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] -
           td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
           td: input[type="checkbox" class="chk" name="saturday_closed"]
         tr
           td onsdag
-          td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] - 
+          td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] -
           td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
           td: input[type="checkbox" class="chk" name="wednsday_closed"]
           td søndag
@@ -134,7 +134,7 @@ div class="main"
         td: input[type="text" name="age_higher" id="age_higher" class="nr"]
         td: button[type='button' id="agesave" ]  = "Lagre"
 
-  
+
   h3 Tidsbegrensninger
   p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
   div class="divdot inputf"
@@ -156,9 +156,9 @@ div class="main"
 
   script src="/js/jquery.meio.mask.min.js"
   javascript:
-   
+
     $(document).ready(function () {
-      // TODO make theese hidden by default (CSS display: none) 
+      // TODO make theese hidden by default (CSS display: none)
       $('table.userform').hide();
       $(':button.innstillinger').hide();
       $('.occupied_options').hide();
@@ -172,12 +172,12 @@ div class="main"
         } else {
           $s.parents('table').removeClass("options_open");
         }
-        
-      }); 
+
+      });
 
       $("button#adduser").on("click", function() {
         $('table.userform').toggle();
-      }); 
+      });
       $("button#usercancel").on("click", function() {
         $('table.userform').hide();
       });
@@ -199,7 +199,7 @@ div class="main"
           $(this).find(":button").hide()
           $('tr.clientoptions').hide();
           $('table.options_open').removeClass('options_open');
-        }); 
+        });
 
       $(':input.chk').change(function () {
         if($(this).attr("checked"))
@@ -214,7 +214,7 @@ div class="main"
         }
       });
 
-      
+
       $(':input.hour').setMask('29:59').keypress(function() {
         var currentMask = $(this).data('mask').mask;
         var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
@@ -284,16 +284,19 @@ div class="main"
                  age: $('select#user_age').val(),
                  minutes: $('input#user_minutes').val()}
           });
-        
+
         request.done(function(msg) {
-          $('td#user_form_response').find('span.info').html("Suksess! Brukeren er lagret.")
+          $('td#user_form_response').find('span.error').html(''); // clear error message if any
+          $('td#user_form_response').find('span.info').html(msg)
             .show().fadeOut(10000);
           $('#add_user_form')[0].reset();
         });
-        
+
         request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('td#user_form_response').find('span.info').html(''); // clear info message if any
           $('td#user_form_response').find('span.error')
-            .html("En feil oppstod. Brukeren ble ikke lagret.").show().fadeOut(10000);
+            .html(jqXHR.responseText).show().fadeOut(10000);
+            console.log(jqXHR);
         })
       });
 

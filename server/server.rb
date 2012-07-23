@@ -12,21 +12,22 @@ class SaveUser < Goliath::API
 
   def response(env)
     puts params.to_s
-    puts params['username']
-    puts params['password']
-    puts params['age']
-    puts params['minutes']
 
     if params['age'] == 'adult'
       age = 20
     else
       age = 10
     end
-
-    newuser = User.create(:name => params['username'], :password => params['password'],
-      :age => age, :minutes => params['minutes'])
-
-    [200, {}, 'Brukeren #{newuser.name} lagret.']
+    begin
+      guest = GuestUser.create!(:username => params['username'], :password => params['password'],
+        :age => age, :minutes => params['minutes'])
+      [200, {}, 'Brukeren "' + guest.username + '" er opprettet.']
+    rescue ActiveRecord::RecordInvalid
+      [400, {}, 'Brukeren "' + params['username'] + '" finnes allerede. Velg et annet brukernavn']
+    rescue Exception => e
+      puts e.class # TODO log this!
+      [500, {}, 'Noe gikk galt. Brukeren ble ikke lagret.']
+    end
   end
 end
 
