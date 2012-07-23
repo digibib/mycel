@@ -114,3 +114,10 @@ branches:
             name: rommenklient3
             HWaddr: 00:00:00:00:00:0c
             IPaddr: 192.168.200.z
+screenres:
+  - auto
+  - 1440x900
+  - 1366x768
+  - 1280x1024
+  - 1200x800
+  - 1025x768

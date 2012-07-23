@@ -32,8 +32,11 @@ namespace :db do
                          :hwaddr => client['HWaddr'])
           d.clients << c
         end
-      end  
-    end     
+      end
+    end
+
+    seed['screenres'].each { |res| ScreenResolution.create(:resolution => res) }
+
   end
 end
 

@@ -91,3 +91,7 @@ end
 class Admin < ActiveRecord::Base
   validates_presence_of :username, :password
 end
+
+class ScreenResolution < ActiveRecord::Base
+  validates_presence_of :resolution
+end

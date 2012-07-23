@@ -76,7 +76,12 @@ ActiveRecord::Schema.define do
     t.integer :minutes
     t.integer :age
     t.string :type
+
+    t.integer :scree_resolution_id
     t.timestamps
   end
 
+  create_table :screen_resolutions, :force => true do |t|
+    t.string :resolution
+  end
 end
