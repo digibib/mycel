@@ -182,11 +182,6 @@ div class="main"
     }
 
     $(document).ready(function () {
-      // TODO make theese hidden by default (CSS display: none)
-      $('table.userform').hide();
-      $(':button.innstillinger').hide();
-      $('.occupied_options').hide();
-      $('tr.clientoptions').hide();
 
      $("button#optionsbutton").on("click", function() {
         $s = $(this).parents("tr").siblings("tr.clientoptions")
