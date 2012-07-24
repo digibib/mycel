@@ -176,6 +176,7 @@ div class="main"
 
   script src="/js/jquery.meio.mask.min.js"
   javascript:
+    // TODO change all # dublicates to .class
     $.fn.exists = function () {
       return this.length != 0;
     }
@@ -336,13 +337,14 @@ div class="main"
       });
 
       $('button#clientsave').on('click', function () {
+        var $s = $(this).parents('table');
         var request = $.ajax({
           url: '/saveclientoptions',
           type: 'POST',
           data: {
-                client_id: $(this).parents('table').attr('id').slice(10),
-                screenres: $(this).parents('table').find('#client_screen_res option:selected').val(),
-                shorttime: $('input#shorttimemachine:checked').val()
+                client_id: $s.attr('id').slice(10),
+                screenres: $s.find('#client_screen_res option:selected').val(),
+                shorttime: $s.find('input#shorttimemachine:checked').val()
                 },
           dataType: "html"
         });
