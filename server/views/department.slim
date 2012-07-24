@@ -177,114 +177,38 @@ div class="main"
   script src="/js/jquery.meio.mask.min.js"
   javascript:
     // TODO change all # dublicates to .class
+
+    // ** conveniece functions **
+
     $.fn.exists = function () {
       return this.length != 0;
     }
 
     $(document).ready(function () {
 
-     $("button#optionsbutton").on("click", function() {
-        $s = $(this).parents("tr").siblings("tr.clientoptions")
-        $s.toggle();
-        if (($s).is(':visible')) {
-          $s.parents('table').addClass("options_open");
-        } else {
-          $s.parents('table').removeClass("options_open");
+      // ** set input masks **
+
+      $('input#user_minutes').setMask('999');
+      $('input#age_lower').setMask('99');
+      $('input#age_higher').setMask('99');
+      $('input#minutes_limit').setMask('999');
+      $('input#add_time').setMask('999');
+
+      // ** global functions and handles **
+
+      $(':input').focus(function () {
+        if ($(this).hasClass('inputmissing')) {
+          $(this).removeClass('inputmissing');
         }
       });
+
+      // ** handle add-guest-user events **
 
       $("button#adduser").on("click", function() {
         $('table.userform').toggle();
       });
       $("button#usercancel").on("click", function() {
         $('table.userform').hide();
-      });
-
-      // max 999 minutes allowed!
-      $('input#user_minutes').setMask('999');
-
-      $('input#age_lower').setMask('99');
-      $('input#age_higher').setMask('99');
-      $('input#minutes_limit').setMask('999');
-      $('input#add_time').setMask('999');
-
-
-      $("table.clients.available").hover(
-        function() {
-          if (!$("table.clients.options_open").exists()) {
-            $(this).find(":button").show()
-          }
-        },
-        function() {
-          if (!$("table.clients.options_open").exists()) {
-            $(this).find(":button").hide()
-            $('tr.clientoptions').hide();
-            $('table.options_open').removeClass('options_open');
-          }
-        });
-
-      $(':input.chk').change(function () {
-        if($(this).attr("checked"))
-        {
-          var id = $(this).attr("name").slice(0, -6);
-          $("#"+id+"opens").attr("disabled", "disabled");
-          $("#"+id+"closes").attr("disabled", "disabled");
-        } else {
-          var id = $(this).attr("name").slice(0, -6);
-          $("#"+id+"opens").removeAttr("disabled");
-          $("#"+id+"closes").removeAttr("disabled");
-        }
-      });
-
-
-      $(':input.hour').setMask('29:59').keypress(function() {
-        var currentMask = $(this).data('mask').mask;
-        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
-        if (newMask != currentMask) {
-          $(this).setMask(newMask);
-        }
-        });
-
-      $('button#hoursclear').on('click', function () {
-        $('#add_hours_form')[0].reset();
-        $(':input.hour').val('');
-        $(':input.hour').removeAttr("disabled");
-        $(':input.chk').removeAttr('checked');
-      });
-
-      $('button#user_throw_out').on('click', function () {
-        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
-      });
-
-      $("table.clients.occupied").hover(
-        function() {
-          $(this).find(":button").show();
-          $(this).find(":input").show();
-        },
-        function() {
-          $(this).find(":button").hide();
-          $(this).find(":input").removeClass('inputmissing').hide();
-        });
-
-      $('input#minutes_unlimited').change(function () {
-        if($(this).attr("checked"))
-        {
-          $('input#minutes_limit').attr("disabled", "disabled");
-        } else {
-          $('input#minutes_limit').removeAttr("disabled");
-        }
-      });
-
-      $('button#useraddtime').on('click', function () {
-        if ($('input#add_time').val() == ''){
-          $('input#add_time').addClass('inputmissing');
-          return;
-        }
-        var min1 = parseInt($('input#add_time').val());
-        var min2 = parseInt($('td#petter_minutes_left').html());
-        min = min1+min2;
-        $('td#petter_minutes_left').html(min+' min igjen');
-        $('input#add_time').val('');
       });
 
       $('button#usersave').on('click', function () {
@@ -324,12 +248,41 @@ div class="main"
         })
       });
 
-      $('button#clientcancel').on('click', function () {
-        $s = $('table.options_open');
-        $s.removeClass("options_open");
-        $s.find(':button').hide();
-        $s.find("tr.clientoptions").toggle();
+      // ** handle client-options events **
+
+     $("button#optionsbutton").on("click", function() {
+        $s = $(this).parents("tr").siblings("tr.clientoptions")
+        $s.toggle();
+        if (($s).is(':visible')) {
+          $s.parents('table').addClass("options_open");
+        } else {
+          $s.parents('table').removeClass("options_open");
+        }
       });
+
+      $("table.clients.available").hover(
+        function() {
+          if (!$("table.clients.options_open").exists()) {
+            $(this).find(":button").show()
+          }
+        },
+        function() {
+          if (!$("table.clients.options_open").exists()) {
+            $(this).find(":button").hide()
+            $('tr.clientoptions').hide();
+            $('table.options_open').removeClass('options_open');
+          }
+        });
+
+      $("table.clients.occupied").hover(
+        function() {
+          $(this).find(":button").show();
+          $(this).find(":input").show();
+        },
+        function() {
+          $(this).find(":button").hide();
+          $(this).find(":input").removeClass('inputmissing').hide();
+        });
 
       $('button#clientsave').on('click', function () {
         var $s = $(this).parents('table');
@@ -345,7 +298,6 @@ div class="main"
         });
 
         request.done(function(msg) {
-          //console.log(msg);
           $s = $('table.options_open');
           $s.removeClass("options_open");
           $s.find(':button').hide();
@@ -353,17 +305,77 @@ div class="main"
         })
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
-          //console.log(errorThrown, jqXHR.responseText);
           $('table.options_open').find('span.error')
             .html(jqXHR.responseText).show().fadeOut(10000);
         });
       });
 
-      $(':input').focus(function () {
-        if ($(this).hasClass('inputmissing')) {
-          $(this).removeClass('inputmissing');
+      $('button#clientcancel').on('click', function () {
+        $s = $('table.options_open');
+        $s.removeClass("options_open");
+        $s.find(':button').hide();
+        $s.find("tr.clientoptions").toggle();
+      });
+
+      // ** handle client-user events **
+
+      $('button#user_throw_out').on('click', function () {
+        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
+      });
+
+      $('button#useraddtime').on('click', function () {
+        if ($('input#add_time').val() == ''){
+          $('input#add_time').addClass('inputmissing');
+          return;
         }
-      })
+        var min1 = parseInt($('input#add_time').val());
+        var min2 = parseInt($('td#petter_minutes_left').html());
+        min = min1+min2;
+        $('td#petter_minutes_left').html(min+' min igjen');
+        $('input#add_time').val('');
+      });
+
+      // ** handle opening-hours events **
+
+      $(':input.chk').change(function () {
+        if($(this).attr("checked"))
+        {
+          var id = $(this).attr("name").slice(0, -6);
+          $("#"+id+"opens").attr("disabled", "disabled");
+          $("#"+id+"closes").attr("disabled", "disabled");
+        } else {
+          var id = $(this).attr("name").slice(0, -6);
+          $("#"+id+"opens").removeAttr("disabled");
+          $("#"+id+"closes").removeAttr("disabled");
+        }
+      });
+
+      $(':input.hour').setMask('29:59').keypress(function() {
+        var currentMask = $(this).data('mask').mask;
+        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
+        if (newMask != currentMask) {
+          $(this).setMask(newMask);
+        }
+        });
+
+      $('button#hoursclear').on('click', function () {
+        $('#add_hours_form')[0].reset();
+        $(':input.hour').val('');
+        $(':input.hour').removeAttr("disabled");
+        $(':input.chk').removeAttr('checked');
+      });
+
+      // ** handle time-limitation-options events
+
+      $('input#minutes_unlimited').change(function () {
+        if($(this).attr("checked"))
+        {
+          $('input#minutes_limit').attr("disabled", "disabled");
+        } else {
+          $('input#minutes_limit').removeAttr("disabled");
+        }
+      });
+
 
     });
 
