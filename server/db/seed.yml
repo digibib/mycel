@@ -71,6 +71,21 @@ branches:
             name: hovedklient10
             HWaddr: 00:01:2e:bc:c8:ce
             IPaddr: 192.168.200.109
+          -
+            name: hovedkorttid1
+            HWaddr: ukjent
+            IPaddr: ukjent
+            shorttime: 1
+          -
+            name: hovedkorttid2
+            HWaddr: ukjent2
+            IPaddr: ukjent2
+            shorttime: 1
+          -
+            name: hovedkorttid3
+            HWaddr: ukjent3
+            IPaddr: ukjent3
+            shorttime: 1
   -
     name: Grünerløkka
     homepage: 'http://www.deichmanske-bibliotek.oslo.kommune.no/avdelinger_apningstider/grnerlokka/'
@@ -88,14 +103,14 @@ branches:
           -
             name: serieteket1
             HWaddr: 00:00:00:00:00:0b
-            IPaddr: 192.168.200.x
+            IPaddr: 192.168.200.y
       -
         name: Voksenavdelingen
         clients:
           -
             name: gryvoksen1
             HWaddr: 00:00:00:00:00:0c
-            IPaddr: 192.168.200.x
+            IPaddr: 192.168.200.z
   -
     name: Rommen
     departments:
@@ -104,16 +119,16 @@ branches:
         clients:
           -
             name: rommenklient1
-            HWaddr: 00:00:00:00:00:0a
-            IPaddr: 192.168.200.x
+            HWaddr: 00:00:00:00:00:1a
+            IPaddr: 192.168.200.a
           -
             name: rommenklient2
-            HWaddr: 00:00:00:00:00:0b
-            IPaddr: 192.168.200.y
+            HWaddr: 00:00:00:00:00:1b
+            IPaddr: 192.168.200.b
           -
             name: rommenklient3
-            HWaddr: 00:00:00:00:00:0c
-            IPaddr: 192.168.200.z
+            HWaddr: 00:00:00:00:00:1c
+            IPaddr: 192.168.200.c
 screenres:
   - auto
   - 1440x900

@@ -26,6 +26,7 @@ class SaveUser < Goliath::API
       [400, {}, 'Brukeren "' + params['username'] + '" finnes allerede. Velg et annet brukernavn']
     rescue Exception => e
       puts e.class # TODO log this!
+      puts e
       [500, {}, 'Noe gikk galt. Brukeren ble ikke lagret.']
     end
   end
@@ -36,7 +37,17 @@ class SaveClientOptions < Goliath::API
 
   def response(env)
     puts params.to_s
-    [200, {}, 'user saved']
+    begin
+      client = Client.find(params['client_id'])
+      client.update_attributes!(:shorttime => params['shorttime'],
+                                :screen_resolution_id => params['screenres'])
+      [200, {}, 'Innstilliger lagret.']
+    rescue Exception => e
+      puts e.class # TODO log this!
+      puts e
+      [500, {}, 'Server error: endringene ble ikke lagret']
+    end
+
   end
 end
 
@@ -84,7 +95,7 @@ class Server < Goliath::API
       if @@org.branches.find_by_name(path[1])
         # TODO: tidy up this
         if (dept = @@org.branches.find_by_name(path[1]).departments.find_by_name(path[2]))
-        [200, {}, slim(:department, :locals => {:department => dept})]
+        [200, {}, slim(:department, :locals => {:department => dept, :screen_res => ScreenResolution.all })]
         else  # matches non-existing department
           raise Goliath::Validation::NotFoundError
         end

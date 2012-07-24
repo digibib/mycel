@@ -55,14 +55,17 @@ class Client < ActiveRecord::Base
   belongs_to :department
 
   validates_presence_of :name, :hwaddr
+  validates_uniqueness_of :name, :hwaddr, :ipaddr
+
   has_one :user
+  has_one :screen_resolution
 
   def homepage
-    read_attribute(:homepage) || Department.find(self.department_id).homepage
+    Department.find(self.department_id).homepage
   end
 
   def printer_addr
-    read_attribute(:printer_addr) || Department.find(self.department_id).printer_addr
+    Department.find(self.department_id).printer_addr
   end
 
 end

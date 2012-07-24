@@ -34,6 +34,7 @@ div class="main"
 
   h2 Klienter
   p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk.
+  p Noen endringer vil først tre i kraft etter omstart.
   table class="clients occupied" id="dummyclient"
     tr
       td style="width:40px": img src="/img/pc_green.png" class="pc"
@@ -49,7 +50,7 @@ div class="main"
       td: button[type='button' id="useraddtime" class="occupied_options"]  = "Gi mer tid"
 
   - for client in department.clients
-    table class="clients available"
+    table class="clients available" id='client_id_#{client.id}'
       tr
         td style="width:40px": img src="/img/pc_black.png" class="pc"
         td: #{client.name}
@@ -67,7 +68,26 @@ div class="main"
         td navn
         td: input[type="text" value="#{client.name}" disabled="disabled"]
         td korttidsmaskin (ingen pålogging)
-        td[style="text-align:center"]: input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
+        td[style="text-align:center"]
+          - if client.shorttime
+            input[type="checkbox" name="shorttimemachine" id="shorttimemachine" checked=true]
+          - else
+            input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
+      tr class="clientoptions"
+        td style="width:40px"
+        td skjermoppløsing
+        td: select[id="client_screen_res"]
+            - for res in screen_res do
+              |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+        td
+        td
+      tr class="clientoptions"
+        td style="width:40px"
+        td[colspan="2"]
+          span[class='info']
+          span[class='error']
+        td: button[type='button' id="clientsave"]  = "Lagre"
+        td[style="text-align:center"]: button[type='button' id="clientcancel"]  = "Avbryt"
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
@@ -156,6 +176,9 @@ div class="main"
 
   script src="/js/jquery.meio.mask.min.js"
   javascript:
+    $.fn.exists = function () {
+      return this.length != 0;
+    }
 
     $(document).ready(function () {
       // TODO make theese hidden by default (CSS display: none)
@@ -172,7 +195,6 @@ div class="main"
         } else {
           $s.parents('table').removeClass("options_open");
         }
-
       });
 
       $("button#adduser").on("click", function() {
@@ -193,12 +215,16 @@ div class="main"
 
       $("table.clients.available").hover(
         function() {
-          $(this).find(":button").show()
+          if (!$("table.clients.options_open").exists()) {
+            $(this).find(":button").show()
+          }
         },
         function() {
-          $(this).find(":button").hide()
-          $('tr.clientoptions').hide();
-          $('table.options_open').removeClass('options_open');
+          if (!$("table.clients.options_open").exists()) {
+            $(this).find(":button").hide()
+            $('tr.clientoptions').hide();
+            $('table.options_open').removeClass('options_open');
+          }
         });
 
       $(':input.chk').change(function () {
@@ -279,10 +305,13 @@ div class="main"
         var request = $.ajax({
           url: '/saveuser',
           type: 'POST',
-          data: {username: $('input#username').val(),
+          data: {
+                 username: $('input#username').val(),
                  password: $('input#user_password').val(),
                  age: $('select#user_age').val(),
-                 minutes: $('input#user_minutes').val()}
+                 minutes: $('input#user_minutes').val(),
+                 },
+          dataType: "html"
           });
 
         request.done(function(msg) {
@@ -296,8 +325,41 @@ div class="main"
           $('td#user_form_response').find('span.info').html(''); // clear info message if any
           $('td#user_form_response').find('span.error')
             .html(jqXHR.responseText).show().fadeOut(10000);
-            console.log(jqXHR);
         })
+      });
+
+      $('button#clientcancel').on('click', function () {
+        $s = $('table.options_open');
+        $s.removeClass("options_open");
+        $s.find(':button').hide();
+        $s.find("tr.clientoptions").toggle();
+      });
+
+      $('button#clientsave').on('click', function () {
+        var request = $.ajax({
+          url: '/saveclientoptions',
+          type: 'POST',
+          data: {
+                client_id: $(this).parents('table').attr('id').slice(10),
+                screenres: $(this).parents('table').find('#client_screen_res option:selected').val(),
+                shorttime: $('input#shorttimemachine:checked').val()
+                },
+          dataType: "html"
+        });
+
+        request.done(function(msg) {
+          //console.log(msg);
+          $s = $('table.options_open');
+          $s.removeClass("options_open");
+          $s.find(':button').hide();
+          $s.find("tr.clientoptions").toggle();
+        })
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          //console.log(errorThrown, jqXHR.responseText);
+          $('table.options_open').find('span.error')
+            .html(jqXHR.responseText).show().fadeOut(10000);
+        });
       });
 
       $(':input').focus(function () {

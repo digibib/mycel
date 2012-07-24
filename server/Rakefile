@@ -28,8 +28,9 @@ namespace :db do
         d = Department.create(:name => department['name'])
         b.departments << d
         department['clients'].each do |client|
+          short = client['shorttime'] ||= 0
           c = Client.new(:name => client['name'], :ipaddr => client['IPaddr'],
-                         :hwaddr => client['HWaddr'])
+                         :hwaddr => client['HWaddr'], :shorttime => short)
           d.clients << c
         end
       end

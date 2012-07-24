@@ -4,6 +4,7 @@ ActiveRecord::Schema.define do
   create_table :organization, :force => true do |t|
     t.string :name, :null => false
     t.string :homepage
+
     t.integer :owner_hours_id
   end
 
@@ -11,6 +12,7 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.string :homepage
     t.string :printeraddr
+
     t.integer :organization_id
     t.integer :owner_hours_id
   end
@@ -19,6 +21,7 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.string :homepage
     t.string :printeraddr
+
     t.integer :branch_id
     t.integer :owner_hours_id
   end
@@ -27,12 +30,10 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.string :hwaddr, :null => false
     t.string :ipaddr, :null => false
-    t.boolean :guest_adult, :default => false
-    t.boolean :guest_child, :default => false
-    t.integer :age_lower
-    t.integer :age_higher
-    t.string :homepage
+    t.boolean :shorttime, :default => false
     t.string :printeraddr
+
+    t.integer :screen_resolution_id, :default => 1
     t.integer :department_id
   end
 
@@ -75,9 +76,8 @@ ActiveRecord::Schema.define do
     t.string :password
     t.integer :minutes
     t.integer :age
-    t.string :type
 
-    t.integer :scree_resolution_id
+    t.string :type
     t.timestamps
   end
 

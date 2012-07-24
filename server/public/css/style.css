@@ -34,12 +34,14 @@ button:active { background:#ddd; position:relative; top: 1px; }
 button.guest  { }
 button.gen    { margin-right:10px;}
 
+
 table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
 .deptlist td   { min-width: 160px; padding: 7px; background-color:#fff;}
 
 table.clients  { margin-left: 10px; font-size:14px; border:1px solid white; }
 .clients td    { width: 136px; text-align: left; padding: 4px; margin:0; height: 36px;
                  vertical-align: middle;}
+.options_open { border: 1px solid #ccc !important; }
 .clients:hover { border: 1px solid #ccc;}
 .clientoptions { font-family: monospace; font-size: 12px; font-weight: bold;}
 .clientoptions td { text-align: right; }
