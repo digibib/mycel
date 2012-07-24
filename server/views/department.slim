@@ -70,9 +70,9 @@ div class="main"
         td korttidsmaskin (ingen pålogging)
         td[style="text-align:center"]
           - if client.shorttime
-            input[type="checkbox" name="shorttimemachine" id="shorttimemachine" checked=true]
+            input[type="checkbox" class="shorttimemachine" checked=true]
           - else
-            input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
+            input[type="checkbox" class="shorttimemachine"]
       tr class="clientoptions"
         td style="width:40px"
         td skjermoppløsing
@@ -286,13 +286,18 @@ div class="main"
 
       $('button#clientsave').on('click', function () {
         var $s = $(this).parents('table');
+        var shortbool = 0;
+        if ($s.find('input.shorttimemachine').is(':checked')) {
+          shortbool = 1;
+        }
+
         var request = $.ajax({
           url: '/saveclientoptions',
           type: 'POST',
           data: {
                 client_id: $s.attr('id').slice(10),
                 screenres: $s.find('#client_screen_res option:selected').val(),
-                shorttime: $s.find('input#shorttimemachine:checked').val()
+                shorttime: shortbool
                 },
           dataType: "html"
         });
