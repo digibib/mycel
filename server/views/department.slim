@@ -55,7 +55,7 @@ div class="main"
         td style="width:40px": img src="/img/pc_black.png" class="pc"
         td: #{client.name}
         td Ikke i bruk
-        td
+        td: span class="info"
         td: button[type='button' class="innstillinger" id="optionsbutton"] = "innstillinger"
       tr class="clientoptions"
         td style="width:40px"
@@ -305,6 +305,7 @@ div class="main"
 
         request.done(function(msg) {
           $s = $('table.options_open');
+          $s.find('span.info').html('OK! Lagret.').show().fadeOut(5000);
           $s.removeClass("options_open");
           $s.find(':button').hide();
           $s.find("tr.clientoptions").toggle();

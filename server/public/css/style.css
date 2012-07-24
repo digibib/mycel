@@ -15,7 +15,7 @@ div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
 img.logo    { margin-top: 10px; margin-left:10px;}
 img.pc      { }
 
-span.info   { display: none; }
+span.info   { font-family: monospace; font-size: 12px; font-weight: bold; display: none; }
 span.error  { display: none; color: #c03019; font-weight: bold; }
 
 .inputmissing { background: yellow;}
