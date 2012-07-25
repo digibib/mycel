@@ -93,7 +93,6 @@ div class="main"
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
   p Hvis du lar feltene stå blanke, vil innstillingene for filialen (#{department.branch.name.downcase}) gjelde isteden.
   h3 Åpningstider
-  p Brukerne vil bli logget av X minutter før stengetid.
   div class="divdot inputf"
     form id="add_hours_form"
       table class="genform"
@@ -140,6 +139,12 @@ div class="main"
           td: input[type="checkbox" class="chk" name="thursday_closed"]
           td
           td
+        tr
+          td[colsapn="6"]&nbsp;
+        tr
+          td[colspan="2"] Brukeren logges av
+          td: input[type="text" class="nr" id="minutes_before_closing"]
+          td[colspan="3"] minutter før stengetid
       div[class="hoursbuttons"]=
     button[type='button' id="hoursrsave" class="gen"]  = "Lagre"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
@@ -195,6 +200,7 @@ div class="main"
       $('input#age_higher').setMask('99');
       $('input#minutes_limit').setMask('999');
       $('input#add_time').setMask('999');
+      $('input#minutes_before_closing').setMask('99');
 
       // ** global functions and handles **
 
