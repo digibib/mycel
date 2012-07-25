@@ -72,6 +72,37 @@ end
 
 class OpeningHours < ActiveRecord::Base
   belongs_to :owner_hours, :polymorphic => true
+
+  validate :hours_or_closed_flag_must_be_present,
+           :opening_hours_cant_be_later_than_closing_hours
+
+  #TODO refactor theese ugly validations!
+
+  def hours_or_closed_flag_must_be_present
+    days = %w(monday tuesday wednsday thursday friday sunday)
+    all_fields = []
+    days.each { |d| all_fields << [d+'_opens', d+'_closes', d+'_closed'] }
+    for triple in all_fields
+      if ((self.send(triple[0].to_sym).blank? || self.send(triple[1].to_sym).blank?) & (self.send(triple[2].to_sym).blank?))
+        errors.add("opening hours or closed flag", "can't be blank")
+      end
+    end
+  end
+
+  def opening_hours_cant_be_later_than_closing_hours
+    days = %w(monday tuesday wednsday thursday friday sunday)
+    day_pairs = []
+    days.each { |d| day_pairs << [d+'_opens', d+'_closes'] }
+    for pair in day_pairs
+      if self.send(pair[0].to_sym).blank? || self.send(pair[1].to_sym).blank?
+        next
+      end
+      t1 = self.send(pair[0].to_sym)
+      t2 = self.send(pair[1].to_sym)
+      errors.add("openings hours", "cant be later than closing hours") if t1 > t2
+    end
+  end
+
 end
 
 class User < ActiveRecord::Base

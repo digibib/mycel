@@ -58,4 +58,50 @@ describe "Users", "Validation" do
   end
 end
 
+describe "Opening Hours" do
 
+  it "must have opening hours or closed-flag for all days in a week" do
+    @invalid_h = OpeningHours.new :monday_opens => '10:00', :monday_closes => '19:00'
+    refute @invalid_h.valid?
+  end
+
+  it "an entry with opening hours for every day must be valid" do
+    @valid_h = OpeningHours.new :monday_opens => '10:00', :monday_closes => '19:00',
+                                :tuesday_opens => '10:00', :tuesday_closes => '19:00',
+                                :wednsday_opens => '10:00', :wednsday_closes => '19:00',
+                                :thursday_opens => '10:00', :thursday_closes => '19:00',
+                                :friday_opens => '10:00', :friday_closes => '19:00',
+                                :saturday_opens => '10:00', :saturday_closes => '19:00',
+                                :sunday_opens => '10:00', :sunday_closes => '19:00'
+    assert @valid_h.valid?
+  end
+
+  it "an entry with closed-flag set for all days must be valid" do
+    @valid_h = OpeningHours.new :monday_closed => 1, :tuesday_closed => 1,
+      :wednsday_closed => 1, :thursday_closed => 1, :friday_closed => 1,
+      :saturday_closed => 1, :sunday_closed => 1
+    assert @valid_h.valid?
+  end
+
+  it "an entry with a combination of opening hours and closed flag set must be valid" do
+    @valid_h = OpeningHours.new :monday_opens => '10:00', :monday_closes => '19:00',
+                                :tuesday_opens => '10:00', :tuesday_closes => '19:00',
+                                :wednsday_opens => '10:00', :wednsday_closes => '19:00',
+                                :thursday_opens => '10:00', :thursday_closes => '19:00',
+                                :friday_opens => '10:00', :friday_closes => '19:00',
+                                :saturday_closed => 1,
+                                :sunday_closed => 1
+    assert @valid_h.valid?
+  end
+
+  it "cannot have closing hours _before_ opening hours" do
+    @invalid_h = OpeningHours.new :monday_opens => '19:00', :monday_closes => '10:00',
+                                  :tuesday_opens => '19:00', :tuesday_closes => '10:00',
+                                  :wednsday_opens => '19:00', :wednsday_closes => '10:00',
+                                  :thursday_opens => '19:00', :thursday_closes => '10:00',
+                                  :friday_opens => '19:00', :friday_closes => '10:00',
+                                  :saturday_closed => 1,
+                                  :sunday_closed => 1
+    refute @invalid_h.valid?
+  end
+end
