@@ -1,6 +1,5 @@
 require "em-synchrony/activerecord"
 
-#ActiveSupport::Time::DATE_FORMATS[:hours_minutes] = "%H:%m"
 
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
@@ -11,6 +10,10 @@ class Organization < ActiveRecord::Base
   has_one :admin, :conditions => "superadmin = 1"
 
   validates_presence_of :name
+
+  def hours
+    self.opening_hours
+  end
 end
 
 class Branch < ActiveRecord::Base
@@ -25,8 +28,8 @@ class Branch < ActiveRecord::Base
     read_attribute(:homepage) || Organization.find(self.organization_id).homepage
   end
 
-  def opening_hours
-    read_attribute(:opening_hours) || Organization.find(self.organization_id).opening_hours
+  def hours
+    self.opening_hours || Organization.find(self.organization_id).hours
   end
 
 end
@@ -43,8 +46,8 @@ class Department < ActiveRecord::Base
     read_attribute(:homepage) || Branch.find(self.branch_id).homepage
   end
 
-  def opening_hours
-    read_attribute(:opening_hours) || Branch.find(self.branch_id).opening_hours
+  def hours
+    self.opening_hours || Branch.find(self.branch_id).hours
   end
 
   def printer_addr

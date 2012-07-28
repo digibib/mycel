@@ -92,13 +92,16 @@ div class="main"
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
   p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde isteden.
   h3 Åpningstider
-  - hours = department.opening_hours
+  - hours = department.hours
   div class="divdot inputf"
-    form id="add_hours_form"
+    form id="change_hours_form"
+      input[id="department_id" hidden value="#{department.id}"]
+      input[id="opening_hours_id" hidden value="#{hours.id}"]
       table class="genform"
         tr
           td[colspan="6"]
-          - unless hours.owner_hours_type == 'Client'
+          - unless hours.owner_hours_type == 'Department'
+            span #{hours.owner_hours_type}:
             span[class="inherited"] Disse innstillingene er arvet fra filial #{department.branch.name}:
         tr
           td
@@ -112,69 +115,69 @@ div class="main"
         tr
           td mandag
           - if hours.monday_closed
-              td: input[type="text" id="monday_opens" class="hour" disabled value="#{hours.monday_opens}"] -
-              td: input[type="text"  id="monday_closes" class="hour" disabled value="#{hours.monday_closes}"]
+              td: input[type="text" id="monday_opens" class="hour required" disabled value="#{hours.monday_opens}"] -
+              td: input[type="text"  id="monday_closes" class="hour required" disabled value="#{hours.monday_closes}"]
               td: input[type="checkbox" class="chk" id="monday_closed" checked]
           - else
-              td: input[type="text" id="monday_opens" class="hour" value="#{hours.monday_opens}"] -
-              td: input[type="text"  id="monday_closes" class="hour"  value="#{hours.monday_closes}"]
+              td: input[type="text" id="monday_opens" class="hour required" value="#{hours.monday_opens}"] -
+              td: input[type="text"  id="monday_closes" class="hour required"  value="#{hours.monday_closes}"]
               td: input[type="checkbox" class="chk" id="monday_closed"]
           td fredag
           - if hours.friday_closed
-              td: input[type="text" id="friday_opens" class="hour" disabled value="#{hours.friday_opens}"] -
-              td: input[type="text"  id="friday_closes" class="hour" disabled value="#{hours.friday_closes}"]
+              td: input[type="text" id="friday_opens" class="hour required" disabled value="#{hours.friday_opens}"] -
+              td: input[type="text"  id="friday_closes" class="hour required" disabled value="#{hours.friday_closes}"]
               td: input[type="checkbox" class="chk" id="friday_closed" checked]
           - else
-              td: input[type="text" id="friday_opens" class="hour" value="#{hours.friday_opens}"] -
-              td: input[type="text"  id="friday_closes" class="hour"  value="#{hours.friday_closes}"]
+              td: input[type="text" id="friday_opens" class="hour required" value="#{hours.friday_opens}"] -
+              td: input[type="text"  id="friday_closes" class="hour required"  value="#{hours.friday_closes}"]
               td: input[type="checkbox" class="chk" id="friday_closed"]
         tr
           td tirsdag
           - if hours.tuesday_closed
-              td: input[type="text" id="tuesday_opens" class="hour" disabled value="#{hours.tuesday_opens}"] -
-              td: input[type="text"  id="tuesday_closes" class="hour" disabled value="#{hours.tuesday_closes}"]
+              td: input[type="text" id="tuesday_opens" class="hour required" disabled value="#{hours.tuesday_opens}"] -
+              td: input[type="text"  id="tuesday_closes" class="hour required" disabled value="#{hours.tuesday_closes}"]
               td: input[type="checkbox" class="chk" id="tuesday_closed" checked]
           - else
-              td: input[type="text" id="tuesday_opens" class="hour" value="#{hours.tuesday_opens}"] -
-              td: input[type="text"  id="tuesday_closes" class="hour"  value="#{hours.tuesday_closes}"]
+              td: input[type="text" id="tuesday_opens" class="hour required" value="#{hours.tuesday_opens}"] -
+              td: input[type="text"  id="tuesday_closes" class="hour required"  value="#{hours.tuesday_closes}"]
               td: input[type="checkbox" class="chk" id="tuesday_closed"]
           td lørdag
           - if hours.saturday_closed
-              td: input[type="text" id="saturday_opens" class="hour" disabled value="#{hours.saturday_opens}"] -
-              td: input[type="text"  id="saturday_closes" class="hour" disabled value="#{hours.saturday_closes}"]
+              td: input[type="text" id="saturday_opens" class="hour required" disabled value="#{hours.saturday_opens}"] -
+              td: input[type="text"  id="saturday_closes" class="hour required" disabled value="#{hours.saturday_closes}"]
               td: input[type="checkbox" class="chk" id="saturday_closed" checked]
           - else
-              td: input[type="text" id="saturday_opens" class="hour" value="#{hours.saturday_opens}"] -
-              td: input[type="text"  id="saturday_closes" class="hour"  value="#{hours.saturday_closes}"]
+              td: input[type="text" id="saturday_opens" class="hour required" value="#{hours.saturday_opens}"] -
+              td: input[type="text"  id="saturday_closes" class="hour required"  value="#{hours.saturday_closes}"]
               td: input[type="checkbox" class="chk" id="saturday_closed"]
         tr
           td onsdag
           - if hours.wednsday_closed
-              td: input[type="text" id="wednsday_opens" class="hour" disabled value="#{hours.wednsday_opens}"] -
-              td: input[type="text"  id="wednsday_closes" class="hour" disabled value="#{hours.wednsday_closes}"]
+              td: input[type="text" id="wednsday_opens" class="hour required" disabled value="#{hours.wednsday_opens}"] -
+              td: input[type="text"  id="wednsday_closes" class="hour required" disabled value="#{hours.wednsday_closes}"]
               td: input[type="checkbox" class="chk" id="wednsday_closed" checked]
           - else
-              td: input[type="text" id="wednsday_opens" class="hour" value="#{hours.wednsday_opens}"] -
-              td: input[type="text"  id="wednsday_closes" class="hour"  value="#{hours.wednsday_closes}"]
+              td: input[type="text" id="wednsday_opens" class="hour required" value="#{hours.wednsday_opens}"] -
+              td: input[type="text"  id="wednsday_closes" class="hour required"  value="#{hours.wednsday_closes}"]
               td: input[type="checkbox" class="chk" id="wednsday_closed"]
           td søndag
           - if hours.sunday_closed
-              td: input[type="text" id="sunday_opens" class="hour" disabled value="#{hours.sunday_opens}"] -
-              td: input[type="text"  id="sunday_closes" class="hour" disabled value="#{hours.sunday_closes}"]
+              td: input[type="text" id="sunday_opens" class="hour required" disabled value="#{hours.sunday_opens}"] -
+              td: input[type="text"  id="sunday_closes" class="hour required" disabled value="#{hours.sunday_closes}"]
               td: input[type="checkbox" class="chk" id="sunday_closed" checked]
           - else
-              td: input[type="text" id="sunday_opens" class="hour" value="#{hours.sunday_opens}"] -
-              td: input[type="text"  id="sunday_closes" class="hour" value="#{hours.sunday_closes}"]
+              td: input[type="text" id="sunday_opens" class="hour required" value="#{hours.sunday_opens}"] -
+              td: input[type="text"  id="sunday_closes" class="hour required" value="#{hours.sunday_closes}"]
               td: input[type="checkbox" class="chk" id="sunday_closed"]
         tr
           td torsdag
           - if hours.thursday_closed
-              td: input[type="text" id="thursday_opens" class="hour" disabled value="#{hours.thursday_opens}"] -
-              td: input[type="text"  id="thursday_closes" class="hour" disabled value="#{hours.thursday_closes}"]
+              td: input[type="text" id="thursday_opens" class="hour required" disabled value="#{hours.thursday_opens}"] -
+              td: input[type="text"  id="thursday_closes" class="hour required" disabled value="#{hours.thursday_closes}"]
               td: input[type="checkbox" class="chk" id="thursday_closed" checked]
           - else
-              td: input[type="text" id="thursday_opens" class="hour" value="#{hours.thursday_opens}"] -
-              td: input[type="text"  id="thursday_closes" class="hour"  value="#{hours.thursday_closes}"]
+              td: input[type="text" id="thursday_opens" class="hour required" value="#{hours.thursday_opens}"] -
+              td: input[type="text"  id="thursday_closes" class="hour required"  value="#{hours.thursday_closes}"]
               td: input[type="checkbox" class="chk" id="thursday_closed"]
           td
           td
@@ -185,8 +188,10 @@ div class="main"
           td: input[type="text" class="nr" id="minutes_before_closing" value="#{hours.minutes_before_closing}"]
           td[colspan="3"] minutter før stengetid
       div[class="hoursbuttons"]=
-    button[type='button' id="hoursrsave" class="gen"]  = "Lagre"
+    button[type='button' id="hourssave" class="gen"]  = "Lagre"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
+    span[id="hours_info" class="info" style="margin-left:48px"]
+    span[id="hours_error" class="error" style="margin-left:48px"]
 
   h3 Aldersbegrensninger
   p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
@@ -358,7 +363,7 @@ div class="main"
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('table.options_open').find('span.error')
-            .html(jqXHR.responseText).show().fadeOut(10000);
+            .html(jqXHR.responseText).show().fadeOut(5000);
         });
       });
 
@@ -393,8 +398,8 @@ div class="main"
         if($(this).attr("checked"))
         {
           var id = $(this).attr("id").slice(0, -6);
-          $("#"+id+"opens").attr("disabled", "disabled");
-          $("#"+id+"closes").attr("disabled", "disabled");
+          $("#"+id+"opens").attr("disabled", "disabled").removeClass("inputmissing");
+          $("#"+id+"closes").attr("disabled", "disabled").removeClass("inputmissing");
         } else {
           var id = $(this).attr("id").slice(0, -6);
           $("#"+id+"opens").removeAttr("disabled");
@@ -411,10 +416,71 @@ div class="main"
         });
 
       $('button#hoursclear').on('click', function () {
-        $('#add_hours_form')[0].reset();
+        $('#change_hours_form')[0].reset();
         $(':input.hour').val('');
         $(':input.hour').removeAttr("disabled");
         $(':input.chk').removeAttr('checked');
+      });
+
+      $('button#hourssave').on('click', function() {
+
+        var missing = 0;
+        $('input.hour.required:not(:disabled)').each(function () {
+          if ($(this).val() == '' ) {
+            $(this).addClass('inputmissing');
+            missing += 1;
+          }
+        });
+
+        // Inherit settings if all fields are blank
+        if (missing == 14) {
+          return;
+        }
+
+        // return if one or more (but not all 14) input fields are missing
+        if (missing) { return; }
+
+        var request = $.ajax({
+          url: '/saveopeninghours',
+          type: 'POST',
+          data: {
+                department_id: $('input#department_id').val(),
+                opening_hours_id: $('input#opening_hours_id').val(),
+                monday_opens: $('input#monday_opens').val(),
+                monday_closes: $('input#monday_closes').val(),
+                tuesday_opens: $('input#tuesday_opens').val(),
+                tuesday_closes: $('input#tuesday_closes').val(),
+                wednsday_opens: $('input#wednsday_opens').val(),
+                wednsday_closes: $('input#wednsday_closes').val(),
+                thursday_opens: $('input#thursday_opens').val(),
+                thursday_closes: $('input#thursday_closes').val(),
+                friday_opens: $('input#friday_opens').val(),
+                friday_closes: $('input#friday_closes').val(),
+                saturday_opens: $('input#saturday_opens').val(),
+                saturday_closes: $('input#saturday_closes').val(),
+                sunday_opens: $('input#sunday_opens').val(),
+                sunday_closes: $('input#sunday_closes').val(),
+                monday_closed: $('input#monday_closed').is(':checked'),
+                tuesday_closed: $('input#tuesday_closed').is(':checked'),
+                wednsday_closed: $('input#wednsday_closed').is(':checked'),
+                thursday_closed: $('input#thursday_closed').is(':checked'),
+                friday_closed: $('input#friday_closed').is(':checked'),
+                saturday_closed: $('input#saturday_closed').is(':checked'),
+                sunday_closed: $('input#sunday_closed').is(':checked'),
+                minutes_before_closing: $('input#minutes_before_closing').val()
+                },
+          dataType: "html"
+        });
+
+        request.done(function(msg) {
+          $('soan#hours_error').hide();
+          $('span#hours_info').html(msg).show().fadeOut(5000);
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('span#hours_info').hide();
+          $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
       });
 
       // ** handle time-limitation-options events

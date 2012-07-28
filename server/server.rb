@@ -1,3 +1,4 @@
+#encoding: UTF-8
 require "em-synchrony/activerecord"
 require "goliath"
 require 'goliath/rack/templates'
@@ -51,6 +52,50 @@ class SaveClientOptions < Goliath::API
   end
 end
 
+class SaveOpeningHours < Goliath::API
+  def response(env)
+    puts params.to_s
+    hours_old = OpeningHours.find(params['opening_hours_id'])
+
+    hours_new = OpeningHours.new(
+      :monday_opens => params['monday_opens'], :monday_closes => params['monday_closes'],
+      :tuesday_opens => params['tuesday_opens'], :tuesday_closes => params['tuesday_closes'],
+      :wednsday_opens => params['wednsday_opens'], :wednsday_closes => params['wednsday_closes'],
+      :thursday_opens => params['thursday_opens'], :thursday_closes => params['thursday_closes'],
+      :friday_opens => params['friday_opens'], :friday_closes => params['friday_closes'],
+      :saturday_opens => params['saturday_opens'], :saturday_closes => params['saturday_closes'],
+      :sunday_opens => params['sunday_opens'], :sunday_closes => params['sunday_closes'],
+      :monday_closed => params['monday_closed'], :tuesday_closed => params['tuesday_closed'],
+      :wednsday_closed => params['wednsday_closed'], :thursday_closed => params['thursday_closed'],
+      :friday_closed => params['friday_closed'], :saturday_closed => params['saturday_closed'],
+      :sunday_closed => params['sunday_closed'], :minutes_before_closing => params['minutes_before_closing'])
+
+    # Check if something has changed
+    old_h = hours_old.attributes
+    new_h = hours_new.attributes
+
+    # remove the attributes whe're not comapring:
+    ["id", "owner_hours_id", "owner_hours_type"].each do |e|
+      old_h.delete(e)
+      new_h.delete(e)
+    end
+
+    if old_h == new_h
+      [200, {}, 'Ingen endringer!']
+    else
+      begin
+        hours_new.save!
+        dept = Department.find(params['department_id']).opening_hours = hours_new
+        dept.save
+        [200, {}, 'OK! Åpningstider lagret.']
+      rescue ActiveRecord::RecordInvalid
+        [400, {}, 'Feil i skjemaet: Du kan ikke stenge før du har åpnet!']
+      end
+    end
+  end
+end
+
+
 class Server < Goliath::API
   use Goliath::Rack::Params          # parse & merge query and body parameters
   include Goliath::Rack::Templates   # serve templates from /views
@@ -73,6 +118,8 @@ class Server < Goliath::API
         SaveUser.new.call(env)
       when '/saveclientoptions'
         SaveClientOptions.new.call(env)
+      when '/saveopeninghours'
+        SaveOpeningHours.new.call(env)
       else
         raise Goliath::Validation::BadRequestError
       end
