@@ -94,15 +94,16 @@ div class="main"
   h3 Åpningstider
   - hours = department.hours
   div class="divdot inputf"
-    form id="change_hours_form"
+    form id="change_hours_form" autocomplete="off"
       input[id="department_id" hidden value="#{department.id}"]
       input[id="opening_hours_id" hidden value="#{hours.id}"]
       table class="genform"
         tr
           td[colspan="6"]
-          - unless hours.owner_hours_type == 'Department'
-            span #{hours.owner_hours_type}:
-            span[class="inherited"] Disse innstillingene er arvet fra filial #{department.branch.name}:
+          - if hours.owner_hours_type == 'Department'
+            span[class="inherited" style="display:none" ] Disse innstillingene er arvet fra filial #{department.branch.name}:
+          - else
+            span[class="inherited" ] Disse innstillingene er arvet fra filial #{department.branch.name}:
         tr
           td
           td fra
@@ -192,6 +193,30 @@ div class="main"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
     span[id="hours_info" class="info" style="margin-left:48px"]
     span[id="hours_error" class="error" style="margin-left:48px"]
+    - hours_b = Branch.find(department.branch_id).hours
+    div class="backup" id="parent-hours"
+      input[id="opening_hours_id_b" hidden value="#{hours_b.id}"]
+      input[id="monday_opens_b" hidden value="#{hours_b.monday_opens}"]
+      input[id="monday_closes_b" hidden value="#{hours_b.monday_closes}"]
+      input[id="monday_closed_b" hidden value="#{hours_b.monday_closed}"]
+      input[id="tuesday_opens_b" hidden value="#{hours_b.tuesday_opens}"]
+      input[id="tuesday_closes_b" hidden value="#{hours_b.tuesday_closes}"]
+      input[id="tuesday_closed_b" hidden value="#{hours_b.tuesday_closed}"]
+      input[id="wednsday_opens_b" hidden value="#{hours_b.wednsday_opens}"]
+      input[id="wednsday_closes_b" hidden value="#{hours_b.wednsday_closes}"]
+      input[id="wednsday_closed_b" hidden value="#{hours_b.wednsday_closed}"]
+      input[id="thursday_opens_b" hidden value="#{hours_b.thursday_opens}"]
+      input[id="thursday_closes_b" hidden value="#{hours_b.thursday_closes}"]
+      input[id="thursday_closed_b" hidden value="#{hours_b.thursday_closed}"]
+      input[id="friday_opens_b" hidden value="#{hours_b.friday_opens}"]
+      input[id="friday_closes_b" hidden value="#{hours_b.friday_closes}"]
+      input[id="friday_closed_b" hidden value="#{hours_b.friday_closed}"]
+      input[id="saturday_opens_b" hidden value="#{hours_b.saturday_opens}"]
+      input[id="saturday_closes_b" hidden value="#{hours_b.saturday_closes}"]
+      input[id="saturday_closed_b" hidden value="#{hours_b.saturday_closed}"]
+      input[id="sunday_opens_b" hidden value="#{hours_b.sunday_opens}"]
+      input[id="sunday_closes_b" hidden value="#{hours_b.sunday_closes}"]
+      input[id="sunday_closed_b" hidden value="#{hours_b.sunday_closed}"]
 
   h3 Aldersbegrensninger
   p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
@@ -417,7 +442,7 @@ div class="main"
 
       $('button#hoursclear').on('click', function () {
         $('#change_hours_form')[0].reset();
-        $(':input.hour').val('');
+        $(':input.hour').val('').removeClass("inputmissing");
         $(':input.hour').removeAttr("disabled");
         $(':input.chk').removeAttr('checked');
       });
@@ -432,18 +457,17 @@ div class="main"
           }
         });
 
-        // Inherit settings if all fields are blank
-        if (missing == 14) {
-          return;
-        }
-
         // return if one or more (but not all 14) input fields are missing
-        if (missing) { return; }
+        if (missing && (missing != 14 )) { return; }
+
+        $(':input.hour').removeClass("inputmissing");
 
         var request = $.ajax({
           url: '/saveopeninghours',
           type: 'POST',
+          cache: false,
           data: {
+                missing_fields: missing,
                 department_id: $('input#department_id').val(),
                 opening_hours_id: $('input#opening_hours_id').val(),
                 monday_opens: $('input#monday_opens').val(),
@@ -472,9 +496,28 @@ div class="main"
           dataType: "html"
         });
 
-        request.done(function(msg) {
-          $('soan#hours_error').hide();
+        request.done(function(msg, sthn, jqXHR) {
+          $('span#hours_error').hide();
           $('span#hours_info').html(msg).show().fadeOut(5000);
+          if (msg.match(/OK/)) {
+            $('#change_hours_form').find('span.inherited').hide();
+            $('input#opening_hours_id').val(jqXHR.getResponseHeader('new_hours_id'));
+          }
+          if (msg.match(/Arver/)) {
+            $('#change_hours_form').find('span.inherited').show();
+            $('div#parent-hours').find(':input').each(function() {
+              var v = $(this).val();
+              var id = $(this).attr("id").slice(0,-2);
+              if (v == 'true') {
+                $('#'+id).attr('checked', true);
+                $('#'+id.slice(0,-6)+'opens').attr("disabled", "disabled");
+                $('#'+id.slice(0,-6)+'closes').attr("disabled", "disabled");
+              } else {
+                $('#'+id).val(v);
+              }
+
+            });
+          }
         });
 
         request.fail(function(jqXHR, textStatus, errorThrown) {

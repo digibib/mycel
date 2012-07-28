@@ -53,8 +53,17 @@ class SaveClientOptions < Goliath::API
 end
 
 class SaveOpeningHours < Goliath::API
+    # TODO updatattributes instead of new object if it exists!
   def response(env)
     puts params.to_s
+
+    # delete opening hours and inherit if all fields are blank
+    if params['missing_fields'] == "14"
+      puts "all clear!!"
+      Department.find(params['department_id']).opening_hours = nil
+      return [200, {}, 'Arver instillinger..']
+    end
+
     hours_old = OpeningHours.find(params['opening_hours_id'])
 
     hours_new = OpeningHours.new(
@@ -85,9 +94,10 @@ class SaveOpeningHours < Goliath::API
     else
       begin
         hours_new.save!
-        dept = Department.find(params['department_id']).opening_hours = hours_new
+        dept = Department.find(params['department_id'])
+        dept.opening_hours = hours_new
         dept.save
-        [200, {}, 'OK! Åpningstider lagret.']
+        [200, {'new_hours_id'=>dept.hours.id.to_s}, 'OK! Åpningstider lagret.']
       rescue ActiveRecord::RecordInvalid
         [400, {}, 'Feil i skjemaet: Du kan ikke stenge før du har åpnet!']
       end

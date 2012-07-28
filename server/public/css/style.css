@@ -28,6 +28,7 @@ input.printer { width: 160px; }
 div.inputf  { font-size:12px; font-family: monospace;}
 
 div.divdot    { border: 1px dotted #ccc; padding:14px; background-color: #f8f8f8;}
+div.backup    { display:none;}
 button        { background-color: #e8e8e8; border: 1px solid #888; border-radius: 2px;
                 padding: 3px; color: #160b57; font-size: 12px; font-family: monospace;}
 button:disabled { border: 1px dashed #ccc; color: #aaa;}
