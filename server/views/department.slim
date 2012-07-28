@@ -92,7 +92,7 @@ div class="main"
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
   p Hvis du lar feltene stå blanke, vil innstillingene for filialen (#{department.branch.name.downcase}) gjelde isteden.
   h3 Åpningstider
-  - hours = OpeningHours.find(1)
+  - hours = department.opening_hours
   div class="divdot inputf"
     form id="add_hours_form"
       table class="genform"

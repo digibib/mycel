@@ -61,7 +61,7 @@ ActiveRecord::Schema.define do
     t.time :sunday_closes
 
     t.integer :owner_hours_id
-    t.integer :owner_hours_type
+    t.string :owner_hours_type
   end
 
   create_table :admins, :force => true do |t|

@@ -38,6 +38,16 @@ namespace :db do
 
     seed['screenres'].each { |res| ScreenResolution.create(:resolution => res) }
 
+    h = seed['opening_hours']
+    hours = OpeningHours.create!(:monday_opens => h['monday_opens'], :monday_closes => h['monday_closes'],
+                        :tuesday_opens => h['tuesday_opens'], :tuesday_closes => h['tuesday_closes'],
+                        :wednsday_opens => h['wednsday_opens'], :wednsday_closes => h['wednsday_closes'],
+                        :thursday_opens => h['thursday_opens'], :thursday_closes => h['thursday_closes'],
+                        :friday_opens => h['friday_opens'], :friday_closes => h['friday_closes'],
+                        :saturday_opens => h['saturday_opens'], :saturday_closes => h['saturday_closes'],
+                        :sunday_closed => h['sunday_closed'])
+    org.opening_hours = hours
+
   end
 end
 
