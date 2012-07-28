@@ -45,7 +45,7 @@ namespace :db do
                         :thursday_opens => h['thursday_opens'], :thursday_closes => h['thursday_closes'],
                         :friday_opens => h['friday_opens'], :friday_closes => h['friday_closes'],
                         :saturday_opens => h['saturday_opens'], :saturday_closes => h['saturday_closes'],
-                        :sunday_closed => h['sunday_closed'])
+                        :sunday_closed => h['sunday_closed'], :minutes_before_closing => h['minutes_before_closing'])
     org.opening_hours = hours
 
   end

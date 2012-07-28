@@ -56,6 +56,7 @@ ActiveRecord::Schema.define do
     t.boolean :sunday_closed, :default => false
     t.time :sunday_opens
     t.time :sunday_closes
+    t.integer :minutes_before_closing
 
     t.integer :owner_hours_id
     t.string :owner_hours_type
