@@ -19,7 +19,7 @@ span.info   { font-family: monospace; font-size: 12px; font-weight: bold; displa
 span.error  { display: none; color: #c03019; font-weight: bold; }
 
 .inputmissing { background: yellow;}
-
+span.inherited { color:#c03019; }
 input       { width: 120px;}
 input.chk   { width: 20px;}
 input.nr    { width: 40px; margin-right:20px;}

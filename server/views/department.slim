@@ -90,12 +90,16 @@ div class="main"
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
-  p Hvis du lar feltene stå blanke, vil innstillingene for filialen (#{department.branch.name}) gjelde isteden.
+  p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde isteden.
   h3 Åpningstider
   - hours = department.opening_hours
   div class="divdot inputf"
     form id="add_hours_form"
       table class="genform"
+        tr
+          td[colspan="6"]
+          - unless hours.owner_hours_type == 'Client'
+            span[class="inherited"] Disse innstillingene er arvet fra filial #{department.branch.name}:
         tr
           td
           td fra
@@ -175,7 +179,7 @@ div class="main"
           td
           td
         tr
-          td[colsapn="6"]&nbsp;
+          td[colspan="6"]&nbsp;
         tr
           td[colspan="2"] Brukeren logges av
           td: input[type="text" class="nr" id="minutes_before_closing" value="#{hours.minutes_before_closing}"]
