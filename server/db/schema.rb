@@ -5,7 +5,6 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.string :homepage
 
-    t.integer :owner_hours_id
   end
 
   create_table :branches, :force => true do |t|
@@ -14,7 +13,6 @@ ActiveRecord::Schema.define do
     t.string :printeraddr
 
     t.integer :organization_id
-    t.integer :owner_hours_id
   end
 
   create_table :departments, :force => true do |t|
@@ -23,7 +21,6 @@ ActiveRecord::Schema.define do
     t.string :printeraddr
 
     t.integer :branch_id
-    t.integer :owner_hours_id
   end
 
   create_table :clients, :force => true do |t|
