@@ -92,6 +92,7 @@ div class="main"
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
   p Hvis du lar feltene stå blanke, vil innstillingene for filialen (#{department.branch.name.downcase}) gjelde isteden.
   h3 Åpningstider
+  - hours = OpeningHours.find(1)
   div class="divdot inputf"
     form id="add_hours_form"
       table class="genform"
@@ -106,36 +107,71 @@ div class="main"
           td stengt?
         tr
           td mandag
-          td: input[type="text" name="monday_opens" id="monday_opens" class="hour"] -
-          td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="monday_closed"]
+          - if hours.monday_closed
+              td: input[type="text" id="monday_opens" class="hour" disabled value="#{hours.monday_opens}"] -
+              td: input[type="text"  id="monday_closes" class="hour" disabled value="#{hours.monday_closes}"]
+              td: input[type="checkbox" class="chk" id="monday_closed" checked]
+          - else
+              td: input[type="text" id="monday_opens" class="hour" value="#{hours.monday_opens}"] -
+              td: input[type="text"  id="monday_closes" class="hour"  value="#{hours.monday_closes}"]
+              td: input[type="checkbox" class="chk" id="monday_closed"]
           td fredag
-          td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] -
-          td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="friday_closed"]
+          - if hours.friday_closed
+              td: input[type="text" id="friday_opens" class="hour" disabled value="#{hours.friday_opens}"] -
+              td: input[type="text"  id="friday_closes" class="hour" disabled value="#{hours.friday_closes}"]
+              td: input[type="checkbox" class="chk" id="friday_closed" checked]
+          - else
+              td: input[type="text" id="friday_opens" class="hour" value="#{hours.friday_opens}"] -
+              td: input[type="text"  id="friday_closes" class="hour"  value="#{hours.friday_closes}"]
+              td: input[type="checkbox" class="chk" id="friday_closed"]
         tr
           td tirsdag
-          td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] -
-          td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="tuesday_closed"]
+          - if hours.tuesday_closed
+              td: input[type="text" id="tuesday_opens" class="hour" disabled value="#{hours.tuesday_opens}"] -
+              td: input[type="text"  id="tuesday_closes" class="hour" disabled value="#{hours.tuesday_closes}"]
+              td: input[type="checkbox" class="chk" id="tuesday_closed" checked]
+          - else
+              td: input[type="text" id="tuesday_opens" class="hour" value="#{hours.tuesday_opens}"] -
+              td: input[type="text"  id="tuesday_closes" class="hour"  value="#{hours.tuesday_closes}"]
+              td: input[type="checkbox" class="chk" id="tuesday_closed"]
           td lørdag
-          td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] -
-          td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="saturday_closed"]
+          - if hours.saturday_closed
+              td: input[type="text" id="saturday_opens" class="hour" disabled value="#{hours.saturday_opens}"] -
+              td: input[type="text"  id="saturday_closes" class="hour" disabled value="#{hours.saturday_closes}"]
+              td: input[type="checkbox" class="chk" id="saturday_closed" checked]
+          - else
+              td: input[type="text" id="saturday_opens" class="hour" value="#{hours.saturday_opens}"] -
+              td: input[type="text"  id="saturday_closes" class="hour"  value="#{hours.saturday_closes}"]
+              td: input[type="checkbox" class="chk" id="saturday_closed"]
         tr
           td onsdag
-          td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] -
-          td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="wednsday_closed"]
+          - if hours.wednsday_closed
+              td: input[type="text" id="wednsday_opens" class="hour" disabled value="#{hours.wednsday_opens}"] -
+              td: input[type="text"  id="wednsday_closes" class="hour" disabled value="#{hours.wednsday_closes}"]
+              td: input[type="checkbox" class="chk" id="wednsday_closed" checked]
+          - else
+              td: input[type="text" id="wednsday_opens" class="hour" value="#{hours.wednsday_opens}"] -
+              td: input[type="text"  id="wednsday_closes" class="hour"  value="#{hours.wednsday_closes}"]
+              td: input[type="checkbox" class="chk" id="wednsday_closed"]
           td søndag
-          td: input[type="text" name="sunday_opens" id="sunday_opens" class="hour"] -
-          td: input[type="text" name="sunday_closes" id="sunday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="sunday_closed"]
+          - if hours.sunday_closed
+              td: input[type="text" id="sunday_opens" class="hour" disabled value="#{hours.sunday_opens}"] -
+              td: input[type="text"  id="sunday_closes" class="hour" disabled value="#{hours.sunday_closes}"]
+              td: input[type="checkbox" class="chk" id="sunday_closed" checked]
+          - else
+              td: input[type="text" id="sunday_opens" class="hour" value="#{hours.sunday_opens}"] -
+              td: input[type="text"  id="sunday_closes" class="hour" value="#{hours.sunday_closes}"]
+              td: input[type="checkbox" class="chk" id="sunday_closed"]
         tr
           td torsdag
-          td: input[type="text" name="thursday_opens" id="thursday_opens" class="hour"] -
-          td: input[type="text" name="thursday_closes" id="thursday_closes" class="hour"]
-          td: input[type="checkbox" class="chk" name="thursday_closed"]
+          - if hours.thursday_closed
+              td: input[type="text" id="thursday_opens" class="hour" disabled value="#{hours.thursday_opens}"] -
+              td: input[type="text"  id="thursday_closes" class="hour" disabled value="#{hours.thursday_closes}"]
+              td: input[type="checkbox" class="chk" id="thursday_closed" checked]
+          - else
+              td: input[type="text" id="thursday_opens" class="hour" value="#{hours.thursday_opens}"] -
+              td: input[type="text"  id="thursday_closes" class="hour"  value="#{hours.thursday_closes}"]
+              td: input[type="checkbox" class="chk" id="thursday_closed"]
           td
           td
         tr
@@ -352,11 +388,11 @@ div class="main"
       $(':input.chk').change(function () {
         if($(this).attr("checked"))
         {
-          var id = $(this).attr("name").slice(0, -6);
+          var id = $(this).attr("id").slice(0, -6);
           $("#"+id+"opens").attr("disabled", "disabled");
           $("#"+id+"closes").attr("disabled", "disabled");
         } else {
-          var id = $(this).attr("name").slice(0, -6);
+          var id = $(this).attr("id").slice(0, -6);
           $("#"+id+"opens").removeAttr("disabled");
           $("#"+id+"closes").removeAttr("disabled");
         }

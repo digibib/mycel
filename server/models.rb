@@ -1,5 +1,7 @@
 require "em-synchrony/activerecord"
 
+#ActiveSupport::Time::DATE_FORMATS[:hours_minutes] = "%H:%m"
+
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
 
@@ -103,6 +105,63 @@ class OpeningHours < ActiveRecord::Base
     end
   end
 
+  # TODO: find a more elegant solution to this repeitiveness:
+
+  def monday_opens
+    read_attribute(:monday_opens).strftime('%H:%M') if read_attribute(:monday_opens)
+  end
+
+  def monday_closes
+    read_attribute(:monday_closes).strftime('%H:%M') if read_attribute(:monday_closes)
+  end
+
+  def tuesday_opens
+    read_attribute(:tuesday_opens).strftime('%H:%M') if read_attribute(:tuesday_opens)
+  end
+
+  def tuesday_closes
+    read_attribute(:tuesday_closes).strftime('%H:%M') if read_attribute(:tuesday_closes)
+  end
+
+  def wednsday_opens
+    read_attribute(:wednsday_opens).strftime('%H:%M') if read_attribute(:wednsday_opens)
+  end
+
+  def wednsday_closes
+    read_attribute(:wednsday_closes).strftime('%H:%M') if read_attribute(:wednsday_closes)
+  end
+
+  def thursday_opens
+    read_attribute(:thursday_opens).strftime('%H:%M') if read_attribute(:thursday_opens)
+  end
+
+  def thursday_closes
+    read_attribute(:thursday_closes).strftime('%H:%M') if read_attribute(:thursday_closes)
+  end
+
+  def friday_opens
+    read_attribute(:friday_opens).strftime('%H:%M') if read_attribute(:friday_opens)
+  end
+
+  def friday_closes
+    read_attribute(:friday_closes).strftime('%H:%M') if read_attribute(:friday_closes)
+  end
+
+  def saturday_opens
+    read_attribute(:saturday_opens).strftime('%H:%M') if read_attribute(:saturday_opens)
+  end
+
+  def saturday_closes
+    read_attribute(:saturday_closes).strftime('%H:%M') if read_attribute(:saturday_closes)
+  end
+
+  def sunday_opens
+    read_attribute(:sunday_opens).strftime('%H:%M') if read_attribute(:sunday_opens)
+  end
+
+  def sunday_closes
+    read_attribute(:sunday_closes).strftime('%H:%M') if read_attribute(:sunday_closes)
+  end
 end
 
 class User < ActiveRecord::Base
