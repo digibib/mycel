@@ -9,28 +9,32 @@ div class="main"
   p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger som skulle tilsi noe annet.
   div class="divdot inputf"
     button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+    span[class='info' id="user_saved_info" style="margin-left:20px"]
     form id="add_user_form"
       table class="userform"
         tr
           td brukernavn
-          td: input[type="text" name="username" id="username"]
+          td: input[type="text" id="username" class="required"]
           td passord
-          td: input[type="text" name="password" id="user_password"]
+          td: input[type="text" id="user_password" class="required"]
         tr
           td alder
           td: select[name="age" id="user_age"]
             |<option value="adult">voksen</option>
             |<option value="child">barn</option>
           td minutter
-          td: input[type="text" name="minutes" class="nr" id="userminutes"]
+          td: input[type="text" class="nr required" id="user_minutes"]
         tr
           td: button[type='button' id="usersave"]  = "Lagre bruker"
           td: button[type='button' id="usercancel"]  = "Avbryt"
-          td 
-        
-    
+          td
+          td[id="user_form_response"]
+            span[class='error']
+
+
   h2 Klienter
-  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk. 
+  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk.
+  p Noen endringer vil først tre i kraft etter omstart.
   table class="clients occupied" id="dummyclient"
     tr
       td style="width:40px": img src="/img/pc_green.png" class="pc"
@@ -46,12 +50,12 @@ div class="main"
       td: button[type='button' id="useraddtime" class="occupied_options"]  = "Gi mer tid"
 
   - for client in department.clients
-    table class="clients available"
+    table class="clients available" id='client_id_#{client.id}'
       tr
         td style="width:40px": img src="/img/pc_black.png" class="pc"
-        td: #{client.name} 
+        td: #{client.name}
         td Ikke i bruk
-        td
+        td: span class="info"
         td: button[type='button' class="innstillinger" id="optionsbutton"] = "innstillinger"
       tr class="clientoptions"
         td style="width:40px"
@@ -62,62 +66,157 @@ div class="main"
       tr class="clientoptions"
         td style="width:40px"
         td navn
-        td: input[type="text" value="#{client.name}" disabled="disabled"] 
+        td: input[type="text" value="#{client.name}" disabled="disabled"]
         td korttidsmaskin (ingen pålogging)
-        td[style="text-align:center"]: input[type="checkbox" name="shorttimemachine" id="shorttimemachine"]
+        td[style="text-align:center"]
+          - if client.shorttime
+            input[type="checkbox" class="shorttimemachine" checked=true]
+          - else
+            input[type="checkbox" class="shorttimemachine"]
+      tr class="clientoptions"
+        td style="width:40px"
+        td skjermoppløsing
+        td: select[id="client_screen_res"]
+            - for res in screen_res do
+              |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+        td
+        td
+      tr class="clientoptions"
+        td style="width:40px"
+        td[colspan="2"]
+          span[class='error']
+        td: button[type='button' id="clientsave"]  = "Lagre"
+        td[style="text-align:center"]: button[type='button' id="clientcancel"]  = "Avbryt"
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
+  p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde isteden.
   h3 Åpningstider
-  p Brukerne vil bli logget av X minutter før stengetid.
+  - hours = department.hours
   div class="divdot inputf"
-    table class="genform"
-      tr
-        td
-        td fra
-        td til
-        td stengt?
-        td
-        td fra
-        td til
-        td stengt?
-      tr
-        td mandag
-        td: input[type="text" name="monday_opens" id="monday_opens" class="hour"] -
-        td: input[type="text" name="monday_closes" id="monday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="monday_closed"]
-        td fredag
-        td: input[type="text" name="friday_opens" id="friday_opens" class="hour"] - 
-        td: input[type="text" name="friday_closes" id="friday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="friday_closed"]
-      tr
-        td tirsdag
-        td: input[type="text" name="tuesday_opens" id="tuesday_opens" class="hour"] - 
-        td: input[type="text" name="tuesday_closes" id="tuesday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="tuesday_closed"]
-        td lørdag
-        td: input[type="text" name="saturday_opens" id="saturday_opens"  class="hour"] - 
-        td: input[type="text" name="saturday_closes" id="saturday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="saturday_closed"]
-      tr
-        td onsdag
-        td: input[type="text" name="wednsday_opens" id="wednsday_opens" class="hour"] - 
-        td: input[type="text" name="wednsday_closes" id="wednsday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="wednsday_closed"]
-        td søndag
-        td: input[type="text" name="sunday_opens" id="sunday_opens" class="hour"] -
-        td: input[type="text" name="sunday_closes" id="sunday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="sunday_closed"]
-      tr
-        td torsdag
-        td: input[type="text" name="thursday_opens" id="thursday_opens" class="hour"] -
-        td: input[type="text" name="thursday_closes" id="thursday_closes" class="hour"]
-        td: input[type="checkbox" class="chk" name="thursday_closed"]
-        td
-        td
-    div[class="hoursbuttons"]=
-    button[type='button' id="hoursrsave" class="gen"]  = "Lagre"
+    form id="change_hours_form" autocomplete="off"
+      input[id="department_id" hidden value="#{department.id}"]
+      input[id="opening_hours_id" hidden value="#{hours.id}"]
+      table class="genform"
+        tr
+          td[colspan="6"]
+          - if hours.owner_hours_type == 'Department'
+            span[class="inherited" style="display:none" ] Disse innstillingene er arvet fra filial #{department.branch.name}:
+          - else
+            span[class="inherited" ] Disse innstillingene er arvet fra filial #{department.branch.name}:
+        tr
+          td
+          td fra
+          td til
+          td stengt?
+          td
+          td fra
+          td til
+          td stengt?
+        tr
+          td mandag
+          - if hours.monday_closed
+              td: input[type="text" id="monday_opens" class="hour required" disabled value="#{hours.monday_opens}"] -
+              td: input[type="text"  id="monday_closes" class="hour required" disabled value="#{hours.monday_closes}"]
+              td: input[type="checkbox" class="chk" id="monday_closed" checked]
+          - else
+              td: input[type="text" id="monday_opens" class="hour required" value="#{hours.monday_opens}"] -
+              td: input[type="text"  id="monday_closes" class="hour required"  value="#{hours.monday_closes}"]
+              td: input[type="checkbox" class="chk" id="monday_closed"]
+          td fredag
+          - if hours.friday_closed
+              td: input[type="text" id="friday_opens" class="hour required" disabled value="#{hours.friday_opens}"] -
+              td: input[type="text"  id="friday_closes" class="hour required" disabled value="#{hours.friday_closes}"]
+              td: input[type="checkbox" class="chk" id="friday_closed" checked]
+          - else
+              td: input[type="text" id="friday_opens" class="hour required" value="#{hours.friday_opens}"] -
+              td: input[type="text"  id="friday_closes" class="hour required"  value="#{hours.friday_closes}"]
+              td: input[type="checkbox" class="chk" id="friday_closed"]
+        tr
+          td tirsdag
+          - if hours.tuesday_closed
+              td: input[type="text" id="tuesday_opens" class="hour required" disabled value="#{hours.tuesday_opens}"] -
+              td: input[type="text"  id="tuesday_closes" class="hour required" disabled value="#{hours.tuesday_closes}"]
+              td: input[type="checkbox" class="chk" id="tuesday_closed" checked]
+          - else
+              td: input[type="text" id="tuesday_opens" class="hour required" value="#{hours.tuesday_opens}"] -
+              td: input[type="text"  id="tuesday_closes" class="hour required"  value="#{hours.tuesday_closes}"]
+              td: input[type="checkbox" class="chk" id="tuesday_closed"]
+          td lørdag
+          - if hours.saturday_closed
+              td: input[type="text" id="saturday_opens" class="hour required" disabled value="#{hours.saturday_opens}"] -
+              td: input[type="text"  id="saturday_closes" class="hour required" disabled value="#{hours.saturday_closes}"]
+              td: input[type="checkbox" class="chk" id="saturday_closed" checked]
+          - else
+              td: input[type="text" id="saturday_opens" class="hour required" value="#{hours.saturday_opens}"] -
+              td: input[type="text"  id="saturday_closes" class="hour required"  value="#{hours.saturday_closes}"]
+              td: input[type="checkbox" class="chk" id="saturday_closed"]
+        tr
+          td onsdag
+          - if hours.wednsday_closed
+              td: input[type="text" id="wednsday_opens" class="hour required" disabled value="#{hours.wednsday_opens}"] -
+              td: input[type="text"  id="wednsday_closes" class="hour required" disabled value="#{hours.wednsday_closes}"]
+              td: input[type="checkbox" class="chk" id="wednsday_closed" checked]
+          - else
+              td: input[type="text" id="wednsday_opens" class="hour required" value="#{hours.wednsday_opens}"] -
+              td: input[type="text"  id="wednsday_closes" class="hour required"  value="#{hours.wednsday_closes}"]
+              td: input[type="checkbox" class="chk" id="wednsday_closed"]
+          td søndag
+          - if hours.sunday_closed
+              td: input[type="text" id="sunday_opens" class="hour required" disabled value="#{hours.sunday_opens}"] -
+              td: input[type="text"  id="sunday_closes" class="hour required" disabled value="#{hours.sunday_closes}"]
+              td: input[type="checkbox" class="chk" id="sunday_closed" checked]
+          - else
+              td: input[type="text" id="sunday_opens" class="hour required" value="#{hours.sunday_opens}"] -
+              td: input[type="text"  id="sunday_closes" class="hour required" value="#{hours.sunday_closes}"]
+              td: input[type="checkbox" class="chk" id="sunday_closed"]
+        tr
+          td torsdag
+          - if hours.thursday_closed
+              td: input[type="text" id="thursday_opens" class="hour required" disabled value="#{hours.thursday_opens}"] -
+              td: input[type="text"  id="thursday_closes" class="hour required" disabled value="#{hours.thursday_closes}"]
+              td: input[type="checkbox" class="chk" id="thursday_closed" checked]
+          - else
+              td: input[type="text" id="thursday_opens" class="hour required" value="#{hours.thursday_opens}"] -
+              td: input[type="text"  id="thursday_closes" class="hour required"  value="#{hours.thursday_closes}"]
+              td: input[type="checkbox" class="chk" id="thursday_closed"]
+          td
+          td
+        tr
+          td[colspan="6"]&nbsp;
+        tr
+          td[colspan="2"] Brukeren logges av
+          td: input[type="text" class="nr" id="minutes_before_closing" value="#{hours.minutes_before_closing}"]
+          td[colspan="3"] minutter før stengetid
+      div[class="hoursbuttons"]=
+    button[type='button' id="hourssave" class="gen"]  = "Lagre"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
+    span[id="hours_info" class="info" style="margin-left:48px"]
+    span[id="hours_error" class="error" style="margin-left:48px"]
+    - hours_b = Branch.find(department.branch_id).hours
+    div class="backup" id="parent-hours"
+      input[id="opening_hours_id_b" hidden value="#{hours_b.id}"]
+      input[id="monday_opens_b" hidden value="#{hours_b.monday_opens}"]
+      input[id="monday_closes_b" hidden value="#{hours_b.monday_closes}"]
+      input[id="monday_closed_b" hidden value="#{hours_b.monday_closed}"]
+      input[id="tuesday_opens_b" hidden value="#{hours_b.tuesday_opens}"]
+      input[id="tuesday_closes_b" hidden value="#{hours_b.tuesday_closes}"]
+      input[id="tuesday_closed_b" hidden value="#{hours_b.tuesday_closed}"]
+      input[id="wednsday_opens_b" hidden value="#{hours_b.wednsday_opens}"]
+      input[id="wednsday_closes_b" hidden value="#{hours_b.wednsday_closes}"]
+      input[id="wednsday_closed_b" hidden value="#{hours_b.wednsday_closed}"]
+      input[id="thursday_opens_b" hidden value="#{hours_b.thursday_opens}"]
+      input[id="thursday_closes_b" hidden value="#{hours_b.thursday_closes}"]
+      input[id="thursday_closed_b" hidden value="#{hours_b.thursday_closed}"]
+      input[id="friday_opens_b" hidden value="#{hours_b.friday_opens}"]
+      input[id="friday_closes_b" hidden value="#{hours_b.friday_closes}"]
+      input[id="friday_closed_b" hidden value="#{hours_b.friday_closed}"]
+      input[id="saturday_opens_b" hidden value="#{hours_b.saturday_opens}"]
+      input[id="saturday_closes_b" hidden value="#{hours_b.saturday_closes}"]
+      input[id="saturday_closed_b" hidden value="#{hours_b.saturday_closed}"]
+      input[id="sunday_opens_b" hidden value="#{hours_b.sunday_opens}"]
+      input[id="sunday_closes_b" hidden value="#{hours_b.sunday_closes}"]
+      input[id="sunday_closed_b" hidden value="#{hours_b.sunday_closed}"]
 
   h3 Aldersbegrensninger
   p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
@@ -130,7 +229,7 @@ div class="main"
         td: input[type="text" name="age_higher" id="age_higher" class="nr"]
         td: button[type='button' id="agesave" ]  = "Lagre"
 
-  
+
   h3 Tidsbegrensninger
   p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
   div class="divdot inputf"
@@ -148,16 +247,84 @@ div class="main"
       tr
         td  printeradresse
         td: input[type="text" name="printer" class="printer"]
-        td: button[type='button' id="printersave"]  = "Lagre"
+        td: button[type='button' id="printersave" disabled]  = "Lagre"
 
   script src="/js/jquery.meio.mask.min.js"
   javascript:
-   
+    // TODO change all # duplicates to .class
+    // TODO split this into common.js, department.js and branch.js when done
+
+    // ** conveniece functions **
+
+    $.fn.exists = function () {
+      return this.length != 0;
+    }
+
     $(document).ready(function () {
-      $('table.userform').hide();
-      $(':button.innstillinger').hide();
-      $('.occupied_options').hide();
-      $('tr.clientoptions').hide();
+
+      // ** set input masks **
+
+      $('input#user_minutes').setMask('999');
+      $('input#age_lower').setMask('99');
+      $('input#age_higher').setMask('99');
+      $('input#minutes_limit').setMask('999');
+      $('input#add_time').setMask('999');
+      $('input#minutes_before_closing').setMask('99');
+
+      // ** global functions and handles **
+
+      $(':input').focus(function () {
+        if ($(this).hasClass('inputmissing')) {
+          $(this).removeClass('inputmissing');
+        }
+      });
+
+      // ** handle add-guest-user events **
+
+      $("button#adduser").on("click", function() {
+        $('table.userform').toggle();
+      });
+      $("button#usercancel").on("click", function() {
+        $('table.userform').hide();
+      });
+
+      $('button#usersave').on('click', function () {
+        var missing = 0;
+        $('#add_user_form').find('input.required').each(function() {
+          if ($(this).val() == '' ) {
+            $(this).addClass('inputmissing');
+            missing = 1;
+          }
+        });
+
+        if (missing) { return; }
+
+        var request = $.ajax({
+          url: '/saveuser',
+          type: 'POST',
+          data: {
+                 username: $('input#username').val(),
+                 password: $('input#user_password').val(),
+                 age: $('select#user_age').val(),
+                 minutes: $('input#user_minutes').val(),
+                 },
+          dataType: "html"
+          });
+
+        request.done(function(msg) {
+          $('#user_saved_info').html(msg)
+            .show().fadeOut(5000);
+          $('#add_user_form')[0].reset();
+          $('table.userform').hide();
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('td#user_form_response').find('span.error')
+            .html(jqXHR.responseText).show().fadeOut(5000);
+        })
+      });
+
+      // ** handle client-options events **
 
      $("button#optionsbutton").on("click", function() {
         $s = $(this).parents("tr").siblings("tr.clientoptions")
@@ -167,66 +334,21 @@ div class="main"
         } else {
           $s.parents('table').removeClass("options_open");
         }
-        
-      }); 
-
-      $("button#adduser").on("click", function() {
-        $('table.userform').toggle();
-      }); 
-      $("button#usercancel").on("click", function() {
-        $('table.userform').hide();
       });
-
-      // max 999 minutes allowed!
-      $('input#userminutes').setMask('999');
-
-      $('input#age_lower').setMask('99');
-      $('input#age_higher').setMask('99');
-      $('input#minutes_limit').setMask('999');
-      $('input#add_time').setMask('999');
-
 
       $("table.clients.available").hover(
         function() {
-          $(this).find(":button").show()
+          if (!$("table.clients.options_open").exists()) {
+            $(this).find(":button").show()
+          }
         },
         function() {
-          $(this).find(":button").hide()
-          $('tr.clientoptions').hide();
-          $('table.options_open').removeClass('options_open');
-        }); 
-
-      $(':input.chk').change(function () {
-        if($(this).attr("checked"))
-        {
-          var id = $(this).attr("name").slice(0, -6);
-          $("#"+id+"opens").attr("disabled", "disabled");
-          $("#"+id+"closes").attr("disabled", "disabled");
-        } else {
-          var id = $(this).attr("name").slice(0, -6);
-          $("#"+id+"opens").removeAttr("disabled");
-          $("#"+id+"closes").removeAttr("disabled");
-        }
-      });
-
-      
-      $(':input.hour').setMask('29:59').keypress(function() {
-        var currentMask = $(this).data('mask').mask;
-        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
-        if (newMask != currentMask) {
-          $(this).setMask(newMask);
-        }
+          if (!$("table.clients.options_open").exists()) {
+            $(this).find(":button").hide()
+            $('tr.clientoptions').hide();
+            $('table.options_open').removeClass('options_open');
+          }
         });
-
-      $('button#hoursclear').on('click', function () {
-        $(':input.hour').val('');
-        $(':input.hour').removeAttr("disabled");
-        $(':input.chk').removeAttr('checked');
-      });
-
-      $('button#user_throw_out').on('click', function () {
-        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
-      });
 
       $("table.clients.occupied").hover(
         function() {
@@ -238,13 +360,49 @@ div class="main"
           $(this).find(":input").removeClass('inputmissing').hide();
         });
 
-      $('input#minutes_unlimited').change(function () {
-        if($(this).attr("checked"))
-        {
-          $('input#minutes_limit').attr("disabled", "disabled");
-        } else {
-          $('input#minutes_limit').removeAttr("disabled");
+      $('button#clientsave').on('click', function () {
+        var $s = $(this).parents('table');
+        var shortbool = 0;
+        if ($s.find('input.shorttimemachine').is(':checked')) {
+          shortbool = 1;
         }
+
+        var request = $.ajax({
+          url: '/saveclientoptions',
+          type: 'POST',
+          data: {
+                client_id: $s.attr('id').slice(10),
+                screenres: $s.find('#client_screen_res option:selected').val(),
+                shorttime: shortbool
+                },
+          dataType: "html"
+        });
+
+        request.done(function(msg) {
+          $s = $('table.options_open');
+          $s.find('span.info').html('OK! Lagret.').show().fadeOut(5000);
+          $s.removeClass("options_open");
+          $s.find(':button').hide();
+          $s.find("tr.clientoptions").toggle();
+        })
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('table.options_open').find('span.error')
+            .html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      });
+
+      $('button#clientcancel').on('click', function () {
+        $s = $('table.options_open');
+        $s.removeClass("options_open");
+        $s.find(':button').hide();
+        $s.find("tr.clientoptions").toggle();
+      });
+
+      // ** handle client-user events **
+
+      $('button#user_throw_out').on('click', function () {
+        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
       });
 
       $('button#useraddtime').on('click', function () {
@@ -259,27 +417,126 @@ div class="main"
         $('input#add_time').val('');
       });
 
-      $('button#usersave').on('click', function () {
-        var request = $.ajax({
-          url: '/usersave',
-          type: 'POST',
-          data: {username: $('input#username').val()}
-          });
-        
-        request.done(function(msg) {
-          console.log(msg);
-        });
-        
-        request.fail(function(jqXHR, textStatus) {
-          console.log("Request failed: " + textStatus);
-        })
+      // ** handle opening-hours events **
+
+      $(':input.chk').change(function () {
+        if($(this).attr("checked"))
+        {
+          var id = $(this).attr("id").slice(0, -6);
+          $("#"+id+"opens").attr("disabled", "disabled").removeClass("inputmissing");
+          $("#"+id+"closes").attr("disabled", "disabled").removeClass("inputmissing");
+        } else {
+          var id = $(this).attr("id").slice(0, -6);
+          $("#"+id+"opens").removeAttr("disabled");
+          $("#"+id+"closes").removeAttr("disabled");
+        }
       });
 
-      $(':input').focus(function () {
-        if ($(this).hasClass('inputmissing')) {
-          $(this).removeClass('inputmissing');
+      $(':input.hour').setMask('29:59').keypress(function() {
+        var currentMask = $(this).data('mask').mask;
+        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
+        if (newMask != currentMask) {
+          $(this).setMask(newMask);
         }
-      })
+        });
+
+      $('button#hoursclear').on('click', function () {
+        $('#change_hours_form')[0].reset();
+        $(':input.hour').val('').removeClass("inputmissing");
+        $(':input.hour').removeAttr("disabled");
+        $(':input.chk').removeAttr('checked');
+      });
+
+      $('button#hourssave').on('click', function() {
+
+        var missing = 0;
+        $('input.hour.required:not(:disabled)').each(function () {
+          if ($(this).val() == '' ) {
+            $(this).addClass('inputmissing');
+            missing += 1;
+          }
+        });
+
+        // return if one or more (but not all 14) input fields are missing
+        if (missing && (missing != 14 )) { return; }
+
+        $(':input.hour').removeClass("inputmissing");
+
+        var request = $.ajax({
+          url: '/saveopeninghours',
+          type: 'POST',
+          cache: false,
+          data: {
+                missing_fields: missing,
+                department_id: $('input#department_id').val(),
+                opening_hours_id: $('input#opening_hours_id').val(),
+                monday_opens: $('input#monday_opens').val(),
+                monday_closes: $('input#monday_closes').val(),
+                tuesday_opens: $('input#tuesday_opens').val(),
+                tuesday_closes: $('input#tuesday_closes').val(),
+                wednsday_opens: $('input#wednsday_opens').val(),
+                wednsday_closes: $('input#wednsday_closes').val(),
+                thursday_opens: $('input#thursday_opens').val(),
+                thursday_closes: $('input#thursday_closes').val(),
+                friday_opens: $('input#friday_opens').val(),
+                friday_closes: $('input#friday_closes').val(),
+                saturday_opens: $('input#saturday_opens').val(),
+                saturday_closes: $('input#saturday_closes').val(),
+                sunday_opens: $('input#sunday_opens').val(),
+                sunday_closes: $('input#sunday_closes').val(),
+                monday_closed: $('input#monday_closed').is(':checked'),
+                tuesday_closed: $('input#tuesday_closed').is(':checked'),
+                wednsday_closed: $('input#wednsday_closed').is(':checked'),
+                thursday_closed: $('input#thursday_closed').is(':checked'),
+                friday_closed: $('input#friday_closed').is(':checked'),
+                saturday_closed: $('input#saturday_closed').is(':checked'),
+                sunday_closed: $('input#sunday_closed').is(':checked'),
+                minutes_before_closing: $('input#minutes_before_closing').val()
+                },
+          dataType: "html"
+        });
+
+        request.done(function(msg, sthn, jqXHR) {
+          $('span#hours_error').hide();
+          $('span#hours_info').html(msg).show().fadeOut(5000);
+          if (msg.match(/OK/)) {
+            $('#change_hours_form').find('span.inherited').hide();
+            $('input#opening_hours_id').val(jqXHR.getResponseHeader('new_hours_id'));
+          }
+          if (msg.match(/Arver/)) {
+            $('#change_hours_form').find('span.inherited').show();
+            $('div#parent-hours').find(':input').each(function() {
+              var v = $(this).val();
+              var id = $(this).attr("id").slice(0,-2);
+              if (v == 'true') {
+                $('#'+id).attr('checked', true);
+                $('#'+id.slice(0,-6)+'opens').attr("disabled", "disabled");
+                $('#'+id.slice(0,-6)+'closes').attr("disabled", "disabled");
+              } else {
+                $('#'+id).val(v);
+              }
+
+            });
+          }
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('span#hours_info').hide();
+          $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      });
+
+      // ** handle time-limitation-options events
+
+      $('input#minutes_unlimited').change(function () {
+        if($(this).attr("checked"))
+        {
+          $('input#minutes_limit').attr("disabled", "disabled");
+        } else {
+          $('input#minutes_limit').removeAttr("disabled");
+        }
+      });
+
 
     });
 

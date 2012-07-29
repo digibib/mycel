@@ -15,11 +15,11 @@ div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
 img.logo    { margin-top: 10px; margin-left:10px;}
 img.pc      { }
 
-span.info   { display: none; }
+span.info   { font-family: monospace; font-size: 12px; font-weight: bold; display: none; }
 span.error  { display: none; color: #c03019; font-weight: bold; }
 
 .inputmissing { background: yellow;}
-
+span.inherited { color:#c03019; }
 input       { width: 120px;}
 input.chk   { width: 20px;}
 input.nr    { width: 40px; margin-right:20px;}
@@ -28,11 +28,16 @@ input.printer { width: 160px; }
 div.inputf  { font-size:12px; font-family: monospace;}
 
 div.divdot    { border: 1px dotted #ccc; padding:14px; background-color: #f8f8f8;}
+div.backup    { display:none;}
 button        { background-color: #e8e8e8; border: 1px solid #888; border-radius: 2px;
                 padding: 3px; color: #160b57; font-size: 12px; font-family: monospace;}
+button:disabled { border: 1px dashed #ccc; color: #aaa;}
+button:disabled:active { background: #e8e8e8; position:static;}
 button:active { background:#ddd; position:relative; top: 1px; }
 button.guest  { }
 button.gen    { margin-right:10px;}
+button.innstillinger { display: none; }
+
 
 table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
 .deptlist td   { min-width: 160px; padding: 7px; background-color:#fff;}
@@ -40,11 +45,14 @@ table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
 table.clients  { margin-left: 10px; font-size:14px; border:1px solid white; }
 .clients td    { width: 136px; text-align: left; padding: 4px; margin:0; height: 36px;
                  vertical-align: middle;}
+.occupied_options { display: none;}
+.options_open { border: 1px solid #ccc !important; }
 .clients:hover { border: 1px solid #ccc;}
 .clientoptions { font-family: monospace; font-size: 12px; font-weight: bold;}
 .clientoptions td { text-align: right; }
+tr.clientoptions { display: none;}
 
-table.userform { margin-top: 20px }
+table.userform { margin-top: 20px; display:none; }
 .userform td   { padding: 7px; font-weight: bold;}
 
 table.genform  {  }
