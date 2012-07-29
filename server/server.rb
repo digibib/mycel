@@ -3,8 +3,9 @@ require "em-synchrony/activerecord"
 require "goliath"
 require 'goliath/rack/templates'
 require "slim"
-require_relative "./models"
 require "cgi"
+require_relative "models"
+require_relative "api"
 
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
