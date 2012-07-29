@@ -15,7 +15,11 @@ class API < Grape::API
 
   resource 'clients' do
     get "/" do
-      {"clients" => "plenty"}
+      {:clients => Client.all }
+    end
+
+    get "/:id" do
+      {:client => Client.find(params[:id])}
     end
   end
 

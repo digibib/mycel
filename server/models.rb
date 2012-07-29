@@ -1,5 +1,6 @@
 require "em-synchrony/activerecord"
 
+ActiveRecord::Base.include_root_in_json = false
 
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
@@ -59,7 +60,7 @@ end
 class Client < ActiveRecord::Base
   belongs_to :department
 
-  validates_presence_of :name, :hwaddr
+  validates_presence_of :name, :hwaddr, :ipaddr
   validates_uniqueness_of :name, :hwaddr, :ipaddr
 
   has_one :user
