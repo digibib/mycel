@@ -35,24 +35,6 @@ class SaveUser < Goliath::API
 end
 
 
-class SaveClientOptions < Goliath::API
-
-  def response(env)
-    puts params.to_s
-    begin
-      client = Client.find(params['client_id'])
-      client.update_attributes!(:shorttime => params['shorttime'],
-                                :screen_resolution_id => params['screenres'])
-      [200, {}, 'Innstilliger lagret.']
-    rescue Exception => e
-      puts e.class # TODO log this!
-      puts e
-      [500, {}, 'Server error: endringene ble ikke lagret']
-    end
-
-  end
-end
-
 class SaveOpeningHours < Goliath::API
     # TODO updatattributes instead of new object if it exists!
   def response(env)
@@ -119,24 +101,8 @@ class Server < Goliath::API
   @@org = Organization.first
 
   def response(env)
-    # (not to elegant) URL-routing:
-    # I will try to implement this in Grape, as soon as I find out how
-    # to serve template views from Grape endpoints
-    if env['REQUEST_METHOD'] == 'POST'
-      puts "its a post!"
-      case env['PATH_INFO']
-      when '/saveuser'
-        SaveUser.new.call(env)
-      when '/saveclientoptions'
-        SaveClientOptions.new.call(env)
-      when '/saveopeninghours'
-        SaveOpeningHours.new.call(env)
-      else
-        raise Goliath::Validation::BadRequestError
-      end
-    end
-
     path = CGI.unescape(env['PATH_INFO']).split('/')
+
     case path.length
     when 0    # matches /
       [200, {}, slim(:index, :locals => {:org => @@org})]
@@ -157,7 +123,15 @@ class Server < Goliath::API
         else  # matches non-existing department
           raise Goliath::Validation::NotFoundError
         end
+      elsif path[1] == 'api' # Dispatch api-calls to grape
+        API.call(env)
       else    # matches non-existing branch and/or department
+        raise Goliath::Validation::NotFoundError
+      end
+    when 4
+      if path[1] == 'api' # Dispatch api-calls to grape
+        API.call(env)
+      else
         raise Goliath::Validation::NotFoundError
       end
     else      # matches everything else

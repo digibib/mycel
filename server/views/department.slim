@@ -368,14 +368,13 @@ div class="main"
         }
 
         var request = $.ajax({
-          url: '/saveclientoptions',
-          type: 'POST',
+          url: '/api/clients/'+$s.attr('id').slice(10),
+          type: 'PUT',
           data: {
-                client_id: $s.attr('id').slice(10),
-                screenres: $s.find('#client_screen_res option:selected').val(),
+                screen_resolution_id: $s.find('#client_screen_res option:selected').val(),
                 shorttime: shortbool
                 },
-          dataType: "html"
+          dataType: "json"
         });
 
         request.done(function(msg) {
