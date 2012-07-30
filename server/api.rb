@@ -37,7 +37,32 @@ class API < Grape::API
         client.update_attributes(updates)
         {:client => client}
       else
-        throw :error, :status => 400, :message => "no changes to be made"
+        throw :error, :status => 400, :message => "Ingen endringer!"
+      end
+    end
+
+  end
+
+  resource :users do
+    desc "returns all users"
+    get "/" do
+      {:users => User.all}
+    end
+
+    desc "returns a specific user"
+    get "/:id" do
+      {:user => User.find(params[:id])}
+    end
+
+    desc "creates a new guest user"
+    post "/" do
+      new_user = GuestUser.create(:username => params["username"],
+        :password => params["password"], :minutes => params["minutes"],
+        :age => params["age"])
+      if new_user.valid?
+        {:user => new_user}
+      else
+        throw :error, :status => 400, :message => "Missing or wrong parameters"
       end
     end
 

@@ -20,8 +20,8 @@ div class="main"
         tr
           td alder
           td: select[name="age" id="user_age"]
-            |<option value="adult">voksen</option>
-            |<option value="child">barn</option>
+            |<option value="20">voksen</option>
+            |<option value="10">barn</option>
           td minutter
           td: input[type="text" class="nr required" id="user_minutes"]
         tr
@@ -300,7 +300,7 @@ div class="main"
         if (missing) { return; }
 
         var request = $.ajax({
-          url: '/saveuser',
+          url: '/api/users',
           type: 'POST',
           data: {
                  username: $('input#username').val(),
@@ -308,11 +308,12 @@ div class="main"
                  age: $('select#user_age').val(),
                  minutes: $('input#user_minutes').val(),
                  },
-          dataType: "html"
+          dataType: "json"
           });
 
-        request.done(function(msg) {
-          $('#user_saved_info').html(msg)
+        request.done(function(data) {
+          console.log();
+          $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
             .show().fadeOut(5000);
           $('#add_user_form')[0].reset();
           $('table.userform').hide();
@@ -320,7 +321,7 @@ div class="main"
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('td#user_form_response').find('span.error')
-            .html(jqXHR.responseText).show().fadeOut(5000);
+            .html("Brukeren finnes allerede! Velg et annet brukernavn.").show().fadeOut(5000);
         })
       });
 
@@ -362,9 +363,9 @@ div class="main"
 
       $('button#clientsave').on('click', function () {
         var $s = $(this).parents('table');
-        var shortbool = 0;
+        var shortbool = false;
         if ($s.find('input.shorttimemachine').is(':checked')) {
-          shortbool = 1;
+          shortbool = true;
         }
 
         var request = $.ajax({

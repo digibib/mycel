@@ -101,8 +101,55 @@ describe API do
       it "updates nothing if no attributes are changed" do
         put "/api/clients/#{@client_updatable.id}", :name => @client_updatable.name
         last_response.status.must_equal 400
-        last_response.body.must_match /no changes/
+        last_response.body.must_equal "Ingen endringer!"
       end
+    end
+
+  end
+
+  describe 'users' do
+
+    describe 'GET /api/users' do
+
+      before do
+        @guest = GuestUser.create(:username => any_string, :password => any_string,
+                         :minutes => any_int, :age => any_int)
+        @named_guest = GuestUser.create(:username => "Franz", :password => any_string,
+                         :minutes => any_int, :age => any_int)
+      end
+
+      after do
+        @guest.destroy
+        @named_guest.destroy
+      end
+
+      it "fetches all the users" do
+        num_of_users = User.all.count
+        get "/api/users"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['users'].count.must_equal num_of_users
+      end
+
+      it "returns specific user" do
+        user = User.find_by_username('Franz')
+        get "/api/users/#{user.id}"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['user']['username'].must_equal "Franz"
+      end
+    end
+
+    describe 'POST /api/users' do
+      it "creates a new user" do
+        num_of_users = User.all.count
+        post "api/users", :username => any_string, :password => any_string,
+                          :minutes => any_int, :age => any_int
+        last_response.status.must_equal 201
+        User.all.count.must_equal num_of_users + 1
+        # delete created user so it doesnt interfere with other specs
+        new_user = JSON.parse(last_response.body)['user']['id']
+        User.find(new_user).destroy
+      end
+
     end
 
   end
