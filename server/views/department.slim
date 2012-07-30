@@ -75,7 +75,7 @@ div class="main"
             input[type="checkbox" class="shorttimemachine"]
       tr class="clientoptions"
         td style="width:40px"
-        td skjermoppløsing
+        td skjermoppløsning
         td: select[id="client_screen_res"]
             - for res in screen_res do
               |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
