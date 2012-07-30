@@ -31,7 +31,7 @@ class API < Grape::API
       client = Client.find(params[:id])
       updates = {}
       params.each do |k,v|
-        updates[k] = v if (client.has_attribute?(k) and client.attributes[k].to_s != v)
+        updates[k] = v if client.has_attribute?(k) and client.attributes[k].to_s != v
       end
       if updates.size > 0
         client.update_attributes(updates)

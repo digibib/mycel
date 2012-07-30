@@ -19,8 +19,10 @@ describe API do
     describe 'GET /api/clients' do
 
       before do
-        @client1 = Client.create(:id => 1, :name => 'client1', :hwaddr => any_string, :ipaddr => any_string)
-        @client2 = Client.create(:id => 2, :name => 'client2', :hwaddr => any_string, :ipaddr => any_string)
+        @client1 = Client.create(:id => 1, :name => 'client1',
+                                 :hwaddr => any_string, :ipaddr => any_string)
+        @client2 = Client.create(:id => 2, :name => 'client2',
+                                 :hwaddr => any_string, :ipaddr => any_string)
       end
 
       it "lists all the clients" do
@@ -49,7 +51,8 @@ describe API do
     describe 'POST /api/clients' do
       it "creates a new client" do
         num_of_clients_before_post = Client.all.count
-        post "/api/clients", :name => any_string, :ipaddr => any_string, :hwaddr => any_string
+        post "/api/clients", :name => any_string, :ipaddr => any_string,
+                              :hwaddr => any_string
         last_response.status.must_equal 201
         Client.all.count.must_equal num_of_clients_before_post + 1
       end
@@ -62,7 +65,8 @@ describe API do
       end
 
       it "returns the created client" do
-        post "/api/clients", :name => 'nju_client', :ipaddr => any_string, :hwaddr => any_string
+        post "/api/clients", :name => 'nju_client', :ipaddr => any_string,
+                             :hwaddr => any_string
         last_response.status.must_equal 201
         JSON.parse(last_response.body)['client']['name'].must_equal "nju_client"
       end
@@ -71,7 +75,8 @@ describe API do
     describe 'PUT /api/clients/:id' do
 
       before do
-        @client_updatable = Client.create(:name => any_string, :ipaddr => 'ip.1', :hwaddr => any_string)
+        @client_updatable = Client.create(:name => any_string,
+                                          :ipaddr => 'ip.1', :hwaddr => any_string)
       end
 
       after do
