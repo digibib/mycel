@@ -1,13 +1,56 @@
 == render :slim, :'_header'
 div class="main"
   h2 Brukere
-  p Her vises alle brukerne som er pålogget, og alle som har logget seg på tidligere i dag. Listen nullstilles hver natt, slik at ingen personopplysninger lagres mer enn ett døgn.
+  p Her vises alle brukerne som er pålogget, og de inaktive, det vil si de som har logget seg på tidligere i dag. Listen nullstilles hver natt, slik at ingen personopplysninger lagres mer enn ett døgn.
+  p Det skilles mellom tre brukertyper:
+  |<p><span class="bold">[B] biblioteksbrukere</span> - logger seg på med lånekortnummer og PIN-kode.</p>
+  |<p><span class="bold">[G] gjestebrukere</span> - personalet kan opprette gjestebrukere ved behov.</p>
+  |<p><span class="bold">[A] anonyme brukere</span> - brukere av korttidsmaskiner uten krav til pålogging er naturlig nok anynoyme.</p>
+
   h3 Om tidsstyring
-  h3 Brukertyper
-  dl
-  	dt Biblioteksbrukere
-  	dd Disse logger seg på med lånekortnummer og PIN-kode.
-  	dt Gjestebrukere
-  	dd Personalet kan opprette brukere ved behov
-  	dt Anynoyme brukere
-  	dd De som er bruker en korttidsmaskin uten pålogging vises som anonym.
+  p blah blah
+  h2 Påloggede brukere
+
+  table class="users"
+    thead
+      tr
+        th type
+        th bruker
+        th minutter igjen
+        th filial / avdeling
+        th klient
+        th
+    tbody
+      tr
+        td B
+        td Petter Goksøyr Åsen
+        td
+          '30
+          input[type="text" class="nr required"]
+          button[type='button' class="users"] = "+"
+        td Hovedbiblioteket / voksenavdelingen
+        td dummyklient
+        td: button[type='button' class="users"]  = "Kast ut!"
+
+  h2 Inaktive brukere
+
+  table class="users"
+    thead
+      tr
+        th type
+        th bruker
+        th[colspan="2"] minutter igjen
+        th
+
+    tbody
+      - for user in users
+        tr
+          td #{user.type[0]}
+          td #{user.username}
+          td #{user.minutes}
+          td
+            input[type="text" class="nr"]
+            button[type='button' class="users"] = "+"
+          td: button[type='button' class="users"]  = "Slett"
+
+  == render :slim, :'_footer'
