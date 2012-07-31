@@ -1,0 +1,13 @@
+== render :slim, :'_header'
+div class="main"
+  h2 Brukere
+  p Her vises alle brukerne som er pålogget, og alle som har logget seg på tidligere i dag. Listen nullstilles hver natt, slik at ingen personopplysninger lagres mer enn ett døgn.
+  h3 Om tidsstyring
+  h3 Brukertyper
+  dl
+  	dt Biblioteksbrukere
+  	dd Disse logger seg på med lånekortnummer og PIN-kode.
+  	dt Gjestebrukere
+  	dd Personalet kan opprette brukere ved behov
+  	dt Anynoyme brukere
+  	dd De som er bruker en korttidsmaskin uten pålogging vises som anonym.
