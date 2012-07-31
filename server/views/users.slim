@@ -98,7 +98,7 @@ div class="main"
       $('button.users.add_time').on('click', function () {
 
         var $i = $(this).siblings('input.nr.required')
-        if ($i.val() == '0') {
+        if (parseInt($i.val()) == 0) {
           $i.val('');
           return;
         }
