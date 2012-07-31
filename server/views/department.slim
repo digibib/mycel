@@ -312,7 +312,6 @@ div class="main"
           });
 
         request.done(function(data) {
-          console.log();
           $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
             .show().fadeOut(5000);
           $('#add_user_form')[0].reset();

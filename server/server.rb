@@ -87,6 +87,8 @@ class Server < Goliath::API
               # or matches /ws for websocket communication:
       elsif path[1] == 'ws'
         super(env)
+      elsif path[1] == 'users'
+        [200, {}, slim(:users, :locals => {:users => User.all})]
       else    # matches non-existing branch
         raise Goliath::Validation::NotFoundError
       end
