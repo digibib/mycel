@@ -63,7 +63,7 @@ class Client < ActiveRecord::Base
   validates_presence_of :name, :hwaddr, :ipaddr
   validates_uniqueness_of :name, :hwaddr, :ipaddr
 
-  has_one :user
+  has_one :user, :inverse_of => :client
   has_one :screen_resolution
 
   def homepage
@@ -72,6 +72,10 @@ class Client < ActiveRecord::Base
 
   def printer_addr
     Department.find(self.department_id).printer_addr
+  end
+
+  def occupied?
+    self.user
   end
 
 end
@@ -170,6 +174,17 @@ end
 
 class User < ActiveRecord::Base
   validates_presence_of  :minutes
+
+  belongs_to :client, :inverse_of => :user, :autosave => true
+
+  def log_on(client)
+    client.update_attributes :user => self unless client.user
+  end
+
+  def log_off
+    client.update_attributes :user => nil
+  end
+
 end
 
 class LibraryUser < User

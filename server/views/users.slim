@@ -27,7 +27,7 @@ div class="main"
         td
           '30
           input[type="text" class="nr required"]
-          button[type='button' class="users"] = "+"
+          button[type='button' class="users add_time"] = "+"
         td Hovedbiblioteket / voksenavdelingen
         td dummyklient
         td: button[type='button' class="users"]  = "Kast ut!"
@@ -44,13 +44,93 @@ div class="main"
 
     tbody
       - for user in users
-        tr
+        tr id="#{user.id}"
           td #{user.type[0]}
           td #{user.username}
-          td #{user.minutes}
+          td[class="td-minutes"] #{user.minutes}
           td
-            input[type="text" class="nr"]
-            button[type='button' class="users"] = "+"
-          td: button[type='button' class="users"]  = "Slett"
+            input[type="hidden" class="users minutes" value="#{user.minutes}"]
+            input[type="text" class="nr required"]
+            button[type='button' class="users add_time"] = "+"
+          td: button[type='button' class="users delete"]  = "Slett"
 
   == render :slim, :'_footer'
+
+  script src="/js/jquery.meio.mask.min.js"
+  javascript:
+    $(document).ready(function () {
+
+      // ** global functions and handles **
+
+      $(':input').focus(function () {
+        if ($(this).hasClass('inputmissing')) {
+          $(this).removeClass('inputmissing');
+        }
+      });
+
+
+      // ** set input masks **
+
+      $('input.nr').setMask('999');
+
+
+      // ** Handle delete user
+
+      $('button.users.delete').on('click', function () {
+        var user_id = $(this).parents('tr').attr('id');
+
+        var request = $.ajax({
+          url: "/api/users/"+user_id,
+          type: "DELETE"
+        });
+
+        request.done(function(msg) {
+          $('tr#'+user_id).remove();
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+            // TODO where to display error message?
+            //alert(jqXHR.responseText);
+        });
+      });
+
+      // ** Handle adjust user minutes
+      $('button.users.add_time').on('click', function () {
+
+        var $i = $(this).siblings('input.nr.required')
+        if ($i.val() == '0') {
+          $i.val('');
+          return;
+        }
+        if ($i.val() =='' ) {
+          $i.addClass('inputmissing');
+          return;
+        }
+
+        var user_id = $(this).parents('tr').attr('id');
+        var $min = $('tr#'+user_id).find('input.users.minutes');
+        var user_minutes = $min.val();
+
+        var request = $.ajax({
+          url: '/api/users/'+user_id,
+          type: "PUT",
+          data: {
+                minutes: parseInt(user_minutes)+parseInt($i.val())
+                },
+          dataType: "json"
+        });
+
+        request.done(function(data) {
+          $min.val(data.user.minutes); // update hidden input
+          $('tr#'+user_id).find('td.td-minutes').html(data.user.minutes);
+          $i.val('');
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+             // TODO where to display error message?
+             //alert(jqXHR.responseText);
+         });
+
+      });
+
+    });

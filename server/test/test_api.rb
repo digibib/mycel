@@ -141,7 +141,7 @@ describe API do
     describe 'POST /api/users' do
       it "creates a new user" do
         num_of_users = User.all.count
-        post "api/users", :username => any_string, :password => any_string,
+        post "/api/users", :username => any_string, :password => any_string,
                           :minutes => any_int, :age => any_int
         last_response.status.must_equal 201
         User.all.count.must_equal num_of_users + 1
@@ -150,6 +150,59 @@ describe API do
         User.find(new_user).destroy
       end
 
+    end
+
+    describe 'DELETE /api/users/:id' do
+
+      before do
+        @guest = GuestUser.create(:username => any_string, :password => any_string,
+                         :minutes => any_int, :age => any_int)
+      end
+
+      after do
+        @guest.destroy
+      end
+
+      it "deletes a given user" do
+        num_of_users = User.all.count
+        delete "/api/users/#{@guest.id}"
+        last_response.status.must_equal 200
+        User.all.count.must_equal num_of_users - 1
+        assert @quest.nil?
+      end
+    end
+
+    describe 'PUT /api/users/:id' do
+
+      before do
+        @user = GuestUser.create(:username => any_string, :password => any_string,
+                         :minutes => 30, :age => any_int)
+      end
+
+      after do
+        @user.destroy
+      end
+
+      it "updates a client with new values suplied by parameters" do
+        @user.minutes.must_equal 30
+        put "/api/users/#{@user.id}", :minutes => 45
+        last_response.status.must_equal 200
+        @user.reload
+        @user.minutes.must_equal 45
+      end
+
+      it "returns the updated user" do
+        name_before_update = @user.username
+        put "/api/users/#{@user.id}", :username => "new_name"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['user']['username'].must_equal "new_name"
+      end
+
+      it "updates nothing if no attributes are changed" do
+        put "/api/users/#{@user.id}", :username => @user.username
+        last_response.status.must_equal 400
+        last_response.body.must_equal "Ingen endringer!"
+      end
     end
 
   end

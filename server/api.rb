@@ -66,6 +66,26 @@ class API < Grape::API
       end
     end
 
-  end
+    desc "deletes a user"
+    delete "/:id" do
+      User.find(params[:id]).destroy
+      {}
+    end
 
+    desc "updates a user"
+    put "/:id" do
+      user = User.find(params[:id])
+      updates = {}
+      params.each do |k,v|
+        updates[k] = v if user.has_attribute?(k) and user.attributes[k].to_s != v
+      end
+      if updates.size > 0
+        user.update_attributes(updates)
+        {:user => user}
+      else
+        throw :error, :status => 400, :message => "Ingen endringer!"
+      end
+    end
+
+  end
 end

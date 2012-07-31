@@ -32,6 +32,7 @@ ActiveRecord::Schema.define do
 
     t.integer :screen_resolution_id, :default => 1
     t.integer :department_id
+    t.integer :user_id
   end
 
   create_table :opening_hours, :force => true do |t|
@@ -77,6 +78,8 @@ ActiveRecord::Schema.define do
 
     t.string :type
     t.timestamps
+
+    t.integer :client_id
   end
 
   create_table :screen_resolutions, :force => true do |t|
