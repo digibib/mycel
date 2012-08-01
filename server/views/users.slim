@@ -24,7 +24,7 @@ div class="main"
       - for user in User.logged_on
         - client = Client.find(user.client_id)
         tr id="#{user.id}"
-          td #{user.type[0]}
+          td #{user.type_short}
           td #{user.username}
           td[class="td-minutes"] #{user.minutes}
           td
@@ -48,7 +48,7 @@ div class="main"
     tbody
       - for user in User.inactive
         tr id="#{user.id}"
-          td #{user.type[0]}
+          td #{user.type_short}
           td #{user.username}
           td[class="td-minutes" style="width:40px"] #{user.minutes}
           td

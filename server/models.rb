@@ -202,14 +202,25 @@ end
 class LibraryUser < User
   validates_presence_of :username, :age
   validates :username, :uniqueness => true
+
+  def type_short
+    'B'
+  end
 end
 
 class GuestUser < User
   validates_presence_of :username, :password, :age
   validates :username, :uniqueness => true
+
+  def type_short
+    'G'
+  end
 end
 
 class AnonymousUser < User
+  def type_short
+    'A'
+  end
 end
 
 class Admin < ActiveRecord::Base
