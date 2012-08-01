@@ -80,7 +80,7 @@ class Server < Goliath::API
 
     case path.length
     when 0    # matches /
-      [200, {}, slim(:index, :locals => {:org => @@org})]
+      [200, {}, slim(:index)]
     when 2    # matches /branch
       if @@org.branches.find_by_name(path[1])
         [200, {:branch => path[1]}, "filial"]
@@ -89,6 +89,8 @@ class Server < Goliath::API
         super(env)
       elsif path[1] == 'users'
         [200, {}, slim(:users, :locals => {:users => User.all})]
+      elsif path[1] == 'branches'
+        [200, {}, slim(:branches)]
       else    # matches non-existing branch
         raise Goliath::Validation::NotFoundError
       end
