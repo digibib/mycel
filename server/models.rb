@@ -63,7 +63,7 @@ class Client < ActiveRecord::Base
   validates_presence_of :name, :hwaddr, :ipaddr
   validates_uniqueness_of :name, :hwaddr, :ipaddr
 
-  has_one :user, :inverse_of => :client
+  has_one :user, :inverse_of => :client, :autosave => true
   has_one :screen_resolution
 
   def homepage
@@ -189,12 +189,15 @@ class User < ActiveRecord::Base
     where("client_id IS NULL")
   end
 
-  def log_on(client)
-    client.update_attributes :user => self unless client.user
+  def log_on(c)
+    return false if c.user
+    c.user = self
+    c.user_id = id
+    c.save
   end
 
   def log_off
-    client.update_attributes :user => nil
+    self.client.user = nil
   end
 
 end

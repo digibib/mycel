@@ -9,7 +9,7 @@ div class="main"
         - branch.departments.each do |dept|
           tr
             td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
-            td 0 av #{dept.clients.size} klient#{'er' if dept.clients.size > 1} i bruk
+            td #{dept.clients.where("user_id IS NOT NULL").count} av #{dept.clients.size} klient#{'er' if dept.clients.size > 1} i bruk
 
   == render :slim, :'_footer'
 
