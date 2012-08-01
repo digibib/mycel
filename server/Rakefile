@@ -48,6 +48,13 @@ namespace :db do
                         :sunday_closed => h['sunday_closed'], :minutes_before_closing => h['minutes_before_closing'])
     org.opening_hours = hours
 
+    seed['users'].each do |user|
+      u = LibraryUser.create(:username => user['username'], :minutes => user['minutes'],
+                             :age => user['age'])
+      c = Client.find_by_name(user['using'])
+      u.log_on(c)
+    end
+
   end
 end
 
