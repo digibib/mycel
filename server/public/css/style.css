@@ -23,7 +23,7 @@ span.bold   { font-weight: bold;}
 span.inherited { color:#c03019; }
 input       { width: 120px;}
 input.chk   { width: 20px;}
-input.nr    { width: 28px; margin: 0 20px 0 20px;}
+input.nr    { width: 28px; margin-right: 20px;}
 input.hour  { width: 40px; margin-right:8px;}
 input.printer { width: 160px; }
 div.inputf  { font-size:12px; font-family: monospace;}
@@ -70,7 +70,9 @@ table.users    { width: 100%; }
 table.users th { text-align: left; font-size: 0.9em; font-weight: bold; padding: 5px;
 				 border: 1px solid #ccc; background-color: #eee;}
 table.users td { padding: 5px; font-size: 0.9em;}
+td.td-minutes  { }
 table.users tr { border: 1px solid white;}
 table.users tr:hover {background-color:#f5f5f5;}
+div.users-inner { display:inline-block; width: 50px; float:left;}
 button.users   { background-color: #e8e8e8; border: 1px solid #888; border-radius: 2px;
                  padding: 3px; color: #160b57; font-size: 0.8em; font-family: monospace; min-width: 22px;}

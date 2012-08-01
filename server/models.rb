@@ -70,6 +70,10 @@ class Client < ActiveRecord::Base
     Department.find(self.department_id).homepage
   end
 
+  def branch
+    Department.find(self.department_id).branch
+  end
+
   def printer_addr
     Department.find(self.department_id).printer_addr
   end
@@ -176,6 +180,14 @@ class User < ActiveRecord::Base
   validates_presence_of  :minutes
 
   belongs_to :client, :inverse_of => :user, :autosave => true
+
+  def self.logged_on
+    where("client_id IS NOT NULL")
+  end
+
+  def self.inactive
+    where("client_id IS NULL")
+  end
 
   def log_on(client)
     client.update_attributes :user => self unless client.user

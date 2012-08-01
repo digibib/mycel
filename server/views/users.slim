@@ -16,21 +16,24 @@ div class="main"
       tr
         th type
         th bruker
-        th minutter igjen
+        th[colspan="2"] minutter igjen
         th filial / avdeling
         th klient
         th
     tbody
-      tr
-        td B
-        td Petter Goksøyr Åsen
-        td
-          '30
-          input[type="text" class="nr required"]
-          button[type='button' class="users add_time"] = "+"
-        td Hovedbiblioteket / voksenavdelingen
-        td dummyklient
-        td: button[type='button' class="users"]  = "Kast ut!"
+      - for user in User.logged_on
+        - client = Client.find(user.client_id)
+        tr id="#{user.id}"
+          td #{user.type[0]}
+          td #{user.username}
+          td[class="td-minutes"] #{user.minutes}
+          td
+            input[type="hidden" class="users minutes" value="#{user.minutes}"]
+            input[type="text" class="nr required"]
+            button[type='button' class="users add_time"] = "+"
+          td #{client.branch.name} / #{client.department.name}
+          td #{client.name}
+          td: button[type='button' class="users"]  = "Kast ut!"
 
   h2 Inaktive brukere
 
@@ -43,11 +46,11 @@ div class="main"
         th
 
     tbody
-      - for user in users
+      - for user in User.inactive
         tr id="#{user.id}"
           td #{user.type[0]}
           td #{user.username}
-          td[class="td-minutes"] #{user.minutes}
+          td[class="td-minutes" style="width:40px"] #{user.minutes}
           td
             input[type="hidden" class="users minutes" value="#{user.minutes}"]
             input[type="text" class="nr required"]
