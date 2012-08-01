@@ -88,6 +88,7 @@ describe "Clients", "Client-User interaction" do
     assert @lib_user.client.nil?
     assert @client.user.nil?
     refute @client.occupied?
+    assert @client.user_id.nil?
   end
 
   it "only one user can log on to client at a time" do
