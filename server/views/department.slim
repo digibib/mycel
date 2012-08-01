@@ -35,58 +35,48 @@ div class="main"
   h2 Klienter
   p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk.
   p Noen endringer vil først tre i kraft etter omstart.
-  table class="clients occupied" id="dummyclient"
-    tr
-      td style="width:40px": img src="/img/pc_green.png" class="pc"
-      td dummyklient
-      td[colspan='2']Petter Goksøyr Åsen
-      td: button[type='button' id="user_throw_out" class="occupied_options"]  = "Kast ut!"
-    tr
-      td style="width:40px"
-      td
-      td[id="petter_minutes_left"] 32 min igjen
-      td[style="text-align:right"]
-        input[type="text" name="add_time" id="add_time" class="nr occupied_options"]
-      td: button[type='button' id="useraddtime" class="occupied_options"]  = "Gi mer tid"
 
-  - for client in department.clients
-    table class="clients available" id='client_id_#{client.id}'
+  table class="clients"
+    thead
       tr
-        td style="width:40px": img src="/img/pc_black.png" class="pc"
-        td: #{client.name}
-        td Ikke i bruk
-        td: span class="info"
-        td: button[type='button' class="innstillinger" id="optionsbutton"] = "innstillinger"
-      tr class="clientoptions"
-        td style="width:40px"
-        td MAC-addresse
-        td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
-        td IP-addresse
-        td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
-      tr class="clientoptions"
-        td style="width:40px"
-        td navn
-        td: input[type="text" value="#{client.name}" disabled="disabled"]
-        td korttidsmaskin (ingen pålogging)
-        td[style="text-align:center"]
-          - if client.shorttime
-            input[type="checkbox" class="shorttimemachine" checked=true]
-          - else
-            input[type="checkbox" class="shorttimemachine"]
-      tr class="clientoptions"
-        td style="width:40px"
-        td skjermoppløsning
-        td: select[id="client_screen_res"]
-            - for res in screen_res do
-              |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
-        td
-        td
-      tr class="clientoptions"
-        td style="width:40px"
-        td[colspan="2"]
-          span[class='error']
-        td: button[type='button' id="clientsave"]  = "Lagre"
-        td[style="text-align:center"]: button[type='button' id="clientcancel"]  = "Avbryt"
+        th
+        th klientnavn
+        th bruker
+        th[colspan="2"] minutter igjen
+        th
+        th info
+    tbody
+    - for client in department.clients
+      - if client.occupied?
+        - user = User.find(client.user.id)
+        tr class="occupied" id="#{client.id}"
+          td[style="width:34px"]: img src="/img/pc_green.png" class="pc"
+          td
+            a href="/" #{client.name}
+          td #{user.username}
+          td[style="width:34px" class="td-minutes"] #{user.minutes}
+          td
+            input[type="hidden" class="user_id" value="#{user.id}"]
+            input[type="hidden" class="users minutes" value="#{user.minutes}"]
+            input[type="text" class="nr required"]
+            button[type='button' class="users add_time"] = "+"
+          td: button[type='button' class="throw-out"]  = "Kast ut!"
+          td[style="width:160px"]
+            span class="info"
+            span class="error"
+      - else
+        tr class="available" id="#{client.id}"
+          td[style="width:34px"]: img src="/img/pc_black.png" class="pc"
+          td
+            a href="/" #{client.name}
+          td -
+          td
+          td
+          td
+          td[style="width:160px"]
+            span class="info"
+            span class="error"
+
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
@@ -268,7 +258,7 @@ div class="main"
       $('input#age_lower').setMask('99');
       $('input#age_higher').setMask('99');
       $('input#minutes_limit').setMask('999');
-      $('input#add_time').setMask('999');
+      $('table.clients').find('input.nr.required').setMask('999');
       $('input#minutes_before_closing').setMask('99');
 
       // ** global functions and handles **
@@ -326,7 +316,7 @@ div class="main"
 
       // ** handle client-options events **
 
-     $("button#optionsbutton").on("click", function() {
+      $("button#optionsbutton").on("click", function() {
         $s = $(this).parents("tr").siblings("tr.clientoptions")
         $s.toggle();
         if (($s).is(':visible')) {
@@ -400,20 +390,50 @@ div class="main"
 
       // ** handle client-user events **
 
-      $('button#user_throw_out').on('click', function () {
+      $('button.throw-out').on('click', function () {
         result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
+        if (result) {
+          $(this).parents('tr').find('span.info').html("Ikke ennå!").show().fadeOut(5000);
+          }
       });
 
-      $('button#useraddtime').on('click', function () {
-        if ($('input#add_time').val() == ''){
-          $('input#add_time').addClass('inputmissing');
+      // ** Handle adjust user minutes
+      $('button.users.add_time').on('click', function () {
+
+        var $i = $(this).siblings('input.nr.required')
+        if (parseInt($i.val()) == 0) {
+          $i.val('');
           return;
         }
-        var min1 = parseInt($('input#add_time').val());
-        var min2 = parseInt($('td#petter_minutes_left').html());
-        min = min1+min2;
-        $('td#petter_minutes_left').html(min+' min igjen');
-        $('input#add_time').val('');
+        if ($i.val() =='' ) {
+          $i.addClass('inputmissing');
+          return;
+        }
+
+        var $tr = $(this).parents('tr');
+        var user_id = $tr.find('input.user_id').val();
+        var $min = $tr.find('input.users.minutes');
+        var user_minutes = $min.val();
+
+        var request = $.ajax({
+          url: '/api/users/'+user_id,
+          type: "PUT",
+          data: {
+                minutes: parseInt(user_minutes)+parseInt($i.val())
+                },
+          dataType: "json"
+        });
+
+        request.done(function(data) {
+          $min.val(data.user.minutes); // update hidden input
+          $tr.find('td.td-minutes').html(data.user.minutes);
+          $i.val('');
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+            $tr.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+         });
+
       });
 
       // ** handle opening-hours events **
