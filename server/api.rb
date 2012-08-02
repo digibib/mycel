@@ -4,9 +4,17 @@ class API < Grape::API
   prefix 'api'
   format :json
 
+  helpers do
+    def authenticate!
+      # api should only serve requests from the server for now
+      error!('401 Unauthorized', 401) unless env['REMOTE_ADDR'] == "127.0.0.1"
+    end
+  end
+
   resource :clients do
     desc "returns all clients"
     get "/" do
+      authenticate!
       {:clients => Client.all }
     end
 
