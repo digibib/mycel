@@ -83,6 +83,10 @@ class Department < ActiveRecord::Base
     read_attribute(:age_limit_higher) || Branch.find(self.branch_id).age_limit_higher_inherited
   end
 
+  def time_limit_inherited
+    read_attribute(:time_limit) || Branch.find(self.branch_id).time_limit_inherited
+  end
+
   def printer_addr
     read_attribute(:printer_addr) || Branch.find(self.branch_id).printer_addr
   end

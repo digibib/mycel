@@ -223,13 +223,17 @@ div class="main"
   h3 Tidsbegrensninger
   p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
   div class="divdot inputf"
+    span[class="inherited" id="time_inherited" style="margin:7px; #{'display:none' unless department.time_limit.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
         td minutter per dag
-        td: input[type="text" id="minutes_limit" class="nr"]
+        td: input[type="text" id="time_limit" class="nr" value="#{department.time_limit_inherited}"]
         td fri bruk?
-        td: input[type="checkbox" id="minutes_unlimited"]
-        td: button[type='button' id="use_save"]  = "Lagre"
+        td: input[type="checkbox" id="time_limit_no_limit"]
+        td: button[type='button' id="time_save"]  = "Lagre"
+        td
+          span[id="time_info" class="info" style="margin-left:48px"]
+          span[id="time_error" class="error" style="margin-left:48px"]
 
   h3 Hjemmeside
   p Startside til klientens nettleser.
@@ -591,6 +595,51 @@ div class="main"
 
       });
 
+      // ** handle timie-limit events
+
+      $('input#time_limit_no_limit').change(function () {
+        if($(this).attr("checked"))
+        {
+          $('input#time_limit').attr("disabled", "disabled");
+        } else {
+          $('input#time_limit').removeAttr("disabled");
+        }
+      });
+
+      $('button#time_save').on('click', function () {
+        var dept_id = $('input#department_id').val();
+        var time = $('input#time_limit').val();
+        if (time == "") { hp = "inherit"; }
+
+        request = $.ajax({
+          url: "/api/departments/"+dept_id,
+          type: "PUT",
+          cache: false,
+          data: {
+                time_limit: time,
+                time_limit_no_limit: $('input#time_limit_no_limit').is(':checked')
+                },
+          dataType: "json"
+        });
+
+        request.done(function(data) {
+          if (data.department.time_limit) {
+            $('span#time_inherited').hide();
+            var msg = "OK! Lagret.";
+          } else {
+            $('span#time_inherited').show();
+            $('input#time_limit').val(data.department.inherited.time_limit);
+            var msg = "OK! Arver instillinger";
+          }
+          $('span#time_info').html(msg).show().fadeOut(5000);
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('span#time_error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      });
+
+
       // ** handle save homepage
       $('button#homepagesave').on('click', function () {
         var dept_id = $('input#department_id').val();
@@ -620,18 +669,6 @@ div class="main"
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#homepage_error').html(jqXHR.responseText).show().fadeOut(5000);
         });
-
-      });
-
-      // ** handle time-limitation-options events
-
-      $('input#minutes_unlimited').change(function () {
-        if($(this).attr("checked"))
-        {
-          $('input#minutes_limit').attr("disabled", "disabled");
-        } else {
-          $('input#minutes_limit').removeAttr("disabled");
-        }
       });
 
 
