@@ -19,7 +19,7 @@ namespace :db do
     load "db/schema.rb"
 
     seed = YAML::load(File.open("db/seed.yml"))
-    org = Organization.create(:name => seed['organization'])
+    org = Organization.create(seed['organization'])
 
     seed['branches'].each do |branch|
       b = Branch.create(:name => branch['name'])
