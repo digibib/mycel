@@ -1,8 +1,12 @@
-organization: Deichmanske bibliotek
+organization:
+  name: Deichmanske bibliotek
+  homepage: 'http://www.deichman.no'
+  age_limit_lower: 1
+  age_limit_higher: 99
+  time_limit: 60
 branches:
   -
     name: Hovedbiblioteket
-    homepage: 'http://www.deichman.no'
     departments:
       -
         name: Musikkavdelingen

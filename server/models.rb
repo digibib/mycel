@@ -1,5 +1,6 @@
 require "em-synchrony/activerecord"
 
+# set initial settings
 ActiveRecord::Base.include_root_in_json = false
 
 class Organization < ActiveRecord::Base
@@ -11,10 +12,6 @@ class Organization < ActiveRecord::Base
   has_one :admin, :conditions => "superadmin = 1"
 
   validates_presence_of :name
-
-  def hours
-    self.opening_hours
-  end
 end
 
 class Branch < ActiveRecord::Base
@@ -25,12 +22,24 @@ class Branch < ActiveRecord::Base
 
   validates_presence_of :name
 
-  def homepage
-    read_attribute(:homepage) || Organization.find(self.organization_id).homepage
+  def homepage_inherited
+    read_attribute(:homepage) || Organization.first.homepage
   end
 
-  def hours
-    self.opening_hours || Organization.find(self.organization_id).hours
+  def time_limit_inherited
+    read_attribute(:time_limit) || Organization.first.time_limit
+  end
+
+  def age_limit_lower_inherited
+    read_attribute(:age_limit_lower) || Organization.first.age_limit_lower
+  end
+
+  def age_limit_higher_inherited
+    read_attribute(:age_limit_higher) || Organization.first.age_limit_higher
+  end
+
+  def opening_hours_inherited
+    self.opening_hours || Organization.first.opening_hours
   end
 
 end
@@ -43,12 +52,35 @@ class Department < ActiveRecord::Base
 
   validates_presence_of :name
 
-  def homepage
-    read_attribute(:homepage) || Branch.find(self.branch_id).homepage
+  def as_json(*args)
+    hash = super()
+    hash.merge!(:opening_hours => self.opening_hours, :inherited => {
+      :opening_hours => self.opening_hours_inherited,
+      :age_limit_lower => self.age_limit_lower_inherited,
+      :age_limit_higher => self.age_limit_higher_inherited,
+      :homepage => self.homepage_inherited,
+      :time_limit => self.time_limit_inherited
+      })
   end
 
-  def hours
-    self.opening_hours || Branch.find(self.branch_id).hours
+  def time_limit_inherited
+    read_attribute(:time_limit) || Branch.find(self.branch_id).time_limit_inherited
+  end
+
+  def homepage_inherited
+    read_attribute(:homepage) || Branch.find(self.branch_id).homepage_inherited
+  end
+
+  def opening_hours_inherited
+    self.opening_hours || Branch.find(self.branch_id).opening_hours_inherited
+  end
+
+  def age_limit_lower_inherited
+    read_attribute(:age_limit_lower) || Branch.find(self.branch_id).age_limit_lower_inherited
+  end
+
+  def age_limit_higher_inherited
+    read_attribute(:age_limit_higher) || Branch.find(self.branch_id).age_limit_higher_inherited
   end
 
   def printer_addr
@@ -93,7 +125,7 @@ class OpeningHours < ActiveRecord::Base
   #TODO refactor theese ugly validations!
 
   def hours_or_closed_flag_must_be_present
-    days = %w(monday tuesday wednsday thursday friday sunday)
+    days = %w(monday tuesday wednsday thursday friday saturday sunday)
     all_fields = []
     days.each { |d| all_fields << [d+'_opens', d+'_closes', d+'_closed'] }
     for triple in all_fields
@@ -104,7 +136,7 @@ class OpeningHours < ActiveRecord::Base
   end
 
   def opening_hours_cant_be_later_than_closing_hours
-    days = %w(monday tuesday wednsday thursday friday sunday)
+    days = %w(monday tuesday wednsday thursday friday saturday sunday)
     day_pairs = []
     days.each { |d| day_pairs << [d+'_opens', d+'_closes'] }
     for pair in day_pairs
@@ -117,7 +149,23 @@ class OpeningHours < ActiveRecord::Base
     end
   end
 
-  # TODO: find a more elegant solution to this repeitiveness:
+  def attributes_formatted
+    # needed for comparing json-request for changes
+    att = {}
+    attributes.each  do |k,v|
+      if v.class == Time
+        att[k] = v.strftime('%H:%M')
+      elsif v.class == Fixnum
+        att[k] = v.to_s #because Json converts integers to strings??
+      else
+        att[k] = v
+      end
+    end
+    att
+  end
+
+  #TODO: find a more elegant solution to this repeitiveness:
+  #TODO: Get the Time::DEFAULT_FORMATS(:default => '%H:%M') to work..
 
   def monday_opens
     read_attribute(:monday_opens).strftime('%H:%M') if read_attribute(:monday_opens)

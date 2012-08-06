@@ -7,40 +7,17 @@ div class="main"
 
   h3 Gjestebrukere
   p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger som skulle tilsi noe annet.
-  div class="divdot inputf"
-    button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
-    span[class='info' id="user_saved_info" style="margin-left:20px"]
-    form id="add_user_form"
-      table class="userform"
-        tr
-          td brukernavn
-          td: input[type="text" id="username" class="required"]
-          td passord
-          td: input[type="text" id="user_password" class="required"]
-        tr
-          td alder
-          td: select[name="age" id="user_age"]
-            |<option value="20">voksen</option>
-            |<option value="10">barn</option>
-          td minutter
-          td: input[type="text" class="nr required" id="user_minutes"]
-        tr
-          td: button[type='button' id="usersave"]  = "Lagre bruker"
-          td: button[type='button' id="usercancel"]  = "Avbryt"
-          td
-          td[id="user_form_response"]
-            span[class='error']
+  == render :slim, :'_guestuser'
 
 
   h2 Klienter
-  p Du vil bare kunne endre innstillinger på de klientene som ikke er i bruk.
-  p Noen endringer vil først tre i kraft etter omstart.
+  p Endringer på klientinstillinger vil ført tre i kraft ved neste pålogging.
 
   table class="clients"
     thead
       tr
         th
-        th klientnavn
+        th[style="width:120px"] klientnavn
         th bruker
         th[colspan="2"] minutter igjen
         th
@@ -51,24 +28,44 @@ div class="main"
         - user = User.find(client.user.id)
         tr class="occupied" id="#{client.id}"
           td[style="width:34px"]: img src="/img/pc_green.png" class="pc"
-          td
-            a href="/" #{client.name}
-          td #{user.username}
+          td #{client.name}
+          td[style="width:160px"] #{user.username}
           td[style="width:34px" class="td-minutes"] #{user.minutes}
           td
             input[type="hidden" class="user_id" value="#{user.id}"]
             input[type="hidden" class="users minutes" value="#{user.minutes}"]
             input[type="text" class="nr required"]
             button[type='button' class="users add_time"] = "+"
-          td: button[type='button' class="throw-out"]  = "Kast ut!"
+          td[style="width:124px"]: button[type='button' class="throw-out"]  = "Kast ut!"
           td[style="width:160px"]
             span class="info"
             span class="error"
+        tr class="clientoptions client_#{client.id}"
+          td[style="width:34px"]
+          td MAC-addresse
+          td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
+          td[colspan="2"] IP-addresse
+          td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
+          td
+        tr class="clientoptions client_#{client.id}"
+          td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
+          td skjermoppløsning
+          td: select[class="client_screen_res"]
+              - for res in screen_res do
+                |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+          td[colspan="2"] korttidsmaskin
+          td[style="text-align:center"]
+            - if client.shorttime
+              input[type="checkbox" class="shorttimemachine" checked=true]
+            - else
+              input[type="checkbox" class="shorttimemachine"]
+          td[colspan="4"]
+            button[type='button' class="clientsave"]  = "Lagre"
+            button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
       - else
         tr class="available" id="#{client.id}"
           td[style="width:34px"]: img src="/img/pc_black.png" class="pc"
-          td
-            a href="/" #{client.name}
+          td #{client.name}
           td -
           td
           td
@@ -76,13 +73,35 @@ div class="main"
           td[style="width:160px"]
             span class="info"
             span class="error"
+        tr class="clientoptions client_#{client.id}"
+          td[style="width:34px"]
+          td MAC-addresse
+          td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
+          td[colspan="2"] IP-addresse
+          td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
+          td
+        tr class="clientoptions client_#{client.id}"
+          td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
+          td skjermoppløsning
+          td: select[class="client_screen_res"]
+              - for res in screen_res do
+                |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+          td[colspan="2"] korttidsmaskin
+          td[style="text-align:center"]
+            - if client.shorttime
+              input[type="checkbox" class="shorttimemachine" checked=true]
+            - else
+              input[type="checkbox" class="shorttimemachine"]
+          td[colspan="4"]
+            button[type='button' class="clientsave"]  = "Lagre"
+            button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
 
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
-  p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde isteden.
+  p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde i steden.
   h3 Åpningstider
-  - hours = department.hours
+  - hours = department.opening_hours_inherited
   div class="divdot inputf"
     form id="change_hours_form" autocomplete="off"
       input[id="department_id" hidden value="#{department.id}"]
@@ -91,9 +110,9 @@ div class="main"
         tr
           td[colspan="6"]
           - if hours.owner_hours_type == 'Department'
-            span[class="inherited" style="display:none" ] Disse innstillingene er arvet fra filial #{department.branch.name}:
+            span[class="inherited" style="display:none" ] Disse innstillingene er arvet:
           - else
-            span[class="inherited" ] Disse innstillingene er arvet fra filial #{department.branch.name}:
+            span[class="inherited" ] Disse innstillingene er arvet:
         tr
           td
           td fra
@@ -183,41 +202,22 @@ div class="main"
     button[type='button' id="hoursclear" class="gen"]  = "Blank ut skjema"
     span[id="hours_info" class="info" style="margin-left:48px"]
     span[id="hours_error" class="error" style="margin-left:48px"]
-    - hours_b = Branch.find(department.branch_id).hours
-    div class="backup" id="parent-hours"
-      input[id="opening_hours_id_b" hidden value="#{hours_b.id}"]
-      input[id="monday_opens_b" hidden value="#{hours_b.monday_opens}"]
-      input[id="monday_closes_b" hidden value="#{hours_b.monday_closes}"]
-      input[id="monday_closed_b" hidden value="#{hours_b.monday_closed}"]
-      input[id="tuesday_opens_b" hidden value="#{hours_b.tuesday_opens}"]
-      input[id="tuesday_closes_b" hidden value="#{hours_b.tuesday_closes}"]
-      input[id="tuesday_closed_b" hidden value="#{hours_b.tuesday_closed}"]
-      input[id="wednsday_opens_b" hidden value="#{hours_b.wednsday_opens}"]
-      input[id="wednsday_closes_b" hidden value="#{hours_b.wednsday_closes}"]
-      input[id="wednsday_closed_b" hidden value="#{hours_b.wednsday_closed}"]
-      input[id="thursday_opens_b" hidden value="#{hours_b.thursday_opens}"]
-      input[id="thursday_closes_b" hidden value="#{hours_b.thursday_closes}"]
-      input[id="thursday_closed_b" hidden value="#{hours_b.thursday_closed}"]
-      input[id="friday_opens_b" hidden value="#{hours_b.friday_opens}"]
-      input[id="friday_closes_b" hidden value="#{hours_b.friday_closes}"]
-      input[id="friday_closed_b" hidden value="#{hours_b.friday_closed}"]
-      input[id="saturday_opens_b" hidden value="#{hours_b.saturday_opens}"]
-      input[id="saturday_closes_b" hidden value="#{hours_b.saturday_closes}"]
-      input[id="saturday_closed_b" hidden value="#{hours_b.saturday_closed}"]
-      input[id="sunday_opens_b" hidden value="#{hours_b.sunday_opens}"]
-      input[id="sunday_closes_b" hidden value="#{hours_b.sunday_closes}"]
-      input[id="sunday_closed_b" hidden value="#{hours_b.sunday_closed}"]
 
   h3 Aldersbegrensninger
   p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
   div class="divdot inputf"
-    table class="genform"
-      tr
-        td nedre aldergrense
-        td: input[type="text" name="age_lower" id="age_lower" class="nr"]
-        td øvre aldergrense
-        td: input[type="text" name="age_higher" id="age_higher" class="nr"]
-        td: button[type='button' id="agesave" ]  = "Lagre"
+    span[class="inherited" id="age_inherited" style="margin:7px; #{'display:none' unless department.age_limit_lower.nil? }"]Disse innstillingene er arvet:
+    form id="age_limit_form" autocomplete="off"
+      table class="genform"
+        tr
+          td nedre aldergrense
+          td: input[type="text" id="age_lower" class="nr required" value="#{department.age_limit_lower_inherited}"]
+          td øvre aldergrense
+          td: input[type="text" id="age_higher" class="nr required" value="#{department.age_limit_higher_inherited}"]
+          td: button[type='button' id="agesave" ]  = "Lagre"
+          td
+            span[id="age_info" class="info" style="margin-left:48px"]
+            span[id="age_error" class="error" style="margin-left:48px"]
 
 
   h3 Tidsbegrensninger
@@ -226,23 +226,33 @@ div class="main"
     table class="genform"
       tr
         td minutter per dag
-        td: input[type="text" name="minutes_limit" id="minutes_limit" class="nr"]
+        td: input[type="text" id="minutes_limit" class="nr"]
         td fri bruk?
-        td: input[type="checkbox" name="minutes_unlimited" id="minutes_unlimited"]
+        td: input[type="checkbox" id="minutes_unlimited"]
         td: button[type='button' id="use_save"]  = "Lagre"
+
+  h3 Hjemmeside
+  p Startside til klientens nettleser.
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td  hjemmeside
+        td: input[type="text" class="homepage"]
+        td: button[type='button' id="homepagesave"]  = "Lagre"
 
   h3 Printer
   div class="divdot inputf"
     table class="genform"
       tr
         td  printeradresse
-        td: input[type="text" name="printer" class="printer"]
-        td: button[type='button' id="printersave" disabled]  = "Lagre"
+        td: input[type="text" class="printer"]
+        td: button[type='button' id="printersave"]  = "Lagre"
 
   script src="/js/jquery.meio.mask.min.js"
   javascript:
     // TODO change all # duplicates to .class
     // TODO split this into common.js, department.js and branch.js when done
+    // read dept_id here at top
 
     // ** conveniece functions **
 
@@ -316,76 +326,54 @@ div class="main"
 
       // ** handle client-options events **
 
-      $("button#optionsbutton").on("click", function() {
-        $s = $(this).parents("tr").siblings("tr.clientoptions")
+      $("img.pc").on("click", function() {
+        var client_id = $(this).parents("tr").attr('id');
+        var $s = $("tr.clientoptions.client_"+client_id);
         $s.toggle();
         if (($s).is(':visible')) {
-          $s.parents('table').addClass("options_open");
+          $('tr.options_open').removeClass("options_open").hide();
+          $s.addClass("options_open");
         } else {
-          $s.parents('table').removeClass("options_open");
+          $s.removeClass("options_open");
         }
       });
 
-      $("table.clients.available").hover(
-        function() {
-          if (!$("table.clients.options_open").exists()) {
-            $(this).find(":button").show()
-          }
-        },
-        function() {
-          if (!$("table.clients.options_open").exists()) {
-            $(this).find(":button").hide()
-            $('tr.clientoptions').hide();
-            $('table.options_open').removeClass('options_open');
-          }
-        });
 
-      $("table.clients.occupied").hover(
-        function() {
-          $(this).find(":button").show();
-          $(this).find(":input").show();
-        },
-        function() {
-          $(this).find(":button").hide();
-          $(this).find(":input").removeClass('inputmissing').hide();
-        });
-
-      $('button#clientsave').on('click', function () {
-        var $s = $(this).parents('table');
+      $('button.clientsave').on('click', function () {
+        var $s = $('tr.options_open');
         var shortbool = false;
         if ($s.find('input.shorttimemachine').is(':checked')) {
           shortbool = true;
         }
 
+        var client_id = $s.find('input.client_id').val();
+
         var request = $.ajax({
-          url: '/api/clients/'+$s.attr('id').slice(10),
+          url: '/api/clients/'+client_id,
           type: 'PUT',
           data: {
-                screen_resolution_id: $s.find('#client_screen_res option:selected').val(),
+                screen_resolution_id: $s.find('.client_screen_res option:selected').val(),
                 shorttime: shortbool
                 },
           dataType: "json"
         });
 
         request.done(function(msg) {
-          $s = $('table.options_open');
-          $s.find('span.info').html('OK! Lagret.').show().fadeOut(5000);
+          $('tr#'+client_id).find('span.info').html('OK! Lagret.').show().fadeOut(5000);
           $s.removeClass("options_open");
-          $s.find(':button').hide();
-          $s.find("tr.clientoptions").toggle();
+          $s.toggle();
         })
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('table.options_open').find('span.error')
+          $('tr#'+client_id).find('span.error')
             .html(jqXHR.responseText).show().fadeOut(5000);
         });
       });
 
-      $('button#clientcancel').on('click', function () {
-        $s = $('table.options_open');
+      $('button.clientcancel').on('click', function () {
+        $s = $('tr.options_open');
         $s.removeClass("options_open");
-        $s.find(':button').hide();
-        $s.find("tr.clientoptions").toggle();
+        $s.toggle();
       });
 
       // ** handle client-user events **
@@ -461,6 +449,7 @@ div class="main"
 
       $('button#hoursclear').on('click', function () {
         $('#change_hours_form')[0].reset();
+        $('input#minutes_before_closing').val('')
         $(':input.hour').val('').removeClass("inputmissing");
         $(':input.hour').removeAttr("disabled");
         $(':input.chk').removeAttr('checked');
@@ -481,69 +470,122 @@ div class="main"
 
         $(':input.hour').removeClass("inputmissing");
 
-        var request = $.ajax({
-          url: '/saveopeninghours',
-          type: 'POST',
-          cache: false,
-          data: {
-                missing_fields: missing,
-                department_id: $('input#department_id').val(),
-                opening_hours_id: $('input#opening_hours_id').val(),
-                monday_opens: $('input#monday_opens').val(),
-                monday_closes: $('input#monday_closes').val(),
-                tuesday_opens: $('input#tuesday_opens').val(),
-                tuesday_closes: $('input#tuesday_closes').val(),
-                wednsday_opens: $('input#wednsday_opens').val(),
-                wednsday_closes: $('input#wednsday_closes').val(),
-                thursday_opens: $('input#thursday_opens').val(),
-                thursday_closes: $('input#thursday_closes').val(),
-                friday_opens: $('input#friday_opens').val(),
-                friday_closes: $('input#friday_closes').val(),
-                saturday_opens: $('input#saturday_opens').val(),
-                saturday_closes: $('input#saturday_closes').val(),
-                sunday_opens: $('input#sunday_opens').val(),
-                sunday_closes: $('input#sunday_closes').val(),
-                monday_closed: $('input#monday_closed').is(':checked'),
-                tuesday_closed: $('input#tuesday_closed').is(':checked'),
-                wednsday_closed: $('input#wednsday_closed').is(':checked'),
-                thursday_closed: $('input#thursday_closed').is(':checked'),
-                friday_closed: $('input#friday_closed').is(':checked'),
-                saturday_closed: $('input#saturday_closed').is(':checked'),
-                sunday_closed: $('input#sunday_closed').is(':checked'),
-                minutes_before_closing: $('input#minutes_before_closing').val()
-                },
-          dataType: "html"
-        });
+        var dept_id = $('input#department_id').val();
 
-        request.done(function(msg, sthn, jqXHR) {
+        // remove opening_hours on department, and inherit from branch
+        // if all fields are blank
+
+        // TODO refactor into one request, create data on beforehand
+        if (missing == 14) {
+          var request = $.ajax({
+            url: '/api/departments/'+dept_id,
+            type: 'PUT',
+            cache: false,
+            data: {
+                  opening_hours: "inherit"
+                  },
+            dataType: "json"
+          });
+        } else {
+          var request = $.ajax({
+            url: '/api/departments/'+dept_id,
+            type: 'PUT',
+            cache: false,
+            data: {
+                  opening_hours: {
+                  monday_opens: $('input#monday_opens').val(),
+                  monday_closes: $('input#monday_closes').val(),
+                  tuesday_opens: $('input#tuesday_opens').val(),
+                  tuesday_closes: $('input#tuesday_closes').val(),
+                  wednsday_opens: $('input#wednsday_opens').val(),
+                  wednsday_closes: $('input#wednsday_closes').val(),
+                  thursday_opens: $('input#thursday_opens').val(),
+                  thursday_closes: $('input#thursday_closes').val(),
+                  friday_opens: $('input#friday_opens').val(),
+                  friday_closes: $('input#friday_closes').val(),
+                  saturday_opens: $('input#saturday_opens').val(),
+                  saturday_closes: $('input#saturday_closes').val(),
+                  sunday_opens: $('input#sunday_opens').val(),
+                  sunday_closes: $('input#sunday_closes').val(),
+                  monday_closed: $('input#monday_closed').is(':checked'),
+                  tuesday_closed: $('input#tuesday_closed').is(':checked'),
+                  wednsday_closed: $('input#wednsday_closed').is(':checked'),
+                  thursday_closed: $('input#thursday_closed').is(':checked'),
+                  friday_closed: $('input#friday_closed').is(':checked'),
+                  saturday_closed: $('input#saturday_closed').is(':checked'),
+                  sunday_closed: $('input#sunday_closed').is(':checked'),
+                  minutes_before_closing: $('input#minutes_before_closing').val()
+                  }},
+            dataType: "json"
+          });
+        }
+
+
+        request.done(function(data) {
           $('span#hours_error').hide();
-          $('span#hours_info').html(msg).show().fadeOut(5000);
-          if (msg.match(/OK/)) {
+          if (data.department.opening_hours) {
+            $('span#hours_info').html("OK! Lagret.").show().fadeOut(5000);
             $('#change_hours_form').find('span.inherited').hide();
-            $('input#opening_hours_id').val(jqXHR.getResponseHeader('new_hours_id'));
-          }
-          if (msg.match(/Arver/)) {
+          } else {
+            $('span#hours_info').html("OK! Arver instillinger").show().fadeOut(5000);
             $('#change_hours_form').find('span.inherited').show();
-            $('div#parent-hours').find(':input').each(function() {
-              var v = $(this).val();
-              var id = $(this).attr("id").slice(0,-2);
-              if (v == 'true') {
-                $('#'+id).attr('checked', true);
-                $('#'+id.slice(0,-6)+'opens').attr("disabled", "disabled");
-                $('#'+id.slice(0,-6)+'closes').attr("disabled", "disabled");
+            $.each(data.department.inherited.opening_hours, function(k, v) {
+              if (v == true) {
+                $('input#'+k).attr('checked', true);
+                $('#'+k.slice(0,-6)+'opens').attr("disabled", "disabled");
+                $('#'+k.slice(0,-6)+'closes').attr("disabled", "disabled");
               } else {
-                $('#'+id).val(v);
-              }
-
+                $('input#'+k).val(v); }
             });
           }
         });
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#hours_info').hide();
+          console.log(jqXHR.responseText);
           $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
         });
       });
+
+      // ** handle age-limit events
+      $('button#agesave').on('click', function () {
+        var dept_id = $('input#department_id').val();
+        var lower = $('input#age_lower').val();
+        var higher = $('input#age_higher').val();
+        if ((lower == "") && (higher == "")) {
+          var age_data = { age_limit_lower: "inherit", age_limit_higher: "inherit" };
+        } else {
+          var age_data = { age_limit_lower: lower, age_limit_higher: higher};
+        }
+
+        request = $.ajax({
+          url: "/api/departments/"+dept_id,
+          type: "PUT",
+          cache: false,
+          data: age_data,
+          dataType: "json"
+        });
+
+        request.done(function(data) {
+          if (data.department.age_limit_higher) {
+            $('input#age_lower').val(data.department.age_limit_lower);
+            $('input#age_higher').val(data.department.age_limit_higher);
+            $('span#age_inherited').hide();
+            var msg = "OK! Lagret.";
+          } else {
+            $('input#age_lower').val(data.department.inherited.age_limit_lower);
+            $('input#age_higher').val(data.department.inherited.age_limit_higher);
+            $('span#age_inherited').show();
+            var msg = "OK! Arver instillinger";
+          }
+          $('span#age_info').html(msg).show().fadeOut(5000);
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('span#age_error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+
+      })
 
       // ** handle time-limitation-options events
 
