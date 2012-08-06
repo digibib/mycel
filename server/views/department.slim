@@ -234,11 +234,15 @@ div class="main"
   h3 Hjemmeside
   p Startside til klientens nettleser.
   div class="divdot inputf"
+    span[class="inherited" id="homepage_inherited" style="margin:7px; #{'display:none' unless department.homepage.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
         td  hjemmeside
-        td: input[type="text" class="homepage"]
+        td: input[type="text" id="homepage" value="#{department.homepage_inherited}"]
         td: button[type='button' id="homepagesave"]  = "Lagre"
+        td
+          span[id="homepage_info" class="info" style="margin-left:48px"]
+          span[id="homepage_error" class="error" style="margin-left:48px"]
 
   h3 Printer
   div class="divdot inputf"
@@ -585,7 +589,39 @@ div class="main"
           $('span#age_error').html(jqXHR.responseText).show().fadeOut(5000);
         });
 
-      })
+      });
+
+      // ** handle save homepage
+      $('button#homepagesave').on('click', function () {
+        var dept_id = $('input#department_id').val();
+        var hp = $('input#homepage').val();
+        if (hp == "") { hp = "inherit"; }
+
+        request = $.ajax({
+          url: "/api/departments/"+dept_id,
+          type: "PUT",
+          cache: false,
+          data: { homepage: hp },
+          dataType: "json"
+        });
+
+        request.done(function(data) {
+          if (data.department.homepage) {
+            $('span#homepage_inherited').hide();
+            var msg = "OK! Lagret.";
+          } else {
+            $('span#homepage_inherited').show();
+            $('input#homepage').val(data.department.inherited.homepage);
+            var msg = "OK! Arver instillinger";
+          }
+          $('span#homepage_info').html(msg).show().fadeOut(5000);
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('span#homepage_error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+
+      });
 
       // ** handle time-limitation-options events
 
