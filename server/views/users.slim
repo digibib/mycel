@@ -2,16 +2,17 @@
 div class="main"
   h2 Brukere
   p Her vises alle brukerne som er pålogget, og de inaktive, det vil si de som har logget seg på tidligere i dag. Listen nullstilles hver natt, slik at ingen personopplysninger lagres mer enn ett døgn.
-  p Det skilles mellom tre brukertyper:
-  |<p><span class="bold">[B] biblioteksbrukere</span> - logger seg på med lånekortnummer og PIN-kode.</p>
-  |<p><span class="bold">[G] gjestebrukere</span> - personalet kan opprette gjestebrukere ved behov.</p>
-  |<p><span class="bold">[A] anonyme brukere</span> - brukere av korttidsmaskiner uten krav til pålogging er naturlig nok anynoyme.</p>
+  h3 Brukertyper
+  p
+  |<p><span class="bold">[B]</span> biblioteksbrukere - logger seg på med lånekortnummer og PIN-kode.</p>
+  |<p><span class="bold">[G]</span> gjestebrukere - personalet kan opprette gjestebrukere ved behov.</p>
+  |<p><span class="bold">[A]</span> anonyme brukere - brukere av korttidsmaskiner uten krav til pålogging er naturlig nok anynoyme.</p>
 
-  h3 Om tidsstyring
-  p blah blah
+  == render :slim, :'_guestuser'
+
   h2 Påloggede brukere
 
-  table class="users"
+  table class="users active"
     thead
       tr
         th type
@@ -34,16 +35,16 @@ div class="main"
           td
             a href="/#{client.branch.name}" #{client.branch.name}
             '&nbsp;/
-            a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name}
+            a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name.downcase}
           td #{client.name}
           td: button[type='button' class="users"]  = "Kast ut!"
 
   h2 Inaktive brukere
 
-  table class="users"
+  table class="users inactive"
     thead
       tr
-        th type
+        th[style="width:40px"] type
         th bruker
         th[colspan="2"] minutter igjen
         th
@@ -68,7 +69,7 @@ div class="main"
 
       // ** global functions and handles **
 
-      $(':input').focus(function () {
+      $('.main').on('focus', ':input', function () {
         if ($(this).hasClass('inputmissing')) {
           $(this).removeClass('inputmissing');
         }
@@ -82,7 +83,7 @@ div class="main"
 
       // ** Handle delete user
 
-      $('button.users.delete').on('click', function () {
+      $('table.users.inactive').on('click', 'button.users.delete',  function () {
         var user_id = $(this).parents('tr').attr('id');
 
         var request = $.ajax({
@@ -101,9 +102,9 @@ div class="main"
       });
 
       // ** Handle adjust user minutes
-      $('button.users.add_time').on('click', function () {
+      $('table.users').on('click', 'button.users.add_time', function () {
 
-        var $i = $(this).siblings('input.nr.required')
+        var $i = $(this).siblings('input.nr.required');
         if (parseInt($i.val()) == 0) {
           $i.val('');
           return;
@@ -137,6 +138,58 @@ div class="main"
              //alert(jqXHR.responseText);
          });
 
+      });
+
+      // ** handle add-guest-user events **
+
+      $("button#adduser").on("click", function() {
+        $('table.userform').toggle();
+      });
+      $("button#usercancel").on("click", function() {
+        $('table.userform').hide();
+      });
+
+      $('button#usersave').on('click', function () {
+        var missing = 0;
+        $('#add_user_form').find('input.required').each(function() {
+          if ($(this).val() == '' ) {
+            $(this).addClass('inputmissing');
+            missing = 1;
+          }
+        });
+
+        if (missing) { return; }
+
+        var request = $.ajax({
+          url: '/api/users',
+          type: 'POST',
+          data: {
+                 username: $('input#username').val(),
+                 password: $('input#user_password').val(),
+                 age: $('select#user_age').val(),
+                 minutes: $('input#user_minutes').val(),
+                 },
+          dataType: "json"
+          });
+
+        request.done(function(data) {
+          $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
+            .show().fadeOut(5000);
+            // Show in inactive users table
+            $('#add_user_form')[0].reset();
+            $('table.userform').hide();
+            var tr = '<tr id="' + data.user.id + '"><td>G</td><td>'+data.user.username;
+            tr +=  '</td><td class="td-minutes" style="width:40px">' + data.user.minutes;
+            tr += '</td><td><input class="users minutes" type="hidden" value="'+data.user.minutes;
+            tr += '"><input class="nr required" type="text"><button class="users add_time" type="button">';
+            tr += '+</button></td><td><button class="users delete" type="button">Slett</button></td></tr>';
+            $('table.users.inactive').append(tr);
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('td#user_form_response').find('span.error')
+            .html("Brukeren finnes allerede! Velg et annet brukernavn.").show().fadeOut(5000);
+        })
       });
 
     });
