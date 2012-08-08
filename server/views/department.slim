@@ -5,11 +5,6 @@ div class="main"
   - else
     h2 #{department.branch.name}: #{department.name}
 
-  h3 Gjestebrukere
-  p Gjestebrukere vil være kun være gyldige for den dagen de lages. Brukerene er gyldig på alle avdelinger med mindre det er aldersbegrensninger som skulle tilsi noe annet.
-  == render :slim, :'_guestuser'
-
-
   h2 Klienter
   p Endringer på klientinstillinger vil ført tre i kraft ved neste pålogging.
 
@@ -287,52 +282,7 @@ div class="main"
         }
       });
 
-      // ** handle add-guest-user events **
-
-      $("button#adduser").on("click", function() {
-        $('table.userform').toggle();
-      });
-      $("button#usercancel").on("click", function() {
-        $('table.userform').hide();
-      });
-
-      $('button#usersave').on('click', function () {
-        var missing = 0;
-        $('#add_user_form').find('input.required').each(function() {
-          if ($(this).val() == '' ) {
-            $(this).addClass('inputmissing');
-            missing = 1;
-          }
-        });
-
-        if (missing) { return; }
-
-        var request = $.ajax({
-          url: '/api/users',
-          type: 'POST',
-          data: {
-                 username: $('input#username').val(),
-                 password: $('input#user_password').val(),
-                 age: $('select#user_age').val(),
-                 minutes: $('input#user_minutes').val(),
-                 },
-          dataType: "json"
-          });
-
-        request.done(function(data) {
-          $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
-            .show().fadeOut(5000);
-          $('#add_user_form')[0].reset();
-          $('table.userform').hide();
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('td#user_form_response').find('span.error')
-            .html("Brukeren finnes allerede! Velg et annet brukernavn.").show().fadeOut(5000);
-        })
-      });
-
-      // ** handle client-options events **
+       // ** handle client-options events **
 
       $("img.pc").on("click", function() {
         var client_id = $(this).parents("tr").attr('id');
