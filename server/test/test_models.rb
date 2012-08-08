@@ -58,6 +58,49 @@ describe "Users", "Validation" do
   end
 end
 
+describe "Clients", "Client-User interaction" do
+  include Clean::Test::Any
+
+  before do
+    @lib_user = LibraryUser.create :minutes => any_int, :username => any_string,
+                                   :age => any_int
+    @client = Client.create :ipaddr => any_string, :hwaddr => any_string,
+                            :name => any_string
+    @guest_user = GuestUser.create :minutes => any_int, :username => any_string,
+                                   :password => any_string, :age => any_int
+  end
+
+  after do
+    @lib_user.destroy
+    @guest_user.destroy
+    @client.destroy
+  end
+
+  it "an user can log on to a client" do
+    @lib_user.log_on @client
+    @client.user.must_equal @lib_user
+  end
+
+  it "an user can log off a client" do
+    @lib_user.log_on @client
+    assert @client.user == @lib_user
+    @lib_user.log_off
+    assert @lib_user.client.nil?
+    assert @client.user.nil?
+    refute @client.occupied?
+    assert @client.user_id.nil?
+  end
+
+  it "only one user can log on to client at a time" do
+    @lib_user.log_on @client
+    assert @client.occupied?
+    @guest_user.log_on @client
+    refute @client.user == @guest_user
+  end
+
+end
+
+
 describe "Opening Hours" do
 
   it "must have opening hours or closed-flag for all days in a week" do

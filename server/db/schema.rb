@@ -4,14 +4,20 @@ ActiveRecord::Schema.define do
   create_table :organization, :force => true do |t|
     t.string :name, :null => false
     t.string :homepage
-
+    t.integer :age_limit_lower
+    t.integer :age_limit_higher
+    t.integer :time_limit
+    t.boolean :time_limit_no_limit, :default => false
   end
 
   create_table :branches, :force => true do |t|
     t.string :name, :null => false
     t.string :homepage
     t.string :printeraddr
-
+    t.integer :age_limit_lower
+    t.integer :age_limit_higher
+    t.integer :time_limit
+    t.boolean :time_limit_no_limit, :default => false
     t.integer :organization_id
   end
 
@@ -19,6 +25,10 @@ ActiveRecord::Schema.define do
     t.string :name, :null => false
     t.string :homepage
     t.string :printeraddr
+    t.integer :age_limit_lower
+    t.integer :age_limit_higher
+    t.integer :time_limit
+    t.boolean :time_limit_no_limit, :default => false
 
     t.integer :branch_id
   end
@@ -32,6 +42,7 @@ ActiveRecord::Schema.define do
 
     t.integer :screen_resolution_id, :default => 1
     t.integer :department_id
+    t.integer :user_id
   end
 
   create_table :opening_hours, :force => true do |t|
@@ -77,6 +88,8 @@ ActiveRecord::Schema.define do
 
     t.string :type
     t.timestamps
+
+    t.integer :client_id
   end
 
   create_table :screen_resolutions, :force => true do |t|

@@ -8,49 +8,61 @@ pre         { background-color: #ef9384; border: 1px solid #c03019;
               padding: 6px 10px;}
 a:link, a:visited { color: #5740e6; text-decoration: none }
 a:hover     { text-decoration: underline }
-div.main    { width: 800px; margin: auto; }
+div.main    { width: 800px; margin: auto;}
 div#header  { background-color: #888;}
 div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
                 font-family: monospace; font-size: 12px; padding:5px;}
+div#header-buttons { float: right; margin-top: -3px; padding:0; }
 img.logo    { margin-top: 10px; margin-left:10px;}
-img.pc      { }
+img.pc:hover {cursor:pointer; }
 
-span.info   { font-family: monospace; font-size: 12px; font-weight: bold; display: none; }
+span 		{ font-family: monospace; font-size: 12px; font-weight: bold; }
+span.info   { display: none; }
 span.error  { display: none; color: #c03019; font-weight: bold; }
-
+span.bold   { font-weight: bold;}
 .inputmissing { background: yellow;}
 span.inherited { color:#c03019; }
 input       { width: 120px;}
 input.chk   { width: 20px;}
-input.nr    { width: 40px; margin-right:20px;}
+input.nr    { width: 28px; margin-right: 20px;}
 input.hour  { width: 40px; margin-right:8px;}
+input#homepage { width:200px;}
+input#printer { width: 200px;}
 input.printer { width: 160px; }
 div.inputf  { font-size:12px; font-family: monospace;}
 
 div.divdot    { border: 1px dotted #ccc; padding:14px; background-color: #f8f8f8;}
 div.backup    { display:none;}
 button        { background-color: #e8e8e8; border: 1px solid #888; border-radius: 2px;
-                padding: 3px; color: #160b57; font-size: 12px; font-family: monospace;}
+                padding: 3px; color: #160b57; font-size: 12px; font-family: monospace;
+            	min-width: 22px;}
 button:disabled { border: 1px dashed #ccc; color: #aaa;}
 button:disabled:active { background: #e8e8e8; position:static;}
 button:active { background:#ddd; position:relative; top: 1px; }
 button.guest  { }
 button.gen    { margin-right:10px;}
 button.innstillinger { display: none; }
+ul            { list-style: none; }
+li.header     { padding:10px; margin-right:13px; border: 1px solid #eee; color:#fff;
+				background-color: #999; letter-spacing: 0.15em; display:inline-block;
+				font-family: monospace; font-size: 12px; border-radius: 2px;}
+li.header:hover { background-color: #88a; }
 
 
 table.deptlist { margin-left: 10px; border: 1px dotted #ccc; }
 .deptlist td   { min-width: 160px; padding: 7px; background-color:#fff;}
 
-table.clients  { margin-left: 10px; font-size:14px; border:1px solid white; }
-.clients td    { width: 136px; text-align: left; padding: 4px; margin:0; height: 36px;
-                 vertical-align: middle;}
+table.clients    { width: 100%; }
+table.clients th { text-align: left; font-size: 0.9em; font-weight: bold; padding: 5px;
+				  border: 1px solid #ccc; background-color: #eee;}
+table.clients tr:hover {background-color:#f5f5f5;}
+table.clients td    { padding: 5px; font-size: 0.9em; vertical-align: middle;}
+
 .occupied_options { display: none;}
-.options_open { border: 1px solid #ccc !important; }
-.clients:hover { border: 1px solid #ccc;}
 .clientoptions { font-family: monospace; font-size: 12px; font-weight: bold;}
 .clientoptions td { text-align: right; }
-tr.clientoptions { display: none;}
+tr.clientoptions { display: none; background-color:#d8d8d8 !important;}
+tr.options_open { background-color:#d8d8d8 !important;}
 
 table.userform { margin-top: 20px; display:none; }
 .userform td   { padding: 7px; font-weight: bold;}
@@ -59,3 +71,11 @@ table.genform  {  }
 .genform td    { padding: 7px; font-weight: bold;}
 
 div.hoursbuttons { margin-top:20px;}
+
+table.users    { width: 100%; }
+table.users th { text-align: left; font-size: 0.9em; font-weight: bold; padding: 5px;
+				 border: 1px solid #ccc; background-color: #eee;}
+table.users td { padding: 5px; font-size: 0.9em;}
+table.users tr:hover {background-color:#f5f5f5;}
+div.users-inner { display:inline-block; width: 50px; float:left;}
+
