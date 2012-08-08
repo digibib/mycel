@@ -27,6 +27,7 @@ input.chk   { width: 20px;}
 input.nr    { width: 28px; margin-right: 20px;}
 input.hour  { width: 40px; margin-right:8px;}
 input#homepage { width:200px;}
+input#printer { width: 200px;}
 input.printer { width: 160px; }
 div.inputf  { font-size:12px; font-family: monospace;}
 

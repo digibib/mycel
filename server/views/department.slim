@@ -248,8 +248,11 @@ div class="main"
     table class="genform"
       tr
         td  printeradresse
-        td: input[type="text" class="printer"]
+        td: input[type="text" id="printer" value="#{department.printeraddr}"]
         td: button[type='button' id="printersave"]  = "Lagre"
+        td
+          span[id="printer_info" class="info" style="margin-left:48px"]
+          span[id="printer_error" class="error" style="margin-left:48px"]
 
   script src="/js/jquery.meio.mask.min.js"
   javascript:
@@ -618,6 +621,27 @@ div class="main"
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#homepage_error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      });
+
+      // ** handle save printer
+      $('button#printersave').on('click', function () {
+        var dept_id = $('input#department_id').val();
+
+        request = $.ajax({
+          url: "/api/departments/"+dept_id,
+          type: "PUT",
+          cache: false,
+          data: { printeraddr: $('input#printer').val() },
+          dataType: "json"
+        });
+
+        request.done(function(data) {
+          $('span#printer_info').html("OK! Lagret.").show().fadeOut(5000);
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          $('span#printer_error').html(jqXHR.responseText).show().fadeOut(5000);
         });
       });
 
