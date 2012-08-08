@@ -1,0 +1,20 @@
+test:
+  adapter: sqlite3
+  database: ':memory:'
+
+development:
+  adapter: em_mysql2
+  database: myceldev
+  username: mycel
+  password: test
+  host: localhost
+  pool: 5
+  reconnect: true
+
+production:
+  adapter: em_mysql2
+  database: mycel
+  username: secret
+  password: secret
+  host: example.com
+  pool: 5

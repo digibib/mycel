@@ -1,0 +1,186 @@
+organization:
+  name: Deichmanske bibliotek
+  homepage: 'http://www.deichman.no'
+  age_limit_lower: 1
+  age_limit_higher: 99
+  time_limit: 60
+branches:
+  -
+    name: Hovedbiblioteket
+    departments:
+      -
+        name: Digitalt Bibliotek
+        homepage: 'http://digital.deichman.no/'
+        clients:
+          -
+            name: petter-samsung
+            HWaddr: e8:03:9a:a6:7f:c6
+            IPaddr: 192.168.200.999
+          -
+            name: petter-dell
+            HWaddr: b8:ac:6f:cc:4b:8b
+            IPaddr: 192.168.200.998
+      -
+        name: Musikkavdelingen
+        homepage: 'http://blogg.deichman.no/musikk/'
+        clients:
+          -
+            name: musikkklient1
+            HWaddr: 00:13:21:d4:4e:12
+            IPaddr: 192.168.200.111
+      -
+        name: Unge Deichman
+        clients:
+          -
+            name: ungeklient1
+            HWaddr: 00:01:2e:3a:e5:22
+            IPaddr: 192.168.200.22
+          -
+            name: ungeklient2
+            HWaddr: 00:01:2e:3a:e5:15
+            IPaddr: 192.168.200.23
+          -
+            name: ungeklient3
+            HWaddr: 00:01:2e:3a:e5:3d
+            IPaddr: 192.168.200.24
+      -
+        name: Voksenavdelingen
+        printeraddr: 'socket://192.168.200.29:9100'
+        clients:
+          -
+            name: hovedklient1
+            HWaddr: 00:01:2e:bc:c8:7d
+            IPaddr: 192.168.200.101
+          -
+            name: hovedklient2
+            HWaddr: 00:01:2e:bc:c8:9d
+            IPaddr: 192.168.200.102
+          -
+            name: hovedklient3
+            HWaddr: 00:01:2e:bc:c8:bb
+            IPaddr: 192.168.200.103
+          -
+            name: hovedklient4
+            HWaddr: 00:01:2e:bc:c9:74
+            IPaddr: 192.168.200.104
+          -
+            name: hovedklient5
+            HWaddr: 00:01:2e:bc:c9:8d
+            IPaddr: 192.168.200.105
+          -
+            name: hovedklient6
+            HWaddr: 00:01:2e:bc:c8:6a
+            IPaddr: 192.168.200.106
+          -
+            name: hovedklient7
+            HWaddr: 00:01:2e:bc:c9:3f
+            IPaddr: 192.168.200.107
+          -
+            name: hovedklient8
+            HWaddr: 00:01:2e:bc:c8:9c
+            IPaddr: 192.168.200.108
+          -
+            name: hovedklient9
+            HWaddr: 00:01:2e:bc:c8:9d
+            IPaddr: 192.168.200.102
+          -
+            name: hovedklient10
+            HWaddr: 00:01:2e:bc:c8:ce
+            IPaddr: 192.168.200.109
+          -
+            name: hovedkorttid1
+            HWaddr: ukjent
+            IPaddr: ukjent
+            shorttime: 1
+          -
+            name: hovedkorttid2
+            HWaddr: ukjent2
+            IPaddr: ukjent2
+            shorttime: 1
+          -
+            name: hovedkorttid3
+            HWaddr: ukjent3
+            IPaddr: ukjent3
+            shorttime: 1
+  -
+    name: Grünerløkka
+    homepage: 'http://www.deichmanske-bibliotek.oslo.kommune.no/avdelinger_apningstider/grnerlokka/'
+    departments:
+      -
+        name: Barneavdelingen
+        clients:
+          -
+            name: grybarn1
+            HWaddr: 00:00:00:00:00:0a
+            IPaddr: 192.168.200.x
+      -
+        name: Serieteket
+        clients:
+          -
+            name: serieteket1
+            HWaddr: 00:00:00:00:00:0b
+            IPaddr: 192.168.200.y
+      -
+        name: Voksenavdelingen
+        clients:
+          -
+            name: gryvoksen1
+            HWaddr: 00:00:00:00:00:0c
+            IPaddr: 192.168.200.z
+  -
+    name: Rommen
+    departments:
+      -
+        name: Rommen
+        clients:
+          -
+            name: rommenklient1
+            HWaddr: 00:00:00:00:00:1a
+            IPaddr: 192.168.200.a
+          -
+            name: rommenklient2
+            HWaddr: 00:00:00:00:00:1b
+            IPaddr: 192.168.200.b
+          -
+            name: rommenklient3
+            HWaddr: 00:00:00:00:00:1c
+            IPaddr: 192.168.200.c
+screenres:
+  - auto
+  - 1440x900
+  - 1366x768
+  - 1280x1024
+  - 1200x800
+  - 1025x768
+opening_hours:
+  monday_opens: '10:00'
+  monday_closes: '19:00'
+  tuesday_opens: '10:00'
+  tuesday_closes: '19:00'
+  wednsday_opens: '10:00'
+  wednsday_closes: '19:00'
+  thursday_opens: '10:00'
+  thursday_closes: '19:00'
+  friday_opens: '10:00'
+  friday_closes: '19:00'
+  saturday_opens: '10:00'
+  saturday_closes: '16:00'
+  sunday_closed: 1
+  minutes_before_closing: 5
+users:
+  -
+    username: "Franz Kafka"
+    minutes: 30
+    age: 129
+    using: hovedklient1
+  -
+    username: "Kurt Vonnegut"
+    minutes: 33
+    age: 90
+    minutes: 10
+    using: hovedklient2
+  -
+    username: "Henry Miller"
+    minutes: 12
+    age: 30
+    using: hovedklient5

@@ -1,0 +1,23 @@
+div class="divdot inputf"
+  button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+  span[class='info' id="user_saved_info" style="margin-left:20px"]
+  form id="add_user_form"
+    table class="userform"
+      tr
+        td brukernavn
+        td: input[type="text" id="username" class="required"]
+        td passord
+        td: input[type="text" id="user_password" class="required"]
+      tr
+        td alder
+        td: select[name="age" id="user_age"]
+          |<option value="20">voksen</option>
+          |<option value="10">barn</option>
+        td minutter
+        td: input[type="text" class="nr required" id="user_minutes"]
+      tr
+        td: button[type='button' id="usersave"]  = "Lagre bruker"
+        td: button[type='button' id="usercancel"]  = "Avbryt"
+        td
+        td[id="user_form_response"]
+          span[class='error']

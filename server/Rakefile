@@ -1,0 +1,63 @@
+require "rake/testtask"
+require "em-synchrony/activerecord"
+require "./models"
+
+task :default => [:test]
+
+Rake::TestTask.new do |test|
+  test.libs << "test"
+  test.test_files = Dir[ "test/test_*.rb" ]
+  test.verbose = true
+end
+
+namespace :db do
+  desc 'Build tables and seed MySQL for development'
+  task :seed do
+    dbconfig = YAML::load(File.open("config/database.yml"))
+    ActiveRecord::Base.establish_connection(dbconfig["development"])
+
+    load "db/schema.rb"
+
+    seed = YAML::load(File.open("db/seed.yml"))
+    org = Organization.create(seed['organization'])
+
+    seed['branches'].each do |branch|
+      b = Branch.create(:name => branch['name'])
+      org.branches << b
+      branch['departments'].each do |department|
+        d = Department.create(:name => department['name'], :homepage => department['homepage'])
+        b.departments << d
+        department['clients'].each do |client|
+          short = client['shorttime'] ||= 0
+          c = Client.new(:name => client['name'], :ipaddr => client['IPaddr'],
+                         :hwaddr => client['HWaddr'], :shorttime => short)
+          d.clients << c
+        end
+      end
+    end
+
+    seed['screenres'].each { |res| ScreenResolution.create(:resolution => res) }
+
+    h = seed['opening_hours']
+    hours = OpeningHours.create!(:monday_opens => h['monday_opens'], :monday_closes => h['monday_closes'],
+                        :tuesday_opens => h['tuesday_opens'], :tuesday_closes => h['tuesday_closes'],
+                        :wednsday_opens => h['wednsday_opens'], :wednsday_closes => h['wednsday_closes'],
+                        :thursday_opens => h['thursday_opens'], :thursday_closes => h['thursday_closes'],
+                        :friday_opens => h['friday_opens'], :friday_closes => h['friday_closes'],
+                        :saturday_opens => h['saturday_opens'], :saturday_closes => h['saturday_closes'],
+                        :sunday_closed => h['sunday_closed'], :minutes_before_closing => h['minutes_before_closing'])
+    org.opening_hours = hours
+
+    seed['users'].each do |user|
+      u = LibraryUser.create(:username => user['username'], :minutes => user['minutes'],
+                             :age => user['age'])
+      c = Client.find_by_name(user['using'])
+      u.log_on(c)
+    end
+
+  end
+end
+
+# se ellers:
+# https://github.com/rails/rails/blob/master/activerecord/Rakefile
+# for inspirasjon
