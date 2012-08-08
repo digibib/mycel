@@ -9,6 +9,18 @@ branches:
     name: Hovedbiblioteket
     departments:
       -
+        name: Digitalt Bibliotek
+        homepage: 'http://digital.deichman.no/'
+        clients:
+          -
+            name: petter-samsung
+            HWaddr: e8:03:9a:a6:7f:c6
+            IPaddr: 192.168.200.999
+          -
+            name: petter-dell
+            HWaddr: b8:ac:6f:cc:4b:8b
+            IPaddr: 192.168.200.998
+      -
         name: Musikkavdelingen
         homepage: 'http://blogg.deichman.no/musikk/'
         clients:

@@ -25,7 +25,7 @@ namespace :db do
       b = Branch.create(:name => branch['name'])
       org.branches << b
       branch['departments'].each do |department|
-        d = Department.create(:name => department['name'])
+        d = Department.create(:name => department['name'], :homepage => department['homepage'])
         b.departments << d
         department['clients'].each do |client|
           short = client['shorttime'] ||= 0
