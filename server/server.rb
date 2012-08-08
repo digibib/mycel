@@ -51,14 +51,14 @@ class Server < Goliath::API
           raise Goliath::Validation::NotFoundError
         end
       elsif path[1] == 'api' # Dispatch api-calls to grape
-        raise Goliath::Validation::UnauthorizedError unless env['REMOTE_ADDR'] == "127.0.0.1"
+        #raise Goliath::Validation::UnauthorizedError unless env['REMOTE_ADDR'] == "127.0.0.1"
         API.call(env)
       else    # matches non-existing branch and/or department
         raise Goliath::Validation::NotFoundError
       end
     when 4
       if path[1] == 'api' # Dispatch api-calls to grape
-        raise Goliath::Validation::UnauthorizedError unless env['REMOTE_ADDR'] == "127.0.0.1"
+        #raise Goliath::Validation::UnauthorizedError unless env['REMOTE_ADDR'] == "127.0.0.1"
         API.call(env)
       else
         raise Goliath::Validation::NotFoundError
