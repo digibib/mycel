@@ -4,7 +4,7 @@ div class="main"
   h2 Avdelinger
   - branch.departments.each do |dept|
     ul
-      li[style="display:inline-block; width:240px; float:left"]
+      li[style="display:inline-block; height: 48px;width:240px; float:left"]
         a href="/#{branch.name}/#{dept.name}" #{dept.name}
         #{dept.clients.where("user_id IS NOT NULL").count} av #{dept.clients.size} klient#{'er' if dept.clients.size > 1} i bruk
   div[style="clear:both"]
