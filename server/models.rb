@@ -22,6 +22,17 @@ class Branch < ActiveRecord::Base
 
   validates_presence_of :name
 
+  def as_json(*args)
+    hash = super()
+    hash.merge!(:opening_hours => self.opening_hours, :inherited => {
+      :opening_hours => self.opening_hours_inherited,
+      :age_limit_lower => self.age_limit_lower_inherited,
+      :age_limit_higher => self.age_limit_higher_inherited,
+      :homepage => self.homepage_inherited,
+      :time_limit => self.time_limit_inherited
+      })
+  end
+
   def homepage_inherited
     read_attribute(:homepage) || Organization.first.homepage
   end
@@ -83,9 +94,6 @@ class Department < ActiveRecord::Base
     read_attribute(:age_limit_higher) || Branch.find(self.branch_id).age_limit_higher_inherited
   end
 
-  def time_limit_inherited
-    read_attribute(:time_limit) || Branch.find(self.branch_id).time_limit_inherited
-  end
 
   def printer_addr
     read_attribute(:printer_addr) || Branch.find(self.branch_id).printer_addr

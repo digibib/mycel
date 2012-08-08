@@ -4,7 +4,8 @@ div class="main"
   h2 Filialer
   p Følgende #{org.branches.size} filialer er underordnet organisasjonen #{org.name}:
   - org.branches.order('name').each do |branch|
-      h3 #{branch.name}
+      a href="/#{branch.name}"
+        h3 #{branch.name}
       table class="deptlist"
         - branch.departments.each do |dept|
           tr

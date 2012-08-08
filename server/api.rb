@@ -168,7 +168,49 @@ class API < Grape::API
   end
 
   resource :branches do
-    #TODO copy :departments code
+    desc "return all branchess with attributes and options"
+    get "/" do
+      {:branches => Branch.all}
+    end
+
+    desc "get specific branch"
+    get "/:id" do
+      {:branch => Branch.find(params[:id])}
+    end
+
+    desc "update branch options"
+    put "/:id" do
+      branch = Branch.find(params[:id])
+      changes = nil
+
+      updates = find_updates branch, params
+      if updates
+        branch.update_attributes(updates)
+        changes = true
+        params.delete :opening_hours if params[:opening_hours] == "inherit"
+      end
+
+      # TODO refactor this:
+      if params[:opening_hours] and changes? branch.opening_hours_inherited.attributes_formatted, prepare_params(params[:opening_hours])
+        if branch.opening_hours
+          branch.opening_hours.update_attributes(params[:opening_hours])
+          throw :error, :status => 400,
+            :message => "Du kan ikke stenge før du har åpnet!" if branch.opening_hours.errors.size > 0
+          changes = true
+        else
+          hours = OpeningHours.create params[:opening_hours]
+          throw :error, :status => 400,
+            :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
+          branch.opening_hours = hours
+          changes = true
+        end
+      end
+
+      throw :error, :status => 400,
+            :message => "Ingen endringer!" unless changes
+
+      {:branch => branch}
+    end
   end
 
 end
