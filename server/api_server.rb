@@ -32,7 +32,6 @@ class Server < Goliath::API
       when 2    # matches {branches}|users|statistics
         if @@org.branches.find_by_name(path[1])
           [200, {}, slim(:branch, :locals => {:branch => Branch.find_by_name(path[1])})]
-                # or matches /ws for websocket communication:
         elsif path[1] == 'users'
           [200, {}, slim(:users, :locals => {:users => User.all})]
         elsif path[1] == 'branches'
