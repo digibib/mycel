@@ -5,7 +5,7 @@ The clients are intended to be used library patrons, who log on using their libr
 
 
 ## Installation Instructions
-The system is quite easy to set up. Both server and client is written in Ruby.
+The system is quite easy to set up. Both server and client are (currently) written in Ruby.
 
 ### Client
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
@@ -14,19 +14,28 @@ The client is written in Ruby, so obviously you should have Ruby installed. Deve
 
 ```sudo apt-get install libgtk2.0-dev```
 
-Also development libraries for mysql client is needed for server
+Note: when I got the system stable and running, I plan to rewrite the client in a compiled language like C or Go. At our Library most clients are thin clients with Linux images loaded in RAM at start up, and we therefore want the images to be as small and efficient as possible.
 
-```sudo apt-get install libmysqlclient-dev```
-    
 ### Server
-The server is written using the asynchronous web server framework [Goliath]. It provides its own server. To get it up running, simply do a bundle install and, start the server using:
+The server is written using the asynchronous web server framework [Goliath]. It provides its own server. To get it up running, simply do a bundle install and, start and deamonize the server using:
 
-```ruby server.rb -e production```
+```ruby server.rb -d -e production -p 9001```
+
+This is the server communicating with the clients via WebSockets. In addition, the API-server is running as a separate process. All updates on you make on clients, users and options in the web interface, are made by calling the API underneath. This server is also responsible for serving the web interface views. Start the API with:
+
+```ruby api_server.rb -d -e production'-p 9000```
 
 Goliath is not tied to any particular Ruby, but recommended is MRI Ruby 1.9.3.
 
 **Server configuration**
-Most of the options can be configured in the web-based administration interface. The remaining configuration (SIP2 server adresse and so on) is done in `config/organization.yaml`
+Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/server.rb`
+
+### Database
+Mycel is written and tested with MySQL. To compile the mysql2 gem you will need the development headers:
+
+```sudo apt-get install libmysqlclient-dev```
+
+If you want to use a different database, it's vital that you choose one with asynchronous drivers. PostgreSQL is also known to work with Goliath using the em_postgresql adapter.
 
 ## Technical Documentation
 Kommer etterhvert...
@@ -40,5 +49,5 @@ Kommer etterhvert...
 
   [Deichmanske bibliotek]: http://deichman.no
   [Goliath]: https://github.com/postrank-labs/goliath/
-  
-    
+
+
