@@ -21,11 +21,12 @@ namespace :db do
     seed = YAML::load(File.open("db/seed.yml"))
     org = Organization.create(seed['organization'])
 
+
     seed['branches'].each do |branch|
       b = Branch.create(:name => branch['name'])
       org.branches << b
       branch['departments'].each do |department|
-        d = Department.create(:name => department['name'], :homepage => department['homepage'])
+        d = Department.create(:name => department['name'])
         b.departments << d
         department['clients'].each do |client|
           short = client['shorttime'] ||= 0
@@ -46,7 +47,9 @@ namespace :db do
                         :friday_opens => h['friday_opens'], :friday_closes => h['friday_closes'],
                         :saturday_opens => h['saturday_opens'], :saturday_closes => h['saturday_closes'],
                         :sunday_closed => h['sunday_closed'], :minutes_before_closing => h['minutes_before_closing'])
-    org.opening_hours = hours
+    #org.options = Options.new(:homepage => "http://www.deichman.no", :opening_hours => hours)
+    options = org.build_options(:homepage => "http://www.deichman.no", :opening_hours => hours)
+    options.save
 
     seed['users'].each do |user|
       u = LibraryUser.create(:username => user['username'], :minutes => user['minutes'],

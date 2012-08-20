@@ -8,7 +8,6 @@ ActiveRecord::Schema.define do
     t.integer :age_limit_higher
     t.integer :time_limit
     t.boolean :time_limit_no_limit, :default => false
-
     t.integer :opening_hours
 
     t.integer :owner_options_id
@@ -65,6 +64,8 @@ ActiveRecord::Schema.define do
     t.time :sunday_opens
     t.time :sunday_closes
     t.integer :minutes_before_closing
+
+    t.integer :options_id
   end
 
   create_table :admins, :force => true do |t|

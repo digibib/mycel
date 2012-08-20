@@ -1,6 +1,6 @@
 require "em-synchrony/activerecord"
 
-# set initial settings
+# initial settings
 ActiveRecord::Base.include_root_in_json = false
 
 class Organization < ActiveRecord::Base
@@ -8,49 +8,55 @@ class Organization < ActiveRecord::Base
 
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
-  has_one :opening_hours, :as => :owner_hours
+  has_one :options, :as => :owner_options
   has_one :admin, :conditions => "superadmin = 1"
 
   validates_presence_of :name
+
 end
+
+class Options < ActiveRecord::Base
+  belongs_to :owner_options, :polymorphic => true
+  has_one :opening_hours
+
+  def as_json(*args)
+    hash = super()
+    hash.except("owner_options_id", "owner_options_type", "id")
+  end
+end
+
 
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
   has_many :admins
-  has_one :opening_hours, :as => :owner_hours, :dependent => :destroy
+  has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
 
+  after_initialize :init
+
+  def init
+    self.options = Options.new()
+  end
+
   def as_json(*args)
     hash = super()
-    hash.merge!(:opening_hours => self.opening_hours, :inherited => {
-      :opening_hours => self.opening_hours_inherited,
-      :age_limit_lower => self.age_limit_lower_inherited,
-      :age_limit_higher => self.age_limit_higher_inherited,
-      :homepage => self.homepage_inherited,
-      :time_limit => self.time_limit_inherited
-      })
+    hash.merge!(:options => self.options.as_json)
+    hash.merge!(:options_inherited => Organization.first.options)
+    hash.except("organization_id")
   end
 
-  def homepage_inherited
-    read_attribute(:homepage) || Organization.first.homepage
-  end
-
-  def time_limit_inherited
-    read_attribute(:time_limit) || Organization.first.time_limit
-  end
-
-  def age_limit_lower_inherited
-    read_attribute(:age_limit_lower) || Organization.first.age_limit_lower
-  end
-
-  def age_limit_higher_inherited
-    read_attribute(:age_limit_higher) || Organization.first.age_limit_higher
-  end
-
-  def opening_hours_inherited
-    self.opening_hours || Organization.first.opening_hours
+  def options_self_or_inherited
+    opt = {}
+    self.options.attributes.each do |k,v|
+      if self.options[k]
+        opt[k] = v
+      else
+        opt[k] = Organization.first.options.send(k.to_sym)
+      end
+    end
+    opt.except("owner_options_id", "owner_options_type", "id")
   end
 
 end
@@ -59,44 +65,33 @@ class Department < ActiveRecord::Base
   belongs_to :branch
   has_many :clients, :dependent => :destroy
   has_many :admins
-  has_one :opening_hours, :as => :owner_hours, :dependent => :destroy
+  has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
 
+  after_initialize :init
+
+  def init
+    self.options = Options.new()
+  end
+
   def as_json(*args)
     hash = super()
-    hash.merge!(:opening_hours => self.opening_hours, :inherited => {
-      :opening_hours => self.opening_hours_inherited,
-      :age_limit_lower => self.age_limit_lower_inherited,
-      :age_limit_higher => self.age_limit_higher_inherited,
-      :homepage => self.homepage_inherited,
-      :time_limit => self.time_limit_inherited
-      })
+    hash.merge!(:options => self.options.as_json)
+    hash.merge!(:options_inherited => Branch.find(self.branch_id).options_self_or_inherited)
+    hash.except("organization_id")
   end
 
-  def time_limit_inherited
-    read_attribute(:time_limit) || Branch.find(self.branch_id).time_limit_inherited
-  end
-
-  def homepage_inherited
-    read_attribute(:homepage) || Branch.find(self.branch_id).homepage_inherited
-  end
-
-  def opening_hours_inherited
-    self.opening_hours || Branch.find(self.branch_id).opening_hours_inherited
-  end
-
-  def age_limit_lower_inherited
-    read_attribute(:age_limit_lower) || Branch.find(self.branch_id).age_limit_lower_inherited
-  end
-
-  def age_limit_higher_inherited
-    read_attribute(:age_limit_higher) || Branch.find(self.branch_id).age_limit_higher_inherited
-  end
-
-
-  def printer_addr
-    read_attribute(:printer_addr) || Branch.find(self.branch_id).printer_addr
+  def options_self_or_inherited
+    opt = {}
+    self.options.attributes.each do |k,v|
+      if self.options[k]
+        opt[k] = v
+      else
+        opt[k] = Branch.find(self.branch_id).options.send(k.to_sym)
+      end
+    end
+    opt.except("owner_options_id", "owner_options_type", "id")
   end
 
 end
@@ -129,7 +124,7 @@ class Client < ActiveRecord::Base
 end
 
 class OpeningHours < ActiveRecord::Base
-  belongs_to :owner_hours, :polymorphic => true
+  belongs_to :options
 
   validate :hours_or_closed_flag_must_be_present,
            :opening_hours_cant_be_later_than_closing_hours
@@ -174,6 +169,11 @@ class OpeningHours < ActiveRecord::Base
       end
     end
     att
+  end
+
+  def as_json(*args)
+    hash = super()
+    hash.except("options_id", "id")
   end
 
   #TODO: find a more elegant solution to this repeitiveness:

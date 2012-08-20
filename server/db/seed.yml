@@ -1,16 +1,11 @@
 organization:
   name: Deichmanske bibliotek
-  homepage: 'http://www.deichman.no'
-  age_limit_lower: 1
-  age_limit_higher: 99
-  time_limit: 60
 branches:
   -
     name: Hovedbiblioteket
     departments:
       -
         name: Digitalt Bibliotek
-        homepage: 'http://digital.deichman.no/'
         clients:
           -
             name: petter-samsung
@@ -22,7 +17,6 @@ branches:
             IPaddr: 192.168.200.998
       -
         name: Musikkavdelingen
-        homepage: 'http://blogg.deichman.no/musikk/'
         clients:
           -
             name: musikkklient1
@@ -104,7 +98,6 @@ branches:
             shorttime: 1
   -
     name: Grünerløkka
-    homepage: 'http://www.deichmanske-bibliotek.oslo.kommune.no/avdelinger_apningstider/grnerlokka/'
     departments:
       -
         name: Barneavdelingen
