@@ -1,6 +1,7 @@
 require "rake/testtask"
 require "em-synchrony/activerecord"
 require "./models"
+require "pry"
 
 task :default => [:test]
 
@@ -8,6 +9,12 @@ Rake::TestTask.new do |test|
   test.libs << "test"
   test.test_files = Dir[ "test/test_*.rb" ]
   test.verbose = true
+end
+
+task :console do
+  dbconfig = YAML::load(File.open("config/database.yml"))
+  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  binding.pry
 end
 
 namespace :db do
