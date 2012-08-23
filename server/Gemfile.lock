@@ -16,6 +16,7 @@ GEM
     arel (3.0.2)
     async-rack (0.5.1)
       rack (~> 1.1)
+    awesome_print (1.0.2)
     builder (3.0.0)
     clean_test (1.0.0)
       faker
@@ -81,6 +82,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord
+  awesome_print
   clean_test
   em-synchrony
   goliath
