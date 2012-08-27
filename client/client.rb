@@ -159,6 +159,7 @@ puts LogOn.user, LogOn.pin
 
 
 class LoggedInWindow < Gtk::Window
+  attr_accessor :user
   def initialize(title, user)
     super(title)
 
@@ -187,8 +188,9 @@ class LoggedInWindow < Gtk::Window
     add box
 
     button.signal_connect "clicked" do
+      @user = nil
       destroy
-      Gtk.main_quit
+      #Gtk.main_quit
     end
 
     signal_connect "delete_event" do
@@ -206,7 +208,26 @@ LoggedIn = LoggedInWindow.new client['name'], LogOn.user
 LoggedIn.show
 
 # authenticate using sip2 - skip for now
+
 EM.run do
-  give_tick = proc { Gtk::main_iteration_do(blocking=false); EM.next_tick(give_tick); }
+  ws = EM::WebSocketClient.new "ws://localhost:9001/ws"
+
+  ws.onopen do
+    msg = {:action => "log-on", :client => client_address, :user => LogOn.user}
+    ws.send_message JSON.generate msg
+  end
+
+  ws.onmessage do |msg, binary|
+    puts msg
+  end
+
+  give_tick = proc {
+    Gtk::main_iteration_do(blocking=false)
+    EM.next_tick(give_tick)
+    EM.stop_event_loop if LoggedIn.user.nil?
+    }
   give_tick.call
 end
+
+puts "quit"
+Gtk.main_quit

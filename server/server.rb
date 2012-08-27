@@ -15,7 +15,29 @@ ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
 class Server < Goliath::WebSocket
 
-  @@org = Organization.first
+  def on_open(env)
+    env.logger.info("WS OPEN")
+    env['subscription'] = env.channel.subscribe { |m| env.stream_send(m) }
+    timer = EM::PeriodicTimer.new 1 do
+      env.channel << "ping"
+    end
+  end
+
+  def on_message(env, msg)
+     env.logger.info JSON.parse(msg)
+
+    #env.channel << msg
+  end
+
+  def on_close(env)
+    env.logger.info("WS CLOSED")
+    env.channel.unsubscribe(env['subscription'])
+    timer.cancel
+  end
+
+  def on_error(env, error)
+    env.logger.error error
+  end
 
   def response(env)
     super(env)
