@@ -13,14 +13,28 @@ class Organization < ActiveRecord::Base
 
   validates_presence_of :name
 
+  accepts_nested_attributes_for :options
+
+  def init
+    self.options ||= Options.new()
+  end
+
+  def as_json(*args)
+    hash = super()
+    hash.merge!(:options => self.options.as_json)
+  end
+
 end
 
 class Options < ActiveRecord::Base
   belongs_to :owner_options, :polymorphic => true
   has_one :opening_hours
 
+  accepts_nested_attributes_for :opening_hours
+
   def as_json(*args)
     hash = super()
+    hash.merge!(:opening_hours => self.opening_hours.as_json)
     hash.except("owner_options_id", "owner_options_type", "id")
   end
 end
@@ -34,16 +48,18 @@ class Branch < ActiveRecord::Base
 
   validates_presence_of :name
 
+  accepts_nested_attributes_for :options
+
   after_initialize :init
 
   def init
-    self.options = Options.new()
+    self.options ||= Options.new()
   end
 
   def as_json(*args)
     hash = super()
     hash.merge!(:options => self.options.as_json)
-    hash.merge!(:options_inherited => Organization.first.options)
+    hash.merge!(:options_inherited => self.organization.options.as_json)
     hash.except("organization_id")
   end
 
@@ -53,9 +69,11 @@ class Branch < ActiveRecord::Base
       if self.options[k]
         opt[k] = v
       else
-        opt[k] = Organization.first.options.send(k.to_sym)
+        opt[k] = self.organization.options.send(k.to_sym)
       end
     end
+    oh = self.options.opening_hours.as_json || self.organization.options.opening_hours.as_json
+    opt.merge! "opening_hours" => oh
     opt.except("owner_options_id", "owner_options_type", "id")
   end
 
@@ -69,28 +87,33 @@ class Department < ActiveRecord::Base
 
   validates_presence_of :name
 
+  accepts_nested_attributes_for :options
+
   after_initialize :init
 
   def init
-    self.options = Options.new()
+    self.options ||= Options.new()
   end
 
   def as_json(*args)
     hash = super()
     hash.merge!(:options => self.options.as_json)
-    hash.merge!(:options_inherited => Branch.find(self.branch_id).options_self_or_inherited)
+    hash.merge!(:options_inherited => self.branch.options_self_or_inherited)
     hash.except("organization_id")
   end
 
   def options_self_or_inherited
+    branch = Branch.find(self.branch_id)
     opt = {}
     self.options.attributes.each do |k,v|
       if self.options[k]
         opt[k] = v
       else
-        opt[k] = Branch.find(self.branch_id).options.send(k.to_sym)
+        opt[k] = branch.options_self_or_inherited[k]
       end
     end
+    oh = self.options.opening_hours.as_json || self.branch.options_self_or_inherited['opening_hours']
+    opt.merge! "opening_hours" => oh
     opt.except("owner_options_id", "owner_options_type", "id")
   end
 
@@ -104,17 +127,10 @@ class Client < ActiveRecord::Base
 
   has_one :user, :inverse_of => :client, :autosave => true
   has_one :screen_resolution
-
-  def homepage
-    Department.find(self.department_id).homepage
-  end
+  has_one :options
 
   def branch
     Department.find(self.department_id).branch
-  end
-
-  def printer_addr
-    Department.find(self.department_id).printer_addr
   end
 
   def occupied?
@@ -173,7 +189,7 @@ class OpeningHours < ActiveRecord::Base
 
   def as_json(*args)
     hash = super()
-    hash.except("options_id", "id")
+    hash.except("options_id")
   end
 
   #TODO: find a more elegant solution to this repeitiveness:
