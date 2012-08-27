@@ -12,7 +12,7 @@ div class="main"
   p Følgende innstillinger vil gjelde for alle klientene på denne filialen
   p Hvis du lagrer et skjema med blanke felt, så vil de globale innstillingene for #{branch.organization.name} gjelde i steden.
   h3 Åpningstider
-  - hours = branch.opening_hours_inherited
+  - hours = OpeningHours.find branch.options_self_or_inherited['opening_hours']['id']
   div class="divdot inputf"
     form id="change_hours_form" autocomplete="off"
       input[id="branch_id" hidden value="#{branch.id}"]
@@ -20,7 +20,7 @@ div class="main"
       table class="genform"
         tr
           td[colspan="6"]
-          - if hours.owner_hours_type == 'branch'
+          - if hours.options.owner_options_type == 'Branch'
             span[class="inherited" style="display:none" ] Disse innstillingene er arvet:
           - else
             span[class="inherited" ] Disse innstillingene er arvet:
@@ -117,14 +117,14 @@ div class="main"
   h3 Aldersbegrensninger
   p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
   div class="divdot inputf"
-    span[class="inherited" id="age_inherited" style="margin:7px; #{'display:none' unless branch.age_limit_lower.nil? }"]Disse innstillingene er arvet:
+    span[class="inherited" id="age_inherited" style="margin:7px; #{'display:none' unless branch.options.age_limit_lower.nil? }"]Disse innstillingene er arvet:
     form id="age_limit_form" autocomplete="off"
       table class="genform"
         tr
           td nedre aldergrense
-          td: input[type="text" id="age_lower" class="nr required" value="#{branch.age_limit_lower_inherited}"]
+          td: input[type="text" id="age_lower" class="nr required" value="#{branch.options_self_or_inherited['age_limit_lower']}"]
           td øvre aldergrense
-          td: input[type="text" id="age_higher" class="nr required" value="#{branch.age_limit_higher_inherited}"]
+          td: input[type="text" id="age_higher" class="nr required" value="#{branch.options_self_or_inherited['age_limit_higher']}"]
           td: button[type='button' id="agesave" ]  = "Lagre"
           td
             span[id="age_info" class="info" style="margin-left:48px"]
@@ -134,11 +134,11 @@ div class="main"
   h3 Tidsbegrensninger
   p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
   div class="divdot inputf"
-    span[class="inherited" id="time_inherited" style="margin:7px; #{'display:none' unless branch.time_limit.nil? }"]Disse innstillingene er arvet:
+    span[class="inherited" id="time_inherited" style="margin:7px; #{'display:none' unless branch.options.time_limit.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
         td minutter per dag
-        td: input[type="text" id="time_limit" class="nr" value="#{branch.time_limit_inherited}"]
+        td: input[type="text" id="time_limit" class="nr" value="#{branch.options_self_or_inherited['time_limit']}"]
         td fri bruk?
         td: input[type="checkbox" id="time_limit_no_limit"]
         td: button[type='button' id="time_save"]  = "Lagre"
@@ -149,11 +149,11 @@ div class="main"
   h3 Hjemmeside
   p Startside til klientens nettleser.
   div class="divdot inputf"
-    span[class="inherited" id="homepage_inherited" style="margin:7px; #{'display:none' unless branch.homepage.nil? }"]Disse innstillingene er arvet:
+    span[class="inherited" id="homepage_inherited" style="margin:7px; #{'display:none' unless branch.options.homepage.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
         td  hjemmeside
-        td: input[type="text" id="homepage" value="#{branch.homepage_inherited}"]
+        td: input[type="text" id="homepage" value="#{branch.options_self_or_inherited['homepage']}"]
         td: button[type='button' id="homepagesave"]  = "Lagre"
         td
           span[id="homepage_info" class="info" style="margin-left:48px"]
@@ -164,7 +164,7 @@ div class="main"
     table class="genform"
       tr
         td  printeradresse
-        td: input[type="text" id="printer" value="#{branch.printeraddr}"]
+        td: input[type="text" id="printer" value="#{branch.options_self_or_inherited['printeraddr']}"]
         td: button[type='button' id="printersave"]  = "Lagre"
         td
           span[id="printer_info" class="info" style="margin-left:48px"]
