@@ -211,6 +211,7 @@ describe API do
 
     before do
       @org = Organization.create :name => any_string
+      @org.options = Options.new
       @branch = Branch.create :name => any_string
       @dept = Department.create :name => any_string
       @hours = OpeningHours.new :monday_opens => '10:00', :monday_closes => '19:00',
@@ -220,14 +221,14 @@ describe API do
                                   :friday_opens => '10:00', :friday_closes => '19:00',
                                   :saturday_closed => 1,
                                   :sunday_closed => 1
-      @dept.opening_hours = @hours
+      @dept.options.opening_hours = @hours
       @dept.save
       @branch.departments << @dept
       @org.branches << @branch
       @hours2 = OpeningHours.new :monday_closed => 1, :tuesday_closed => 1,
         :wednsday_closed => 1, :thursday_closed => 1, :friday_closed => 1,
         :saturday_closed => 1, :sunday_closed => 1
-      @org.opening_hours = @hours2
+      @org.options.opening_hours = @hours2
     end
 
     after do
@@ -241,49 +242,49 @@ describe API do
     describe 'PUT /api/departments/:id' do
       it "updates opening hours if there are changes " do
         @hours.friday_opens.must_equal '10:00'
-        put "/api/departments/#{@dept.id}", :opening_hours => {:friday_opens => '11:00'}
+        put "/api/departments/#{@dept.id}", :options => {:opening_hours => {:friday_opens => '11:00'}}
         last_response.status.must_equal 200
-        JSON.parse(last_response.body)['department']['opening_hours']['friday_opens'].must_equal '11:00'
+        JSON.parse(last_response.body)['department']['options']['opening_hours']['friday_opens'].must_equal '11:00'
       end
 
       it "updates nothing if there are no changes" do
-        put "/api/departments/#{@dept.id}",
-          :opening_hours => {:monday_opens => '10:00', :saturday_closed => "1", :monday_closed => false}
+        put "/api/departments/#{@dept.id}", :options =>
+          {:opening_hours => {:monday_opens => '10:00', :saturday_closed => "1", :monday_closed => false}}
         last_response.status.must_equal 400
         last_response.body.must_equal "Ingen endringer!"
       end
 
       it "updates printer adress and homepage" do
-        put "/api/departments/#{@dept.id}",
-          :printeraddr => "socket://101.101.101.11", :homepage => "deichman.no"
+        put "/api/departments/#{@dept.id}", :options =>
+          {:printeraddr => "socket://101.101.101.11", :homepage => "deichman.no"}
         last_response.status.must_equal 200
-        JSON.parse(last_response.body)['department']['printeraddr']
+        JSON.parse(last_response.body)['department']['options']['printeraddr']
           .must_equal "socket://101.101.101.11"
-        JSON.parse(last_response.body)['department']['homepage']
+        JSON.parse(last_response.body)['department']['options']['homepage']
           .must_equal "deichman.no"
       end
 
       it "inhertis from branch/org if attribute is set to 'inherit'" do
-        put "/api/departments/#{@dept.id}", :opening_hours => "inherit"
+        put "/api/departments/#{@dept.id}", :options => {:opening_hours => "inherit"}
         last_response.status.must_equal 200
-        JSON.parse(last_response.body)['department']['inherited']['opening_hours']
+        JSON.parse(last_response.body)['department']['options_inherited']['opening_hours']
           .must_equal @hours2.as_json
       end
 
       it "creates a new opening-hours if the inehrited one is changed" do
-        @dept.opening_hours = nil
+        @dept.options.opening_hours = nil
         @dept.save
         get "/api/departments/#{@dept.id}"
-        JSON.parse(last_response.body)['department']['opening_hours']
+        JSON.parse(last_response.body)['department']['options']['opening_hours']
           .must_equal nil
-        put "/api/departments/#{@dept.id}", :opening_hours => {
+        put "/api/departments/#{@dept.id}", :options => {:opening_hours => {
                                   :monday_opens => '10:00', :monday_closes => '19:00',
                                   :tuesday_opens => '10:00', :tuesday_closes => '19:00',
                                   :wednsday_opens => '10:00', :wednsday_closes => '19:00',
                                   :thursday_opens => '10:00', :thursday_closes => '19:00',
                                   :friday_opens => '10:00', :friday_closes => '19:00',
                                   :saturday_closed => 1,
-                                  :sunday_closed => 1}
+                                  :sunday_closed => 1}}
         last_response.status.must_equal 200
       end
 
