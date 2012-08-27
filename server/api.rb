@@ -137,28 +137,34 @@ class API < Grape::API
       dept = Department.find(params[:id])
       changes = nil
 
-      updates = find_updates dept, params
+      updates = find_updates dept, params.except(:options)
       if updates
         dept.update_attributes(updates)
         changes = true
-        params.delete :opening_hours if params[:opening_hours] == "inherit"
+      end
+
+      options_updates = find_updates dept.options, params[:options].except(:opening_hours)
+      if options_updates
+        dept.options.update_attributes(options_updates)
+        changes = true
+        params[:options].delete :opening_hours if params[:options][:opening_hours] == "inherit"
       end
 
       # TODO refactor this:
-      if params[:opening_hours] and changes? dept.opening_hours_inherited.attributes_formatted, prepare_params(params[:opening_hours])
-        if dept.opening_hours
-          dept.opening_hours.update_attributes(params[:opening_hours])
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" if dept.opening_hours.errors.size > 0
-          changes = true
-        else
-          hours = OpeningHours.create params[:opening_hours]
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
-          dept.opening_hours = hours
-          changes = true
-        end
-      end
+      # if params[:options][:opening_hours] and changes? dept.options_self_or_inherited.opening_hours.attributes_formatted, prepare_params(params[:options][:opening_hours])
+      #   if dept.options.opening_hours
+      #     dept.options.opening_hours.update_attributes(params[:options][:opening_hours])
+      #     throw :error, :status => 400,
+      #       :message => "Du kan ikke stenge før du har åpnet!" if dept.options.opening_hours.errors.size > 0
+      #     changes = true
+      #   else
+      #     hours = OpeningHours.create params[:options][:opening_hours]
+      #     throw :error, :status => 400,
+      #       :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
+      #     dept.options.opening_hours = hours
+      #     changes = true
+      #   end
+      # end
 
       throw :error, :status => 400,
             :message => "Ingen endringer!" unless changes
