@@ -45,6 +45,18 @@ class API < Grape::API
   format :json
   default_format :json
 
+  resource :identify do
+    desc "returns the client of a given mac-address"
+    get "/:mac" do
+      client = Client.find_by_hwaddr(params['mac'])
+
+      throw :error, :status => 404,
+            :message => "Fatal: No client to corresponding address" unless client
+
+      {:client => client}
+    end
+  end
+
   resource :clients do
     desc "returns all clients"
     get "/" do
