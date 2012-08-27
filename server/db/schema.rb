@@ -8,7 +8,6 @@ ActiveRecord::Schema.define do
     t.integer :age_limit_higher
     t.integer :time_limit
     t.boolean :time_limit_no_limit, :default => false
-    t.integer :opening_hours
 
     t.integer :owner_options_id
     t.string :owner_options_type
