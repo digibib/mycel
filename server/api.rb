@@ -1,6 +1,5 @@
 #encoding: UTF-8
 require "grape"
-require "set"
 
 # TODO put utility functions into module for mixin when API is finalized
 
@@ -71,8 +70,9 @@ class API < Grape::API
 
     desc "creates a new client and returns it"
     post "/" do
-      new_client = Client.create(:name => params['name'], :hwaddr => params['hwaddr'],
-                   :ipaddr => params['ipaddr'])
+      new_client = Client.create(:name => params['name'],
+                                 :hwaddr => params['hwaddr'],
+                                 :ipaddr => params['ipaddr'])
 
       throw :error, :status => 400,
             :message => "Manglender og/eller ugyldige parametere" unless new_client.valid?
@@ -120,9 +120,10 @@ class API < Grape::API
     delete "/:id" do
       begin
         User.find(params[:id]).destroy
-        {}
+        {:user => "deleted"}
       rescue ActiveRecord::RecordNotFound
-        throw :error, :status => 404, :message => "Det finnes ingen bruker med id #{params[:id]}"
+        throw :error, :status => 404,
+              :message => "Det finnes ingen bruker med id #{params[:id]}"
       end
     end
 
@@ -132,15 +133,17 @@ class API < Grape::API
         user = User.find(params[:id])
 
         # select only the keys from params present in user.attributes
-        updates = params.select { |k| user.attributes.keys.include? k }
+        updates = params.select { |k| user.attributes.keys.include?(k) }
         user.attributes = user.attributes.merge(updates)
 
-        throw :error, :status => 400, :message => "Ingen endringer!" unless user.changed?
+        throw :error, :status => 400,
+              :message => "Ingen endringer!" unless user.changed?
 
         user.save
         {:user => user}
       rescue ActiveRecord::RecordNotFound
-        throw :error, :status => 404, :message => "Det finnes ingen bruker med id #{params[:id]}"
+        throw :error, :status => 404,
+              :message => "Det finnes ingen bruker med id #{params[:id]}"
       end
     end
   end
