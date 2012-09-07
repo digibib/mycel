@@ -61,7 +61,11 @@ class API < Grape::API
 
     desc "returns individual client"
     get "/:id" do
-     {:client => Client.find(params[:id])}
+      begin
+        {:client => Client.find(params[:id])}
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404, :message => "Det finnes ingen klient med id #{params[:id]}"
+      end
     end
 
     desc "creates a new client and returns it"

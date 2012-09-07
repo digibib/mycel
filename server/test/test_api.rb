@@ -22,7 +22,7 @@ describe API do
         @client1 = Client.create(:id => 1, :name => 'client1',
                                  :hwaddr => any_string, :ipaddr => any_string)
         @client2 = Client.create(:id => 2, :name => 'client2',
-                                 :hwaddr => any_string, :ipaddr => any_string)
+                                 :hwaddr => "identifyme!", :ipaddr => any_string)
       end
 
       it "lists all the clients" do
@@ -43,8 +43,14 @@ describe API do
       end
 
       it "cannot acces non-existing clients" do
-        get "/api/client/3"
+        get "/api/clients/3"
         last_response.status.must_equal 404
+      end
+
+      it "identifies client given a corresponding mac adress " do
+        get "api/clients/", :mac => "identifyme!"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['client']['id'].must_equal 2
       end
     end
 
