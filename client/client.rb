@@ -16,7 +16,7 @@ if not client_address
   exit 0
 end
 
-uri = URI('http://localhost:9000/api/identify/'+client_address)
+uri = URI('http://localhost:9000/api/clients/?mac='+client_address)
 res = nil
 
 until res
