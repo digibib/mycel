@@ -52,7 +52,7 @@ class API < Grape::API
         # identifies the client of a given mac-adress
         client = Client.find_by_hwaddr(params['mac'])
         throw :error, :status => 404,
-              :message => "Fatal: No client to corresponding address" unless client
+              :message => "Det finnes ingen klient med MAC-adresse #{params[:mac]}" unless client
         {:client => client}
       else
         {:clients => Client.all }
@@ -64,7 +64,8 @@ class API < Grape::API
       begin
         {:client => Client.find(params[:id])}
       rescue ActiveRecord::RecordNotFound
-        throw :error, :status => 404, :message => "Det finnes ingen klient med id #{params[:id]}"
+        throw :error, :status => 404,
+              :message => "Det finnes ingen klient med id #{params[:id]}"
       end
     end
 
@@ -74,7 +75,7 @@ class API < Grape::API
                    :ipaddr => params['ipaddr'])
 
       throw :error, :status => 400,
-            :message => "missing parameters" unless new_client.valid?
+            :message => "Manglender og/eller ugyldige parametere" unless new_client.valid?
 
       {:client => new_client}
     end
@@ -110,26 +111,37 @@ class API < Grape::API
         :age => params["age"])
 
       throw :error, :status => 400,
-            :message => "Missing or wrong parameters" unless new_user.valid?
+            :message => "Manglende og/eller ugyldige parametere" unless new_user.valid?
 
       {:user => new_user}
     end
 
     desc "deletes a user"
     delete "/:id" do
-      User.find(params[:id]).destroy
-      {}
+      begin
+        User.find(params[:id]).destroy
+        {}
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404, :message => "Det finnes ingen bruker med id #{params[:id]}"
+      end
     end
 
     desc "updates a user"
     put "/:id" do
-      user = User.find(params[:id])
-      updates = find_updates user, params
+      begin
+        user = User.find(params[:id])
 
-      throw :error, :status => 400, :message => "Ingen endringer!" unless updates
+        # select only the keys from params present in user.attributes
+        updates = params.select { |k| user.attributes.keys.include? k }
+        user.attributes = user.attributes.merge(updates)
 
-      user.update_attributes(updates)
-      {:user => user}
+        throw :error, :status => 400, :message => "Ingen endringer!" unless user.changed?
+
+        user.save
+        {:user => user}
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404, :message => "Det finnes ingen bruker med id #{params[:id]}"
+      end
     end
   end
 
