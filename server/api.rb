@@ -3,7 +3,7 @@ require "grape"
 
 # TODO put utility functions into module for mixin when API is finalized
 
-# utility function to check if there are changes in a suplied hash of attributes
+# utility function to check if there are changes in a suplied hash
 def changes?(hash_pre, hash_post)
   hash_pre.merge(hash_post) != hash_pre
 end
@@ -51,7 +51,8 @@ class API < Grape::API
         # identifies the client of a given mac-adress
         client = Client.find_by_hwaddr(params['mac'])
         throw :error, :status => 404,
-              :message => "Det finnes ingen klient med MAC-adresse #{params[:mac]}" unless client
+              :message => "Det finnes ingen klient med MAC-adresse " +
+                          "#{params[:mac]}" unless client
         {:client => client}
       else
         {:clients => Client.all }
@@ -85,7 +86,8 @@ class API < Grape::API
       client = Client.find(params[:id])
       updates = find_updates client, params
 
-      throw :error, :status => 400, :message => "Ingen endringer!" unless updates
+      throw :error, :status => 400,
+            :message => "Ingen endringer!" unless updates
 
       client.update_attributes(updates)
       {:client => client}
