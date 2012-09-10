@@ -248,21 +248,21 @@ describe API do
     describe 'PUT /api/departments/:id' do
       it "updates opening hours if there are changes " do
         @hours.friday_opens.must_equal '10:00'
-        put "/api/departments/#{@dept.id}", :options => {:opening_hours => {:friday_opens => '11:00'}}
+        put "/api/departments/#{@dept.id}", :opening_hours => {:friday_opens => '11:00'}
         last_response.status.must_equal 200
         JSON.parse(last_response.body)['department']['options']['opening_hours']['friday_opens'].must_equal '11:00'
       end
 
       it "updates nothing if there are no changes" do
-        put "/api/departments/#{@dept.id}", :options =>
-          {:opening_hours => {:monday_opens => '10:00', :saturday_closed => "1", :monday_closed => false}}
+        put "/api/departments/#{@dept.id}",
+          :opening_hours => {:monday_opens => '10:00', :saturday_closed => "1", :monday_closed => false}
         last_response.status.must_equal 400
         last_response.body.must_equal "Ingen endringer!"
       end
 
       it "updates printer adress and homepage" do
-        put "/api/departments/#{@dept.id}", :options =>
-          {:printeraddr => "socket://101.101.101.11", :homepage => "deichman.no"}
+        put "/api/departments/#{@dept.id}",
+            :printeraddr => "socket://101.101.101.11", :homepage => "deichman.no"
         last_response.status.must_equal 200
         JSON.parse(last_response.body)['department']['options']['printeraddr']
           .must_equal "socket://101.101.101.11"
@@ -271,7 +271,7 @@ describe API do
       end
 
       it "inhertis from branch/org if attribute is set to 'inherit'" do
-        put "/api/departments/#{@dept.id}", :options => {:opening_hours => "inherit"}
+        put "/api/departments/#{@dept.id}", :opening_hours => "inherit"
         last_response.status.must_equal 200
         JSON.parse(last_response.body)['department']['options_inherited']['opening_hours']
           .must_equal @hours2.as_json
@@ -283,14 +283,14 @@ describe API do
         get "/api/departments/#{@dept.id}"
         JSON.parse(last_response.body)['department']['options']['opening_hours']
           .must_equal nil
-        put "/api/departments/#{@dept.id}", :options => {:opening_hours => {
+        put "/api/departments/#{@dept.id}", :opening_hours => {
                                   :monday_opens => '10:00', :monday_closes => '19:00',
                                   :tuesday_opens => '10:00', :tuesday_closes => '19:00',
                                   :wednsday_opens => '10:00', :wednsday_closes => '19:00',
                                   :thursday_opens => '10:00', :thursday_closes => '19:00',
                                   :friday_opens => '10:00', :friday_closes => '19:00',
                                   :saturday_closed => 1,
-                                  :sunday_closed => 1}}
+                                  :sunday_closed => 1}
         last_response.status.must_equal 200
       end
 

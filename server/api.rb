@@ -10,10 +10,11 @@ end
 
 # utility function to return attributes that are updates on model, and discard
 # the attributes with no changes, returns false if no updates
+# if attribute is set to "inherit", the attribute is set to nil
 def find_updates(model, attributes)
   updates = {}
   attributes.each do |k,v|
-    updates[k] = v if model.has_attribute?(k) and model.attributes[k].to_s != v
+    updates[k] = v if model.has_key? k and model[k].to_s != v
     updates[k] = nil if v == "inherit"
   end
   return false if updates.empty?
@@ -84,12 +85,15 @@ class API < Grape::API
     desc "updates an existing client and returns the updated version"
     put "/:id" do
       client = Client.find(params[:id])
-      updates = find_updates client, params
+
+      # select only the keys from params present in client.attributes
+      updates = params.select { |k| client.attributes.keys.include?(k) }
+      client.attributes = client.attributes.merge(updates)
 
       throw :error, :status => 400,
-            :message => "Ingen endringer!" unless updates
+            :message => "Ingen endringer!" unless client.changed?
 
-      client.update_attributes(updates)
+      client.save
       {:client => client}
     end
 
@@ -164,40 +168,39 @@ class API < Grape::API
     desc "update department options"
     put "/:id" do
       dept = Department.find(params[:id])
-      changes = nil
+      changes = false
 
-      updates = find_updates dept, params.except(:options)
+      updates = find_updates dept.options_self_or_inherited, params.except(:opening_hours)
       if updates
-        dept.update_attributes(updates)
-        changes = true
+        dept.options.attributes = updates
+        changes = true if dept.options.changed?
       end
 
-      options_updates = find_updates dept.options, params[:options].except(:opening_hours)
-      if options_updates
-        dept.options.update_attributes(options_updates)
-        changes = true
-        params[:options].delete :opening_hours if params[:options][:opening_hours] == "inherit"
+      if params[:opening_hours] == "inherit"
+        changes = true unless dept.options.opening_hours.nil?
+        dept.options.opening_hours = nil
+        params.delete :opening_hours
       end
 
-      # TODO refactor this:
-      # if params[:options][:opening_hours] and changes? dept.options_self_or_inherited.opening_hours.attributes_formatted, prepare_params(params[:options][:opening_hours])
-      #   if dept.options.opening_hours
-      #     dept.options.opening_hours.update_attributes(params[:options][:opening_hours])
-      #     throw :error, :status => 400,
-      #       :message => "Du kan ikke stenge før du har åpnet!" if dept.options.opening_hours.errors.size > 0
-      #     changes = true
-      #   else
-      #     hours = OpeningHours.create params[:options][:opening_hours]
-      #     throw :error, :status => 400,
-      #       :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
-      #     dept.options.opening_hours = hours
-      #     changes = true
-      #   end
-      # end
+      if params[:opening_hours]
+        # update current opening hours
+        if dept.options.opening_hours
+          dept.options.opening_hours.attributes = params[:opening_hours]
+          changes = true if dept.options.opening_hours.changed?
+        else # create new opening hours
+          dept.options.opening_hours = OpeningHours.create params[:opening_hours]
+          changes = true
+        end
+        throw :error, :status => 400,
+          :message => "Du kan ikke stenge før du har åpnet!" unless dept.options.opening_hours.valid?
+      end
 
       throw :error, :status => 400,
             :message => "Ingen endringer!" unless changes
 
+      # persist the changes:
+      dept.options.opening_hours.save if dept.options.opening_hours
+      dept.options.save
       {:department => dept}
     end
   end
@@ -216,34 +219,39 @@ class API < Grape::API
     desc "update branch options"
     put "/:id" do
       branch = Branch.find(params[:id])
-      changes = nil
+      changes = false
 
-      updates = find_updates branch, params
+      updates = find_updates branch.options_self_or_inherited, params.except(:opening_hours)
       if updates
-        branch.update_attributes(updates)
-        changes = true
-        params.delete :opening_hours if params[:opening_hours] == "inherit"
+        branch.options.attributes = updates
+        changes = true if branch.options.changed?
       end
 
-      # TODO refactor this:
-      if params[:opening_hours] and changes? branch.opening_hours_inherited.attributes_formatted, prepare_params(params[:opening_hours])
-        if branch.opening_hours
-          branch.opening_hours.update_attributes(params[:opening_hours])
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" if branch.opening_hours.errors.size > 0
-          changes = true
-        else
-          hours = OpeningHours.create params[:opening_hours]
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
-          branch.opening_hours = hours
+      if params[:opening_hours] == "inherit"
+        changes = true unless branch.options.opening_hours.nil?
+        branch.options.opening_hours = nil
+        params.delete :opening_hours
+      end
+
+      if params[:opening_hours]
+        # update current opening hours
+        if branch.options.opening_hours
+          branch.options.opening_hours.attributes = params[:opening_hours]
+          changes = true if branch.options.opening_hours.changed?
+        else # create new opening hours
+          branch.options.opening_hours = OpeningHours.create params[:opening_hours]
           changes = true
         end
+        throw :error, :status => 400,
+          :message => "Du kan ikke stenge før du har åpnet!" unless branch.options.opening_hours.valid?
       end
 
       throw :error, :status => 400,
             :message => "Ingen endringer!" unless changes
 
+      # persist the changes:
+      branch.options.opening_hours.save if branch.options.opening_hours
+      branch.options.save
       {:branch => branch}
     end
   end
