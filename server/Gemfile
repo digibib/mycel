@@ -7,6 +7,11 @@ gem "mysql2"
 gem "slim"
 gem "grape"
 
+group :development do
+  gem "pry"
+  gem "awesome_print"
+end
+
 group :test do
   gem "clean_test", :require => false
   gem "rack-test", :require => false

@@ -1,20 +1,20 @@
 #encoding: UTF-8
 require "grape"
-require "set"
 
 # TODO put utility functions into module for mixin when API is finalized
 
-# utility function to check if there are changes in a suplied hash of attributes
+# utility function to check if there are changes in a suplied hash
 def changes?(hash_pre, hash_post)
   hash_pre.merge(hash_post) != hash_pre
 end
 
 # utility function to return attributes that are updates on model, and discard
 # the attributes with no changes, returns false if no updates
+# if attribute is set to "inherit", the attribute is set to nil
 def find_updates(model, attributes)
   updates = {}
   attributes.each do |k,v|
-    updates[k] = v if model.has_attribute?(k) and model.attributes[k].to_s != v
+    updates[k] = v if model.has_key? k and model[k].to_s != v
     updates[k] = nil if v == "inherit"
   end
   return false if updates.empty?
@@ -46,23 +46,38 @@ class API < Grape::API
   default_format :json
 
   resource :clients do
-    desc "returns all clients"
+    desc "returns all clients, or identifies a client given a MACadress"
     get "/" do
-      {:clients => Client.all }
+      if params[:mac]
+        # identifies the client of a given mac-adress
+        client = Client.find_by_hwaddr(params['mac'])
+        throw :error, :status => 404,
+              :message => "Det finnes ingen klient med MAC-adresse " +
+                          "#{params[:mac]}" unless client
+        {:client => client}
+      else
+        {:clients => Client.all }
+      end
     end
 
     desc "returns individual client"
     get "/:id" do
-     {:client => Client.find(params[:id])}
+      begin
+        {:client => Client.find(params[:id])}
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404,
+              :message => "Det finnes ingen klient med id #{params[:id]}"
+      end
     end
 
     desc "creates a new client and returns it"
     post "/" do
-      new_client = Client.create(:name => params['name'], :hwaddr => params['hwaddr'],
-                   :ipaddr => params['ipaddr'])
+      new_client = Client.create(:name => params['name'],
+                                 :hwaddr => params['hwaddr'],
+                                 :ipaddr => params['ipaddr'])
 
       throw :error, :status => 400,
-            :message => "missing parameters" unless new_client.valid?
+            :message => "Manglender og/eller ugyldige parametere" unless new_client.valid?
 
       {:client => new_client}
     end
@@ -70,11 +85,15 @@ class API < Grape::API
     desc "updates an existing client and returns the updated version"
     put "/:id" do
       client = Client.find(params[:id])
-      updates = find_updates client, params
 
-      throw :error, :status => 400, :message => "Ingen endringer!" unless updates
+      # select only the keys from params present in client.attributes
+      updates = params.select { |k| client.attributes.keys.include?(k) }
+      client.attributes = client.attributes.merge(updates)
 
-      client.update_attributes(updates)
+      throw :error, :status => 400,
+            :message => "Ingen endringer!" unless client.changed?
+
+      client.save
       {:client => client}
     end
 
@@ -98,26 +117,40 @@ class API < Grape::API
         :age => params["age"])
 
       throw :error, :status => 400,
-            :message => "Missing or wrong parameters" unless new_user.valid?
+            :message => "Manglende og/eller ugyldige parametere" unless new_user.valid?
 
       {:user => new_user}
     end
 
     desc "deletes a user"
     delete "/:id" do
-      User.find(params[:id]).destroy
-      {}
+      begin
+        User.find(params[:id]).destroy
+        {:user => "deleted"}
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404,
+              :message => "Det finnes ingen bruker med id #{params[:id]}"
+      end
     end
 
     desc "updates a user"
     put "/:id" do
-      user = User.find(params[:id])
-      updates = find_updates user, params
+      begin
+        user = User.find(params[:id])
 
-      throw :error, :status => 400, :message => "Ingen endringer!" unless updates
+        # select only the keys from params present in user.attributes
+        updates = params.select { |k| user.attributes.keys.include?(k) }
+        user.attributes = user.attributes.merge(updates)
 
-      user.update_attributes(updates)
-      {:user => user}
+        throw :error, :status => 400,
+              :message => "Ingen endringer!" unless user.changed?
+
+        user.save
+        {:user => user}
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404,
+              :message => "Det finnes ingen bruker med id #{params[:id]}"
+      end
     end
   end
 
@@ -135,34 +168,39 @@ class API < Grape::API
     desc "update department options"
     put "/:id" do
       dept = Department.find(params[:id])
-      changes = nil
+      changes = false
 
-      updates = find_updates dept, params
+      updates = find_updates dept.options_self_or_inherited, params.except(:opening_hours)
       if updates
-        dept.update_attributes(updates)
-        changes = true
-        params.delete :opening_hours if params[:opening_hours] == "inherit"
+        dept.options.attributes = updates
+        changes = true if dept.options.changed?
       end
 
-      # TODO refactor this:
-      if params[:opening_hours] and changes? dept.opening_hours_inherited.attributes_formatted, prepare_params(params[:opening_hours])
-        if dept.opening_hours
-          dept.opening_hours.update_attributes(params[:opening_hours])
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" if dept.opening_hours.errors.size > 0
-          changes = true
-        else
-          hours = OpeningHours.create params[:opening_hours]
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
-          dept.opening_hours = hours
+      if params[:opening_hours] == "inherit"
+        changes = true unless dept.options.opening_hours.nil?
+        dept.options.opening_hours = nil
+        params.delete :opening_hours
+      end
+
+      if params[:opening_hours]
+        # update current opening hours
+        if dept.options.opening_hours
+          dept.options.opening_hours.attributes = params[:opening_hours]
+          changes = true if dept.options.opening_hours.changed?
+        else # create new opening hours
+          dept.options.opening_hours = OpeningHours.create params[:opening_hours]
           changes = true
         end
+        throw :error, :status => 400,
+          :message => "Du kan ikke stenge før du har åpnet!" unless dept.options.opening_hours.valid?
       end
 
       throw :error, :status => 400,
             :message => "Ingen endringer!" unless changes
 
+      # persist the changes:
+      dept.options.opening_hours.save if dept.options.opening_hours
+      dept.options.save
       {:department => dept}
     end
   end
@@ -181,34 +219,39 @@ class API < Grape::API
     desc "update branch options"
     put "/:id" do
       branch = Branch.find(params[:id])
-      changes = nil
+      changes = false
 
-      updates = find_updates branch, params
+      updates = find_updates branch.options_self_or_inherited, params.except(:opening_hours)
       if updates
-        branch.update_attributes(updates)
-        changes = true
-        params.delete :opening_hours if params[:opening_hours] == "inherit"
+        branch.options.attributes = updates
+        changes = true if branch.options.changed?
       end
 
-      # TODO refactor this:
-      if params[:opening_hours] and changes? branch.opening_hours_inherited.attributes_formatted, prepare_params(params[:opening_hours])
-        if branch.opening_hours
-          branch.opening_hours.update_attributes(params[:opening_hours])
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" if branch.opening_hours.errors.size > 0
-          changes = true
-        else
-          hours = OpeningHours.create params[:opening_hours]
-          throw :error, :status => 400,
-            :message => "Du kan ikke stenge før du har åpnet!" unless hours.valid?
-          branch.opening_hours = hours
+      if params[:opening_hours] == "inherit"
+        changes = true unless branch.options.opening_hours.nil?
+        branch.options.opening_hours = nil
+        params.delete :opening_hours
+      end
+
+      if params[:opening_hours]
+        # update current opening hours
+        if branch.options.opening_hours
+          branch.options.opening_hours.attributes = params[:opening_hours]
+          changes = true if branch.options.opening_hours.changed?
+        else # create new opening hours
+          branch.options.opening_hours = OpeningHours.create params[:opening_hours]
           changes = true
         end
+        throw :error, :status => 400,
+          :message => "Du kan ikke stenge før du har åpnet!" unless branch.options.opening_hours.valid?
       end
 
       throw :error, :status => 400,
             :message => "Ingen endringer!" unless changes
 
+      # persist the changes:
+      branch.options.opening_hours.save if branch.options.opening_hours
+      branch.options.save
       {:branch => branch}
     end
   end
