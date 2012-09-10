@@ -268,6 +268,13 @@ div class="main"
 
     $(document).ready(function () {
 
+      // ** global vars
+
+      var backup = new Object();
+      backup.homepage = $('input#homepage').val();
+      backup.al = $('input#age_lower').val();
+      backup.ah = $('input#age_higher').val();
+
       // ** set input masks **
 
       $('input#user_minutes').setMask('999');
@@ -409,6 +416,7 @@ div class="main"
         });
 
       $('button#hoursclear').on('click', function () {
+        backup.ohcopy = $('#change_hours_form').clone();
         $('#change_hours_form')[0].reset();
         $('input#minutes_before_closing').val('')
         $(':input.hour').val('').removeClass("inputmissing");
@@ -417,7 +425,6 @@ div class="main"
       });
 
       $('button#hourssave').on('click', function() {
-
         var missing = 0;
         $('input.hour.required:not(:disabled)').each(function () {
           if ($(this).val() == '' ) {
@@ -484,13 +491,13 @@ div class="main"
 
         request.done(function(data) {
           $('span#hours_error').hide();
-          if (data.department.opening_hours) {
+          if (data.department.options.opening_hours) {
             $('span#hours_info').html("OK! Lagret.").show().fadeOut(5000);
             $('#change_hours_form').find('span.inherited').hide();
           } else {
             $('span#hours_info').html("OK! Arver instillinger").show().fadeOut(5000);
             $('#change_hours_form').find('span.inherited').show();
-            $.each(data.department.inherited.opening_hours, function(k, v) {
+            $.each(data.department.options_inherited.opening_hours, function(k, v) {
               if (v == true) {
                 $('input#'+k).attr('checked', true);
                 $('#'+k.slice(0,-6)+'opens').attr("disabled", "disabled");
@@ -504,7 +511,9 @@ div class="main"
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#hours_info').hide();
           console.log(jqXHR.responseText);
+          $('#change_hours_form').replaceWith(backup.ohcopy);
           $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
+
         });
       });
 
@@ -528,14 +537,18 @@ div class="main"
         });
 
         request.done(function(data) {
-          if (data.department.age_limit_higher) {
-            $('input#age_lower').val(data.department.age_limit_lower);
-            $('input#age_higher').val(data.department.age_limit_higher);
+          if (data.department.options.age_limit_higher || data.department.options.age_limit_lower) {
+            var al = data.department.options.age_limit_lower ? data.department.options.age_limit_lower : data.department.options_inherited.age_limit_lower;
+            var ah = data.department.options.age_limit_higher ? data.department.options.age_limit_higher : data.department.options_inherited.age_limit_higher;;
+
+
+            $('input#age_lower').val(al);
+            $('input#age_higher').val(ah);
             $('span#age_inherited').hide();
             var msg = "OK! Lagret.";
           } else {
-            $('input#age_lower').val(data.department.inherited.age_limit_lower);
-            $('input#age_higher').val(data.department.inherited.age_limit_higher);
+            $('input#age_lower').val(data.department.options_inherited.age_limit_lower);
+            $('input#age_higher').val(data.department.options_inherited.age_limit_higher);
             $('span#age_inherited').show();
             var msg = "OK! Arver instillinger";
           }
@@ -544,6 +557,8 @@ div class="main"
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#age_error').html(jqXHR.responseText).show().fadeOut(5000);
+          $('#age_lower').val(backup.al);
+          $('#age_higher').val(backup.ah);
         });
 
       });
@@ -576,12 +591,12 @@ div class="main"
         });
 
         request.done(function(data) {
-          if (data.department.time_limit) {
+          if (data.department.options.time_limit || data.department.options.time_limit_no_limit) {
             $('span#time_inherited').hide();
             var msg = "OK! Lagret.";
           } else {
             $('span#time_inherited').show();
-            $('input#time_limit').val(data.department.inherited.time_limit);
+            $('input#time_limit').val(data.department.tions_opinherited.time_limit);
             var msg = "OK! Arver instillinger";
           }
           $('span#time_info').html(msg).show().fadeOut(5000);
@@ -608,12 +623,12 @@ div class="main"
         });
 
         request.done(function(data) {
-          if (data.department.homepage) {
+          if (data.department.options.homepage) {
             $('span#homepage_inherited').hide();
             var msg = "OK! Lagret.";
           } else {
             $('span#homepage_inherited').show();
-            $('input#homepage').val(data.department.inherited.homepage);
+            $('input#homepage').val(data.department.options_inherited.homepage);
             var msg = "OK! Arver instillinger";
           }
           $('span#homepage_info').html(msg).show().fadeOut(5000);
@@ -621,6 +636,7 @@ div class="main"
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#homepage_error').html(jqXHR.responseText).show().fadeOut(5000);
+          $('#homepage').val(backup.homepage);
         });
       });
 
