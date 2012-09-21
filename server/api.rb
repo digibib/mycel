@@ -105,6 +105,22 @@ class API < Grape::API
       {:users => User.all}
     end
 
+    desc "authenticates a user"
+    post "/authenticate" do
+      throw :error, :status => 400,
+            :message => "Manglende parametere" unless params["username"] and params["password"]
+
+      authenticated = false
+
+      # 1. check if user is a guest user in db
+      user = User.find_by_username params["username"]
+      authenticated = true if user and user.authenticate params["password"]
+
+      # 2. check sip2 if not in
+
+      {:authenticated => authenticated}
+    end
+
     desc "returns a specific user"
     get "/:id" do
       {:user => User.find(params[:id])}

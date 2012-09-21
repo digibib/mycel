@@ -280,8 +280,12 @@ class User < ActiveRecord::Base
 end
 
 class LibraryUser < User
-  validates_presence_of :username, :age
+  validates_presence_of :username, :age, :name
   validates :username, :uniqueness => true
+
+  def authenticate(pin)
+    pin == true
+  end
 
   def type_short
     'B'
@@ -291,6 +295,10 @@ end
 class GuestUser < User
   validates_presence_of :username, :password, :age
   validates :username, :uniqueness => true
+
+  def authenticate(password)
+    self.password == password
+  end
 
   def type_short
     'G'
