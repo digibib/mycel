@@ -162,7 +162,6 @@ class LoggedInWindow < Gtk::Window
   attr_accessor :user
   def initialize(title, user)
     super(title)
-
     @user = user
     self.resizable = false
     self.keep_above = true
@@ -190,7 +189,6 @@ class LoggedInWindow < Gtk::Window
     button.signal_connect "clicked" do
       @user = nil
       destroy
-      #Gtk.main_quit
     end
 
     signal_connect "delete_event" do
@@ -204,13 +202,13 @@ class LoggedInWindow < Gtk::Window
   end
 end
 
-LoggedIn = LoggedInWindow.new client['name'], LogOn.user
-LoggedIn.show
-
 # authenticate using sip2 - skip for now
 
 EM.run do
   ws = EM::WebSocketClient.new "ws://localhost:9001/ws"
+  channel = EM::Channel.new
+  LoggedIn = LoggedInWindow.new client['name'], LogOn.user
+  LoggedIn.show
 
   ws.onopen do
     msg = {:action => "log-on", :client => client_address, :user => LogOn.user}
@@ -218,16 +216,29 @@ EM.run do
   end
 
   ws.onmessage do |msg, binary|
-    puts msg
+    message = JSON.parse(msg)
+    case message["status"]
+      when "logged-off"
+        EM.stop
+    end
   end
+
+  sid = channel.subscribe { |msg|
+    msg = {:action => "log-off", :client => client_address, :user => LogOn.user}
+    ws.send_message JSON.generate msg
+  }
 
   give_tick = proc {
     Gtk::main_iteration_do(blocking=false)
     EM.next_tick(give_tick)
-    EM.stop_event_loop if LoggedIn.user.nil?
+    if LoggedIn.user.nil?
+      channel.push("log-off")
+      LoggedIn.user = "logging-off"
+    end
     }
   give_tick.call
+
 end
 
 puts "quit"
-Gtk.main_quit
+#Gtk.main_quit
