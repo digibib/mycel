@@ -26,7 +26,7 @@ div class="main"
         - client = Client.find(user.client_id)
         tr id="#{user.id}"
           td #{user.type_short}
-          td #{user.username}
+          td #{user.name || user.username}
           td[class="td-minutes"] #{user.minutes}
           td
             input[type="hidden" class="users minutes" value="#{user.minutes}"]

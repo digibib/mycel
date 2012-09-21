@@ -162,18 +162,21 @@ opening_hours:
   minutes_before_closing: 5
 users:
   -
-    username: "Franz Kafka"
+    username: "franz"
+    name: "Franz Kafka"
     minutes: 30
     age: 129
     using: hovedklient1
   -
-    username: "Kurt Vonnegut"
+    username: "kurt"
+    name: "Kurt Vonnegut"
     minutes: 33
     age: 90
     minutes: 10
     using: hovedklient2
   -
-    username: "Henry Miller"
+    username: "henry"
+    name: "Henry Miller"
     minutes: 12
     age: 30
     using: hovedklient5
