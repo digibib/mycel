@@ -234,7 +234,7 @@ div class="main"
         if (newMask != currentMask) {
           $(this).setMask(newMask);
         }
-        });
+      });
 
       $('button#hoursclear').on('click', function () {
         backup.ohcopy = $('#change_hours_form').clone();
@@ -332,7 +332,10 @@ div class="main"
         request.fail(function(jqXHR, textStatus, errorThrown) {
           $('span#hours_info').hide();
           console.log(jqXHR.responseText);
-          $('#change_hours_form').replaceWith(backup.ohcopy);
+          if (backup.ohcopy) {
+            $('#change_hours_form').replaceWith(backup.ohcopy);
+          }
+          backup.ohcopy = null;
           $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
         });
       });
