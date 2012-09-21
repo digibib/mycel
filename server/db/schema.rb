@@ -77,6 +77,7 @@ ActiveRecord::Schema.define do
   create_table :users, :force => true do |t|
     t.string :username
     t.string :password
+    t.string :name
     t.integer :minutes
     t.integer :age
 
