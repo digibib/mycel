@@ -267,13 +267,16 @@ div class="main"
         var msg;
         switch (data.status) {
           case "logged-on":
+            $("tr#"+data.client).find('img').attr("src", "/img/pc_green.png");
             msg = "logget på";
             break;
           case "logged-off":
+            $("tr#"+data.client).find('img').attr("src", "/img/pc_black.png");
             msg = "logget av";
             break;
           default:
         }
+        // display message
         $("tr#"+data.client).find('span.info').html(msg).show().fadeOut(5000);
       }
 
