@@ -20,78 +20,54 @@ div class="main"
         th info
     tbody
     - for client in department.clients
+
       - if client.occupied?
         - user = User.find(client.user.id)
-        tr class="occupied" id="#{client.id}"
-          td[style="width:34px"]: img src="/img/pc_green.png" class="pc"
-          td #{client.name}
-          td[style="width:160px"] #{user.username}
-          td[style="width:34px" class="td-minutes"] #{user.minutes}
-          td
-            input[type="hidden" class="user_id" value="#{user.id}"]
-            input[type="hidden" class="users minutes" value="#{user.minutes}"]
+        - klass = "occupied"
+        - image = "/img/pc_green.png"
+      - else
+        - klass = "available"
+        - image = "/img/pc_black.png"
+
+      tr class="#{klass}" id="#{client.id}"
+        td[style="width:34px"]: img src="#{image}" class="pc"
+        td #{client.name}
+        td[style="width:160px"] #{user.name || user.username if client.occupied?}
+        td[style="width:34px" class="td-minutes"] #{user.minutes if client.occupied?}
+        td
+          div class="#{'hidden' unless client.occupied?}"
+            input[type="hidden" class="user_id" value="#{user.id if client.occupied?}"]
+            input[type="hidden" class="users minutes" value="#{user.minutes if client.occupied?}"]
             input[type="text" class="nr required"]
             button[type='button' class="users add_time"] = "+"
-          td[style="width:124px"]: button[type='button' class="throw-out"]  = "Kast ut!"
-          td[style="width:160px"]
-            span class="info"
-            span class="error"
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]
-          td MAC-addresse
-          td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
-          td[colspan="2"] IP-addresse
-          td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
-          td
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
-          td skjermoppløsning
-          td: select[class="client_screen_res"]
-              - for res in screen_res do
-                |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
-          td[colspan="2"] korttidsmaskin
-          td[style="text-align:center"]
-            - if client.shorttime
-              input[type="checkbox" class="shorttimemachine" checked=true]
-            - else
-              input[type="checkbox" class="shorttimemachine"]
-          td[colspan="4"]
-            button[type='button' class="clientsave"]  = "Lagre"
-            button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
-      - else
-        tr class="available" id="#{client.id}"
-          td[style="width:34px"]: img src="/img/pc_black.png" class="pc"
-          td #{client.name}
-          td -
-          td
-          td
-          td
-          td[style="width:160px"]
-            span class="info"
-            span class="error"
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]
-          td MAC-addresse
-          td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
-          td[colspan="2"] IP-addresse
-          td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
-          td
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
-          td skjermoppløsning
-          td: select[class="client_screen_res"]
-              - for res in screen_res do
-                |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
-          td[colspan="2"] korttidsmaskin
-          td[style="text-align:center"]
-            - if client.shorttime
-              input[type="checkbox" class="shorttimemachine" checked=true]
-            - else
-              input[type="checkbox" class="shorttimemachine"]
-          td[colspan="4"]
-            button[type='button' class="clientsave"]  = "Lagre"
-            button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
-
+        td[style="width:124px"]
+          div class="#{'hidden' unless client.occupied?}"
+            button[type='button' class="throw-out"]  = "Kast ut!"
+        td[style="width:160px"]
+          span class="info"
+          span class="error"
+      tr class="clientoptions client_#{client.id}"
+        td[style="width:34px"]
+        td MAC-addresse
+        td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
+        td[colspan="2"] IP-addresse
+        td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
+        td
+      tr class="clientoptions client_#{client.id}"
+        td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
+        td skjermoppløsning
+        td: select[class="client_screen_res"]
+            - for res in screen_res do
+              |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+        td[colspan="2"] korttidsmaskin
+        td[style="text-align:center"]
+          - if client.shorttime
+            input[type="checkbox" class="shorttimemachine" checked=true]
+          - else
+            input[type="checkbox" class="shorttimemachine"]
+        td[colspan="4"]
+          button[type='button' class="clientsave"]  = "Lagre"
+          button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
