@@ -267,14 +267,12 @@ class User < ActiveRecord::Base
 
   def log_on(c)
     return false if c.user
-    c.user = self
-    c.user_id = id
-    c.save
+    self.client = c
   end
 
   def log_off
-    self.client.user_id = nil
     self.client.user = nil
+    self.client = nil
   end
 
 end

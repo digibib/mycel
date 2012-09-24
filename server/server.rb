@@ -59,7 +59,7 @@ class Server < Goliath::WebSocket
 
   def on_open(env)
     env.logger.info("WS OPEN")
-    env['subscription'] = env.channel.subscribe { |m| env.stream_send(m) }
+    #env['subscription'] = env.channel.subscribe { |m| env.stream_send(m) }
     # timer = EM::PeriodicTimer.new 10 do
     #   env.channel << "ping"
     # end
@@ -88,6 +88,7 @@ class Server < Goliath::WebSocket
           return unless user and client
 
           user.log_on client
+          user.save
 
           env.logger.info "User: #{user.username} logs on to client: #{client.name}"
           #subscribe the channels: client, department
@@ -98,11 +99,15 @@ class Server < Goliath::WebSocket
           env.channels['dept-'+client.department.id.to_s] << JSON.generate(message)
 
         when "log-off"
+         user.log_off
+         user.save
+
          env.logger.info "User: #{user.username} logs off client: #{client.name}"
          # broadcast message
          message = JSON.generate({:status => "logged-off", :client => client.id, :user => user.username})
          env.channels['dept-'+client.department.id.to_s] << message
          env.channels[message["client"]] << message
+         #env.channels[message["client"]].unsubscribe(sid)
       end
 
     end.resume
@@ -110,7 +115,7 @@ class Server < Goliath::WebSocket
 
   def on_close(env)
     env.logger.info("WS CLOSED")
-    env.channel.unsubscribe(env['subscription'])
+    #env.channel.unsubscribe(env['subscription'])
   end
 
   def on_error(env, error)
