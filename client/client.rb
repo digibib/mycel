@@ -217,6 +217,7 @@ EM.run do
 
   ws.onmessage do |msg, binary|
     message = JSON.parse(msg)
+    puts message
     case message["status"]
       when "logged-off"
         EM.stop

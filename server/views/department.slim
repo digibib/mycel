@@ -1,5 +1,6 @@
 == render :slim, :'_header'
 div class="main"
+  input[type="hidden" value="#{department.name}" id="department-name"]
   - if department.name == department.branch.name
     h2 #{department.branch.name}
   - else
@@ -267,6 +268,38 @@ div class="main"
     }
 
     $(document).ready(function () {
+
+      // ** connect to mycel websocket server
+
+      var ws = new WebSocket("ws://localhost:9001");
+
+      // handle ws events
+
+      ws.onopen = function() {
+        var dept = $('#department_id').val();
+        var message = {action: "subscribe", department: dept};
+        ws.send(JSON.stringify(message));
+      }
+
+      ws.onclose = function() {
+        // close
+      }
+
+      ws.onmessage = function(evt) {
+        // message
+        data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
+        var msg;
+        switch (data.status) {
+          case "logged-on":
+            msg = "logget på";
+            break;
+          case "logged-off":
+            msg = "logget av";
+            break;
+          default:
+        }
+        $("tr#"+data.client).find('span.info').html(msg).show().fadeOut(5000);
+      }
 
       // ** global vars
 

@@ -280,7 +280,7 @@ class User < ActiveRecord::Base
 end
 
 class LibraryUser < User
-  validates_presence_of :username, :age, :name
+  validates_presence_of :username #, :age, :name,
   validates :username, :uniqueness => true
 
   def authenticate(pin)

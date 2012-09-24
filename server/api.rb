@@ -112,11 +112,9 @@ class API < Grape::API
 
       authenticated = false
 
-      # 1. check if user is a guest user in db
+      # 1. check if user is a guest user in db, or sip2 authenticated
       user = User.find_by_username params["username"]
       authenticated = true if user and user.authenticate params["password"]
-
-      # 2. check sip2 if not in
 
       {:authenticated => authenticated}
     end
