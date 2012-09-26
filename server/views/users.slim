@@ -23,10 +23,10 @@ div class="main"
         th
     tbody
       - for user in User.logged_on
-        - client = Client.find(user.client_id)
+        - client = user.client
         tr id="#{user.id}"
           td #{user.type_short}
-          td #{user.name || user.username}
+          td #{user.name}
           td[class="td-minutes"] #{user.minutes}
           td
             input[type="hidden" class="users minutes" value="#{user.minutes}"]

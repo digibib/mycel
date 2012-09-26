@@ -265,6 +265,10 @@ class User < ActiveRecord::Base
     where("client_id IS NULL")
   end
 
+  def name
+    read_attribute(:name) || self.username
+  end
+
   def log_on(c)
     return false if c.user
     self.client = c
@@ -278,7 +282,7 @@ class User < ActiveRecord::Base
 end
 
 class LibraryUser < User
-  validates_presence_of :username #, :age, :name,
+  validates_presence_of :username #, :age, :name, hm need to authenticate w sip2 first!
   validates :username, :uniqueness => true
 
   def authenticate(pin)
