@@ -63,6 +63,7 @@ namespace :db do
                              :age => user['age'], :name => user['name'])
       c = Client.find_by_name(user['using'])
       u.log_on(c)
+      u.save
     end
 
   end
