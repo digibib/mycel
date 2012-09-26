@@ -53,12 +53,14 @@ Examples:
 class Server < Goliath::WebSocket
   #Channels:
   # One for each client  env.channels['client-mac']
-  # One for all clients  env.channels['all']
+  # One for all clients  env.channels['clients'] (used for updating time status (minutes left) every 15 )
   # One for department   env.channels['dept-id'] (id = nr from db)
   # One for branch       env.channels['branch-id']
 
   def on_open(env)
     env.logger.info("WS OPEN")
+    env.logger.info "num of subscribers: #{env.channels.size}"
+
     #env['subscription'] = env.channel.subscribe { |m| env.stream_send(m) }
     # timer = EM::PeriodicTimer.new 10 do
     #   env.channel << "ping"
@@ -85,8 +87,6 @@ class Server < Goliath::WebSocket
           # 3. create user object if success
         when "log-on"
           #NB must be authenticated first! (i.e. user object must be present)
-          return unless user and client
-
           user.log_on client
           user.save
 
@@ -95,7 +95,8 @@ class Server < Goliath::WebSocket
           env.channels[client.hwaddr].subscribe { |m| env.stream_send(m) }
           env.channels['dept-'+client.department.id.to_s].subscribe { |m| env.stream_send(m) }
           # broadcast message
-          message = {:status => "logged-on", :client => client.id, :user => user.username}
+          message = {:status => "logged-on", :client => client.id,
+                    :user => {:name => user.name, :id => user.id}, :minutes => user.minutes}
           env.channels['dept-'+client.department.id.to_s] << JSON.generate(message)
 
         when "log-off"
@@ -104,7 +105,8 @@ class Server < Goliath::WebSocket
 
          env.logger.info "User: #{user.username} logs off client: #{client.name}"
          # broadcast message
-         message = JSON.generate({:status => "logged-off", :client => client.id, :user => user.username})
+         message = JSON.generate({:status => "logged-off", :client => client.id,
+                                  :user => {:name => user.name, :id => user.id}})
          env.channels['dept-'+client.department.id.to_s] << message
          env.channels[message["client"]] << message
          #env.channels[message["client"]].unsubscribe(sid)
@@ -115,6 +117,8 @@ class Server < Goliath::WebSocket
 
   def on_close(env)
     env.logger.info("WS CLOSED")
+    env.logger.info "num of subscribers: #{env.channels.size}"
+
     #env.channel.unsubscribe(env['subscription'])
   end
 

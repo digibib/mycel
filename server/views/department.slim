@@ -32,16 +32,16 @@ div class="main"
       tr class="#{klass}" id="#{client.id}"
         td[style="width:34px"]: img src="#{image}" class="pc"
         td #{client.name}
-        td[style="width:160px"] #{user.name || user.username if client.occupied?}
+        td[style="width:160px" class="td-user"] #{user.name if client.occupied?}
         td[style="width:34px" class="td-minutes"] #{user.minutes if client.occupied?}
         td
-          div class="#{'hidden' unless client.occupied?}"
+          div class="toggle #{'hidden' unless client.occupied?}"
             input[type="hidden" class="user_id" value="#{user.id if client.occupied?}"]
             input[type="hidden" class="users minutes" value="#{user.minutes if client.occupied?}"]
             input[type="text" class="nr required"]
             button[type='button' class="users add_time"] = "+"
         td[style="width:124px"]
-          div class="#{'hidden' unless client.occupied?}"
+          div class="toggle #{'hidden' unless client.occupied?}"
             button[type='button' class="throw-out"]  = "Kast ut!"
         td[style="width:160px"]
           span class="info"
@@ -263,15 +263,26 @@ div class="main"
 
       ws.onmessage = function(evt) {
         // message
+        console.log(evt.data);
         data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
         var msg;
+        var $tr =  $("tr#"+data.client);
         switch (data.status) {
           case "logged-on":
-            $("tr#"+data.client).find('img').attr("src", "/img/pc_green.png");
+            $tr.find('img').attr("src", "/img/pc_green.png");
+            $tr.find('div.toggle').removeClass('hidden');
+            $tr.find('input.user_id').val(data.user.id);
+            $tr.find('.td-user').html(data.user.name);
+            $tr.find('input.minutes').val(data.minutes);
+            $tr.find('.td-minutes').html(data.minutes);
             msg = "logget på";
             break;
           case "logged-off":
-            $("tr#"+data.client).find('img').attr("src", "/img/pc_black.png");
+            $tr.find('img').attr("src", "/img/pc_black.png");
+            $tr.find('div.toggle').addClass('hidden');
+            $tr.find('input.minutes').val(data.minutes);
+            $tr.find('.td-minutes').html("");
+            $tr.find('.td-user').html("");
             msg = "logget av";
             break;
           default:
