@@ -244,17 +244,23 @@ div class="main"
     }
 
     $(document).ready(function () {
+      // ** global vars
+
+      var dept_id = $('input#department_id').val();
+      var backup = new Object();
+      backup.homepage = $('input#homepage').val();
+      backup.al = $('input#age_lower').val();
+      backup.ah = $('input#age_higher').val();
 
       // ** connect to mycel websocket server
 
-      var ws = new WebSocket("ws://localhost:9001");
+      var ws = new WebSocket("ws://localhost:9001/subscribe/departments/"+dept_id);
 
       // handle ws events
 
       ws.onopen = function() {
-        var dept = $('#department_id').val();
-        var message = {action: "subscribe", department: dept};
-        ws.send(JSON.stringify(message));
+        //var message = {action: "subscribe", department: dept};
+        //ws.send(JSON.stringify(message));
       }
 
       ws.onclose = function() {
@@ -291,12 +297,6 @@ div class="main"
         $("tr#"+data.client).find('span.info').html(msg).show().fadeOut(5000);
       }
 
-      // ** global vars
-
-      var backup = new Object();
-      backup.homepage = $('input#homepage').val();
-      backup.al = $('input#age_lower').val();
-      backup.ah = $('input#age_higher').val();
 
       // ** set input masks **
 
@@ -461,8 +461,6 @@ div class="main"
 
         $(':input.hour').removeClass("inputmissing");
 
-        var dept_id = $('input#department_id').val();
-
         // remove opening_hours on department, and inherit from branch
         // if all fields are blank
 
@@ -544,7 +542,6 @@ div class="main"
 
       // ** handle age-limit events
       $('button#agesave').on('click', function () {
-        var dept_id = $('input#department_id').val();
         var lower = $('input#age_lower').val();
         var higher = $('input#age_higher').val();
         if ((lower == "") && (higher == "")) {
@@ -600,7 +597,6 @@ div class="main"
       });
 
       $('button#time_save').on('click', function () {
-        var dept_id = $('input#department_id').val();
         var time = $('input#time_limit').val();
         if (time == "") { hp = "inherit"; }
 
@@ -635,7 +631,6 @@ div class="main"
 
       // ** handle save homepage
       $('button#homepagesave').on('click', function () {
-        var dept_id = $('input#department_id').val();
         var hp = $('input#homepage').val();
         if (hp == "") { hp = "inherit"; }
 
@@ -667,7 +662,6 @@ div class="main"
 
       // ** handle save printer
       $('button#printersave').on('click', function () {
-        var dept_id = $('input#department_id').val();
 
         request = $.ajax({
           url: "/api/departments/"+dept_id,

@@ -31,7 +31,6 @@ action
 "adjust-minutes" + "minutes" => integer (positive adds, negative substracts)
 "authenticate" + "PIN" => 4 numbers (as string)
 "send-message" + "message"
-"subscribe" => when the web views (interface) connects
 
 status
 ======
@@ -51,75 +50,61 @@ Examples:
 =end
 
 class Server < Goliath::WebSocket
-  #Channels:
-  # One for each client  env.channels['client-mac']
-  # One for all clients  env.channels['clients'] (used for updating time status (minutes left) every 15 )
-  # One for department   env.channels['dept-id'] (id = nr from db)
-  # One for branch       env.channels['branch-id']
+    # ws path strucutre (= channel structure as well):
+    # subscribe/branches/id
+    # subscribe/departments/id
+    # subscribe/clients/id   subscribe/clients => all clients
+    # subscribe/users
 
   def on_open(env)
+    path = env['PATH_INFO'].split('/')
+    env['type'] = path[2]
+    env['id'] = path[3] || ""
+
+    env['subscription'] = env.channels[env['type']+'/'+env['id']].subscribe { |m| env.stream_send(m) }
     env.logger.info("WS OPEN")
-    env.logger.info "num of subscribers: #{env.channels.size}"
-
-    #env['subscription'] = env.channel.subscribe { |m| env.stream_send(m) }
-    # timer = EM::PeriodicTimer.new 10 do
-    #   env.channel << "ping"
-    # end
-  end
-
-  def on_message(env, msg)
-    message = JSON.parse(msg)
-
-    # wrap in fiber
-    Fiber.new do
-
-      # get user & client objects
-      user = User.find_by_username message["user"]
-      client = Client.find_by_hwaddr message["client"]
-
-      case message["action"]
-        when "subscribe"
-          env.logger.info "deptartment #{message['department']} connected and subscribed"
-          env.channels['dept-'+message['department'].to_s].subscribe { |m| env.stream_send(m) }
-        when "authenticate"
-          # 1. check db
-          # 2. sip2
-          # 3. create user object if success
-        when "log-on"
-          #NB must be authenticated first! (i.e. user object must be present)
-          user.log_on client
-          user.save
-
-          env.logger.info "User: #{user.username} logs on to client: #{client.name}"
-          #subscribe the channels: client, department
-          env.channels[client.hwaddr].subscribe { |m| env.stream_send(m) }
-          env.channels['dept-'+client.department.id.to_s].subscribe { |m| env.stream_send(m) }
-          # broadcast message
-          message = {:status => "logged-on", :client => client.id,
-                    :user => {:name => user.name, :id => user.id}, :minutes => user.minutes}
-          env.channels['dept-'+client.department.id.to_s] << JSON.generate(message)
-
-        when "log-off"
-         user.log_off
-         user.save
-
-         env.logger.info "User: #{user.username} logs off client: #{client.name}"
-         # broadcast message
-         message = JSON.generate({:status => "logged-off", :client => client.id,
-                                  :user => {:name => user.name, :id => user.id}})
-         env.channels['dept-'+client.department.id.to_s] << message
-         env.channels[message["client"]] << message
-         #env.channels[message["client"]].unsubscribe(sid)
-      end
-
-    end.resume
+    env.logger.info("env.channels: #{env.channels}")
   end
 
   def on_close(env)
+    env.channels[env['type']+'/'+env['id']].unsubscribe(env['subscription'])
     env.logger.info("WS CLOSED")
-    env.logger.info "num of subscribers: #{env.channels.size}"
+    env.logger.info("env.channels: #{env.channels}")
+  end
 
-    #env.channel.unsubscribe(env['subscription'])
+  def on_message(env, message)
+    msg = JSON.parse(message)
+    env.logger.info("WS MESSAGE: #{msg}")
+
+    Fiber.new do
+      user = User.find_by_username msg["user"]
+      client = Client.find msg["client"]
+
+      case msg['action']
+        when 'log-on'
+          #NB must be authenticated! i.e user object must exist
+          user.log_on client
+          user.save
+
+          env.logger.info("User: #{user.name} logged on client: #{client.name}")
+
+          message = {:status => "logged-on", :client => client.id,
+                     :user => {:name => user.name, :id => user.id}, :minutes => user.minutes }
+          broadcast = JSON.generate(message)
+          env.channels['departments/'+client.department.id.to_s] << broadcast
+          env.channels['clients/'+client.id.to_s] << broadcast
+        when 'log-off'
+          user.log_off
+          user.save
+
+          env.logger.info("User: #{user.name} logged off client: #{client.name}")
+
+          broadcast = JSON.generate({:status => "logged-off", :client => client.id,
+                                   :user => {:name => user.name, :id => user.id}})
+          env.channels['departments/'+client.department.id.to_s] << broadcast
+          env.channels['clients/'+client.id.to_s] << broadcast
+      end
+    end.resume
   end
 
   def on_error(env, error)
