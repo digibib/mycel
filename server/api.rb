@@ -115,7 +115,7 @@ class API < Grape::API
       # 1. check if user is a guest user in db, or sip2 authenticated
       user = User.find_by_username params["username"]
       authenticated = true if user and user.authenticate params["password"]
-
+      status 200
       {:authenticated => authenticated}
     end
 

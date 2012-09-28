@@ -155,8 +155,33 @@ describe API do
         new_user = JSON.parse(last_response.body)['user']['id']
         User.find(new_user).destroy
       end
+    end
+
+    describe 'POST /api/users/authenticate' do
+      before do
+        @user = GuestUser.create(:username => "rob", :password => "roy",
+                         :minutes => any_int, :age => any_int)
+      end
+
+      after do
+        @user.destroy
+      end
+
+      it "authenticates a user given the correct password" do
+        post "/api/users/authenticate", :username => "rob", :password => "roy"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['authenticated'].must_equal true
+      end
+
+      it "doesn't authenticate given wrong password" do
+        post "/api/users/authenticate", :username => "rob", :password => "xxy"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['authenticated'].must_equal false
+      end
 
     end
+
+
 
     describe 'DELETE /api/users/:id' do
 
