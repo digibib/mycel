@@ -28,8 +28,8 @@ action
 ======
 "log-on"
 "log-off"
-"adjust-minutes" + "minutes" => integer (positive adds, negative substracts)
-"authenticate" + "PIN" => 4 numbers (as string)
+"adjust-minutes" + "minutes" => integer (positive adds, negative substracts) ?or just use status msg?
+"authenticate" + "PIN" => 4 numbers (as string) ?or auth http with api?
 "send-message" + "message"
 
 status
@@ -38,19 +38,18 @@ status
 "logged-out"
 "authenticated"
 "not-authenticated"
-"bad-request" => malformed, or missing parameters
+"bad-request" => malformed request, or missing parameters
 
 Examples:
 {:user => "N00123456", :action => "authenticate", :pin => "1234"}
-{:user => "N03456784", :client => "00:44:ab:3a:e3:05", :action => "log-on"}
-{:user => "N03456784", :client => "00:44:ab:3a:e3:05",
- :action => "adjust-minutes", :minutes => 10}
-{:client => "00:44:ab:3a:e3:05", :action => "send-message",
- :message => "The library closes in 10 minutes!" You will be logged out in 5 minutes.}
+{:user => "N03456784", :client => 1, :action => "log-on"}
+{:user => "N03456784", :client => 2, :action => "adjust-minutes", :minutes => 10}
+{:client => 1, :action => "send-message",
+ :message => "The library closes in 10 minutes! You will be logged out in 5 minutes.""}
 =end
 
 class Server < Goliath::WebSocket
-    # ws path strucutre (= channel structure as well):
+    # ws path structure (= channel structure as well):
     # subscribe/branches/id
     # subscribe/departments/id
     # subscribe/clients/id   subscribe/clients => all clients
@@ -88,9 +87,12 @@ class Server < Goliath::WebSocket
 
           env.logger.info("User: #{user.name} logged on client: #{client.name}")
 
-          message = {:status => "logged-on", :client => client.id,
-                     :user => {:name => user.name, :id => user.id}, :minutes => user.minutes }
-          broadcast = JSON.generate(message)
+          broadcast = JSON.generate({:status => "logged-on",
+                                     :client => client.id,
+                                     :user => {:name => user.name,
+                                               :id => user.id},
+                                     :minutes => user.minutes })
+
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
         when 'log-off'
@@ -99,8 +101,11 @@ class Server < Goliath::WebSocket
 
           env.logger.info("User: #{user.name} logged off client: #{client.name}")
 
-          broadcast = JSON.generate({:status => "logged-off", :client => client.id,
-                                   :user => {:name => user.name, :id => user.id}})
+          broadcast = JSON.generate({:status => "logged-off",
+                                     :client => client.id,
+                                     :user => {:name => user.name,
+                                     :id => user.id}})
+
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
       end
