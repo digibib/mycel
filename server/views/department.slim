@@ -279,14 +279,13 @@ div class="main"
             $tr.find('div.toggle').removeClass('hidden');
             $tr.find('input.user_id').val(data.user.id);
             $tr.find('.td-user').html(data.user.name);
-            $tr.find('input.minutes').val(data.minutes);
-            $tr.find('.td-minutes').html(data.minutes);
+            $tr.find('input.minutes').val(data.user.minutes);
+            $tr.find('.td-minutes').html(data.user.minutes);
             msg = "logget på";
             break;
           case "logged-off":
             $tr.find('img').attr("src", "/img/pc_black.png");
             $tr.find('div.toggle').addClass('hidden');
-            $tr.find('input.minutes').val(data.minutes);
             $tr.find('.td-minutes').html("");
             $tr.find('.td-user').html("");
             msg = "logget av";
