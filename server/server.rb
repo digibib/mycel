@@ -37,42 +37,6 @@ end
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
-=begin
-WS JSON PROTOCOL:
-
-user
-======
-user => user (Library card number) or guest username
-
-client
-======
-client => client (MAC address)
-
-action
-======
-"log-on"
-"log-off"
-"adjust-minutes" + "minutes" => integer (positive adds, negative substracts) ?or just use status msg?
-"authenticate" + "PIN" => 4 numbers (as string) ?or auth http with api?
-"send-message" + "message"
-
-status
-======
-"ping"
-"logged-in"
-"logged-out"
-"authenticated"
-"not-authenticated"
-"bad-request" => malformed request, or missing parameters
-
-Examples:
-{:user => "N00123456", :action => "authenticate", :pin => "1234"}
-{:user => "N03456784", :client => 1, :action => "log-on"}
-{:user => "N03456784", :client => 2, :action => "adjust-minutes", :minutes => 10}
-{:client => 1, :action => "send-message",
- :message => "The library closes in 10 minutes! You will be logged out in 5 minutes.""}
-=end
-
 class Server < Goliath::WebSocket
   plugin Goliath::Plugin::TimeManager
     # ws path structure (= channel structure as well):
@@ -93,7 +57,6 @@ class Server < Goliath::WebSocket
 
   def on_close(env)
     env.channels[env['type']+'/'+env['id']].unsubscribe(env['subscription'])
-    EM.cancel_timer(env['timer']) if env['timer']
     env.logger.info("WS CLOSED")
     env.logger.info("env.channels: #{env.channels}")
   end
@@ -122,6 +85,7 @@ class Server < Goliath::WebSocket
                                          :user => {:name => user.name,
                                                    :id => user.id,
                                                    :minutes => user.minutes}})
+
               env.channels['clients/'+client.id.to_s] << broadcast
               env.channels['departments/'+client.department.id.to_s] << broadcast
               env.channels['users/'] << broadcast
