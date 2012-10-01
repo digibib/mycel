@@ -32,7 +32,9 @@ div class="main"
       tr class="#{klass}" id="#{client.id}"
         td[style="width:34px"]: img src="#{image}" class="pc"
         td #{client.name}
-        td[style="width:160px" class="td-user"] #{user.name if client.occupied?}
+        td[style="width:160px" class="td-user"]
+          div class="toggle"
+            #{user.name if client.occupied?}
         td[style="width:34px" class="td-minutes"] #{user.minutes if client.occupied?}
         td
           div class="toggle #{'hidden' unless client.occupied?}"
@@ -275,12 +277,15 @@ div class="main"
         var $tr =  $("tr#"+data.client);
         switch (data.status) {
           case "ping":
-            $tr.find('input.minutes').val(data.user.minutes);
-            $tr.find('.td-minutes').html(data.user.minutes);
+            if ( $tr.find('.td-minutes').html() != "") {
+              // to counter late ping with minutes update
+              $tr.find('input.minutes').val(data.user.minutes);
+              $tr.find('.td-minutes').html(data.user.minutes);
+            }
             break;
           case "logged-on":
             $tr.find('img').attr("src", "/img/pc_green.png");
-            $tr.find('div.toggle').removeClass('hidden');
+            $tr.find('.toggle').removeClass('hidden');
             $tr.find('input.user_id').val(data.user.id);
             $tr.find('.td-user').html(data.user.name);
             $tr.find('input.minutes').val(data.user.minutes);
@@ -289,9 +294,9 @@ div class="main"
             break;
           case "logged-off":
             $tr.find('img').attr("src", "/img/pc_black.png");
-            $tr.find('div.toggle').addClass('hidden');
-            $tr.find('.td-minutes').html("");
+            $tr.find('.toggle').addClass('hidden');
             $tr.find('.td-user').html("");
+            $tr.find('.td-minutes').html("");
             msg = "logget av";
             break;
           default:

@@ -6,7 +6,7 @@ h3          { margin-top: 26px;}
 pre         { background-color: #ef9384; border: 1px solid #c03019;
               border-radius: 3px; font-size: 13px; line-height: 19px;
               padding: 6px 10px;}
-div.hidden  { display:none;}
+.hidden  { visibility:hidden;}
 a:link, a:visited { color: #5740e6; text-decoration: none }
 a:hover     { text-decoration: underline }
 div.main    { width: 800px; margin: auto;}
