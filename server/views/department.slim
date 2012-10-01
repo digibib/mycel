@@ -271,9 +271,13 @@ div class="main"
         // message
         console.log(evt.data);
         data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
-        var msg;
+        var msg = "";
         var $tr =  $("tr#"+data.client);
         switch (data.status) {
+          case "ping":
+            $tr.find('input.minutes').val(data.user.minutes);
+            $tr.find('.td-minutes').html(data.user.minutes);
+            break;
           case "logged-on":
             $tr.find('img').attr("src", "/img/pc_green.png");
             $tr.find('div.toggle').removeClass('hidden');
