@@ -115,14 +115,15 @@ class Server < Goliath::WebSocket
           timer = EM.add_periodic_timer(30) do
             Fiber.new do
               user.reload
+              timer.cancel if user.client.nil?
+
+              broadcast = JSON.generate({:status => "ping",
+                                         :client => client.id,
+                                         :user => {:name => user.name,
+                                                   :id => user.id,
+                                                   :minutes => user.minutes}})
+              env.channels['clients/'+client.id.to_s] << broadcast
             end.resume
-            timer.cancel unless user.client
-            broadcast = JSON.generate({:status => "ping",
-                                       :client => client.id,
-                                       :user => {:name => user.name,
-                                                 :id => user.id,
-                                                 :minutes => user.minutes}})
-            env.channels['clients/'+client.id.to_s] << broadcast
           end
 
           env.logger.info("User: #{user.name} logged on client: #{client.name}")
