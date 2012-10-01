@@ -131,13 +131,18 @@ class Server < Goliath::WebSocket
           env.logger.info("User: #{user.name} logged on client: #{client.name}")
 
           broadcast = JSON.generate({:status => "logged-on",
-                                     :client => client.id,
+                                     :client => {:id => client.id,
+                                                 :name => client.name,
+                                                 :department => client.department.name,
+                                                 :branch => client.department.branch.name},
                                      :user => {:name => user.name,
                                                :id => user.id,
-                                               :minutes => user.minutes}})
+                                               :minutes => user.minutes,
+                                               :type => user.type_short}})
 
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
+          env.channels['users/'] << broadcast
         when 'log-off'
           user.log_off
           user.save
@@ -146,12 +151,14 @@ class Server < Goliath::WebSocket
           env.logger.info("User: #{user.name} logged off client: #{client.name}")
 
           broadcast = JSON.generate({:status => "logged-off",
-                                     :client => client.id,
+                                     :client => {:id => client.id},
                                      :user => {:name => user.name,
-                                     :id => user.id}})
+                                               :id => user.id,
+                                               :minutes => user.minutes}})
 
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
+          env.channels['users/'] << broadcast
       end
     end.resume
   end

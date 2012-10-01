@@ -274,7 +274,7 @@ div class="main"
         console.log(evt.data);
         data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
         var msg = "";
-        var $tr =  $("tr#"+data.client);
+        var $tr =  $("tr#"+data.client.id);
         switch (data.status) {
           case "ping":
             if ( $tr.find('.td-minutes').html() != "") {
@@ -302,7 +302,7 @@ div class="main"
           default:
         }
         // display message
-        $("tr#"+data.client).find('span.info').html(msg).show().fadeOut(5000);
+        $("tr#"+data.client.id).find('span.info').html(msg).show().fadeOut(5000);
       }
 
 

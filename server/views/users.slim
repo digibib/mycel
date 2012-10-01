@@ -25,19 +25,19 @@ div class="main"
       - for user in User.logged_on
         - client = user.client
         tr id="#{user.id}"
-          td #{user.type_short}
-          td #{user.name}
+          td[class="td-usertype"] #{user.type_short}
+          td[class="td-username"] #{user.name}
           td[class="td-minutes"] #{user.minutes}
-          td
+          td[class="td-adjust"]
             input[type="hidden" class="users minutes" value="#{user.minutes}"]
             input[type="text" class="nr required"]
             button[type='button' class="users add_time"] = "+"
-          td
+          td[class="td-branchdept"]
             a href="/#{client.branch.name}" #{client.branch.name}
             '&nbsp;/
             a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name.downcase}
-          td #{client.name}
-          td: button[type='button' class="users"]  = "Kast ut!"
+          td[class="td-clientname"] #{client.name}
+          td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
 
   h2 Inaktive brukere
 
@@ -52,8 +52,8 @@ div class="main"
     tbody
       - for user in User.inactive
         tr id="#{user.id}"
-          td #{user.type_short}
-          td #{user.username}
+          td[class="td-usertype"] #{user.type_short}
+          td[class="td-username"] #{user.username}
           td[class="td-minutes" style="width:40px"] #{user.minutes}
           td
             input[type="hidden" class="users minutes" value="#{user.minutes}"]
@@ -94,8 +94,29 @@ div class="main"
             $tr.find('.td-minutes').html(data.user.minutes);
             break;
           case "logged-on":
+            $tr.remove();
+
+            $trcopy = $("table.active tr:last").clone();
+            $trcopy.attr("id", data.user.id);
+            $trcopy.find('.td-usertype').html(data.user.type);
+            $trcopy.find('.td-username').html(data.user.name);
+            $trcopy.find('.td-minutes').html(data.user.minutes);
+            $trcopy.find('.td-clientname').html(data.client.name);
+            var link1 = $('<a>', {href: "/"+data.client.branch, text: data.client.branch});
+            var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
+
+            $trcopy.find('.td-branchdept').html("").append(link1).append(" / ").append(link2);
+            $trcopy.appendTo('table.active');
             break;
           case "logged-off":
+            $tr.remove();
+
+            $trcopy = $("table.inactive tr:last").clone();
+            $trcopy.attr("id", data.user.id);
+            $trcopy.find('.td-usertype').html(data.user.type);
+            $trcopy.find('.td-username').html(data.user.name);
+            $trcopy.find('.td-minutes').html(data.user.minutes);
+            $trcopy.appendTo('table.inactive');
             break;
         }
 
