@@ -118,7 +118,7 @@ class Server < Goliath::WebSocket
               timer.cancel if user.client.nil?
 
               broadcast = JSON.generate({:status => "ping",
-                                         :client => client.id,
+                                         :client => {:id => client.id},
                                          :user => {:name => user.name,
                                                    :id => user.id,
                                                    :minutes => user.minutes}})
