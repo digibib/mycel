@@ -35,7 +35,7 @@ div class="main"
           td[class="td-branchdept"]
             a href="/#{client.branch.name}" #{client.branch.name}
             '&nbsp;/
-            a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name.downcase}
+            a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name}
           td[class="td-clientname"] #{client.name}
           td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
 
@@ -101,6 +101,7 @@ div class="main"
             $trcopy.find('.td-usertype').html(data.user.type);
             $trcopy.find('.td-username').html(data.user.name);
             $trcopy.find('.td-minutes').html(data.user.minutes);
+            $trcopy.find('input.users.minutes').val(data.user.minutes);
             $trcopy.find('.td-clientname').html(data.client.name);
             var link1 = $('<a>', {href: "/"+data.client.branch, text: data.client.branch});
             var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
@@ -116,6 +117,7 @@ div class="main"
             $trcopy.find('.td-usertype').html(data.user.type);
             $trcopy.find('.td-username').html(data.user.name);
             $trcopy.find('.td-minutes').html(data.user.minutes);
+            $trcopy.find('input.users.minutes').val(data.user.minutes);
             $trcopy.appendTo('table.inactive');
             break;
         }
