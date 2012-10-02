@@ -10,18 +10,18 @@ The server is composed of two [Goliath] processes:
 
 1. A websocket server handling log on/off requests from the clients, adjusting the time spent by users, as well as broadcasting this information to the clients and web administration interface.
 
-2. An API server implemented using [Grape], exposing the database via a REST/JSON. The API is used by the web interface to store and retrieve configuration settings. This process is also serving the HTML views.
+2. An API server implemented using [Grape], exposing the database via a REST/JSON. The API is used by the web interface to store and retrieve configuration settings. It is also used to identify the clients and authenticate users before they connect to the WebSocket server. This process is also serving the HTML views.
 
 ###Database
 The database keeps track of how the library is organized hierarchicaly in branches, departments and clients, as well as users and which user is logged on to which client. Most settings are configurable at all levels (organization -> branch -> department -> client). If a given setting is not set, it is inherited from the parent level in the hierarchy.
 
-The user table is reset every day, and only anonymized information is logged for statistical purposes.
+The user table is reset every day, and only anonymized information is stored for statistical purposes.
 
 ###Clients
 WRITEME
 
 
-## Installation Instructions
+## Installation and setup
 The system is quite easy to set up. Both server and client are (currently) written in Ruby.
 
 ### Database
@@ -44,7 +44,12 @@ Goliath is not tied to any particular Ruby, but recommended is MRI Ruby 1.9.3.
 
 **Server configuration**
 Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/server.rb`
+ 
+**Cronjobs** 
 
+* Reset user table
+* Log rotation?
+* WRITEME 
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
 
@@ -54,16 +59,21 @@ The client is written in Ruby, so obviously you should have Ruby installed. Deve
 
 Note: when I got the system stable and running, I plan to rewrite the client in a compiled language like C or Go. At our Library most clients are thin clients with Linux images loaded in RAM at start up, and we therefore want the images to be as small and efficient as possible.
 
+## Potential feature enhancements
+* Realtime chat. If the library has a staffed helpdesk, then users in need of technical help can initiate a chat-session with the staff.
+* Allow booking of clients
+
 ## Remaining TODOs
 
 * Global configuration in web interface (20h)
-* Deciding logging interface and implementation (10h)
+* Deciding logging format and implementation (10h)
 * Admin users and authentication (10h)
 * Thorough cross-browser testing (3h)
 * Documentation, especially installation and setup (5h)
 * Handling network disconnects, both server and client side (20h)
 * Time managment, edge cases in model (5h)
-* Live testing (10h)
+* Store user time in seconds instead of minutes, allowing for more accurate time management. Adjust time every 15 sec. (2h)
+* Live testing with remote clients (10h)
 
 
   [Deichmanske bibliotek]: http://deichman.no
