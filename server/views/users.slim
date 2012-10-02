@@ -107,6 +107,8 @@ div class="main"
             var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
 
             $trcopy.find('.td-branchdept').html("").append(link1).append(" / ").append(link2);
+            $trcopy.find('input.nr').setMask('999');
+
             $trcopy.appendTo('table.active');
             break;
           case "logged-off":
@@ -118,6 +120,8 @@ div class="main"
             $trcopy.find('.td-username').html(data.user.name);
             $trcopy.find('.td-minutes').html(data.user.minutes);
             $trcopy.find('input.users.minutes').val(data.user.minutes);
+            $trcopy.find('input.nr').setMask('999');
+
             $trcopy.appendTo('table.inactive');
             break;
         }
