@@ -162,7 +162,7 @@ describe API do
         @user = GuestUser.create(:username => "rob", :password => "roy",
                          :minutes => any_int, :age => any_int)
         #NB THIS USER IS TEMPORARY AND LOCAL TO DEICHMANSKE BIBLIOTEK:
-        #In order to test SIP2-authentication, a local library with a valid nr and pin must exist
+        #In order to test SIP2-authentication, a local library user with a valid nr and pin must exist
         @libuser = LibraryUser.create(:username => "N001965750", :minutes => any_int)
       end
 
@@ -171,7 +171,7 @@ describe API do
         @libuser.destroy
       end
 
-      it "authenticates a guset user given the correct password" do
+      it "authenticates a guest user given the correct password" do
         post "/api/users/authenticate", :username => "rob", :password => "roy"
         last_response.status.must_equal 200
         JSON.parse(last_response.body)['authenticated'].must_equal true
