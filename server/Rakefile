@@ -58,14 +58,6 @@ namespace :db do
     options = org.build_options(:homepage => "http://www.deichman.no", :opening_hours => hours)
     options.save
 
-    seed['users'].each do |user|
-      u = LibraryUser.create(:username => user['username'], :minutes => user['minutes'],
-                             :age => user['age'], :name => user['name'])
-      c = Client.find_by_name(user['using'])
-      u.log_on(c)
-      u.save
-    end
-
   end
 end
 

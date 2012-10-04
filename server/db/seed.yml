@@ -160,23 +160,3 @@ opening_hours:
   saturday_closes: '16:00'
   sunday_closed: 1
   minutes_before_closing: 5
-users:
-  -
-    username: "franz"
-    name: "Franz Kafka"
-    minutes: 30
-    age: 129
-    using: hovedklient1
-  -
-    username: "kurt"
-    name: "Kurt Vonnegut"
-    minutes: 33
-    age: 90
-    minutes: 10
-    using: hovedklient2
-  -
-    username: "henry"
-    name: "Henry Miller"
-    minutes: 12
-    age: 30
-    using: hovedklient5
