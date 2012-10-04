@@ -11,6 +11,18 @@ Rake::TestTask.new do |test|
   test.verbose = true
 end
 
+
+desc "exchange 'localhost' for deployment server adress in template views"
+task :prepare, :host, :port do |t, args|
+  views = FileList['views/*.slim']
+  views.each do |view|
+    file = File.read(view)
+    modified = file.gsub(/localhost:9001/, "#{args[:host]}:#{args[:port]}")
+    File.open(view, "w") {|f| f.puts modified}
+  end
+end
+
+
 task :console do
   dbconfig = YAML::load(File.open("config/database.yml"))
   ActiveRecord::Base.establish_connection(dbconfig["development"])
