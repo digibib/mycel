@@ -53,7 +53,7 @@ div class="main"
       - for user in User.inactive
         tr id="#{user.id}"
           td[class="td-usertype"] #{user.type_short}
-          td[class="td-username"] #{user.username}
+          td[class="td-username"] #{user.name}
           td[class="td-minutes" style="width:40px"] #{user.minutes}
           td
             input[type="hidden" class="users minutes" value="#{user.minutes}"]
