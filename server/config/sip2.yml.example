@@ -1,0 +1,2 @@
+server: name_or_ip_address
+port: 9999

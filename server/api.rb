@@ -112,8 +112,10 @@ class API < Grape::API
 
       authenticated = false
 
-      # 1. check if user is a guest user in db, or sip2 authenticated
+      # 1. check if user is a guest user in db
       user = User.find_by_username params["username"]
+      # 2. find or create libraryuser if not a guest user
+      user = LibraryUser.find_or_create_by_username params["username"] unless user
       authenticated = true if user and user.authenticate params["password"]
       status 200
       {:authenticated => authenticated}

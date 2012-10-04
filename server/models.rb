@@ -1,5 +1,5 @@
 require "em-synchrony/activerecord"
-
+require "./sip2.rb"
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
 
@@ -286,7 +286,29 @@ class LibraryUser < User
   validates :username, :uniqueness => true
 
   def authenticate(pin)
-    pin == true
+    msg = formMessage(self.username, pin)
+    msg = appendChecksum(msg)
+    msg += "\r"
+
+    sip2client = DGClient.new
+    result = sip2client.send_message msg
+    result.force_encoding("CP850").encode!("UTF-8")
+
+    authorized = result.match /(?<=\|CQ)(.)(?=\|)/
+    bdate = result.match /(?<=\|PB)(.*?)(?=\|)/
+    name = result.match /(?<=\|AE)(.*?)(?=\|)/
+
+    if name[0].strip().empty? #invalid username(cardnr)
+      false
+    else
+      now = Time.now.utc.to_date
+      dob = Time.strptime(bdate[0], "%Y-%m-%d")
+      age = now.year - dob.year - ((now.month > dob.month || (now.month == dob.month && now.day >= dob.day)) ? 0 : 1)
+      self.age = age
+      self.name = name[0]
+      save
+      authorized[0] == 'Y'
+    end
   end
 
   def type_short
