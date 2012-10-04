@@ -2,6 +2,7 @@
 *.rbc
 .bundle
 .config
+config/sip2.yml
 coverage
 InstalledFiles
 lib/bundler/man
