@@ -10,7 +10,14 @@ div class="main"
         - branch.departments.each do |dept|
           tr
             td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
-            td #{dept.clients.joins(:user).count} av #{dept.clients.size} klient#{'er' if dept.clients.size > 1} i bruk
+            td #{dept.clients.joins(:user).count} av #{dept.clients.size} ledige
+            td
+              - dept.clients.joins(:user).count.times do
+                img src="/img/pc_green.png" style="margin-left:5px"
+              - (dept.clients.size - dept.clients.joins(:user).count).times do
+                img src="/img/pc_black.png" style="margin-left:5px"
+
+
 
   == render :slim, :'_footer'
 
