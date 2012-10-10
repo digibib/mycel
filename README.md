@@ -49,7 +49,8 @@ Most of the options can be configured in the web-based administration interface.
 
 * Reset user table
 * Log rotation?
-* WRITEME 
+* WRITEME
+	
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
 
@@ -60,8 +61,10 @@ The client is written in Ruby, so obviously you should have Ruby installed. Deve
 Note: when I got the system stable and running, I plan to rewrite the client in a compiled language like C or Go. At our Library most clients are thin clients with Linux images loaded in RAM at start up, and we therefore want the images to be as small and efficient as possible.
 
 ## Potential feature enhancements
-* Realtime chat. If the library has a staffed helpdesk, then users in need of technical help can initiate a chat-session with the staff.
 * Allow booking of clients
+* Manage users printer quota
+* Realtime chat. If the library has a staffed helpdesk, then users in need of technical help can initiate a chat-session with the staff.
+
 
 ## Remaining TODOs
 
@@ -74,6 +77,7 @@ Note: when I got the system stable and running, I plan to rewrite the client in 
 * Time managment, edge cases in model (5h)
 * Store user time in seconds instead of minutes, allowing for more accurate time management. Adjust time every 15 sec. (2h)
 * Live testing with remote clients (10h)
+* Rewrite the client in a compiled language (30h)
 
 
   [Deichmanske bibliotek]: http://deichman.no
