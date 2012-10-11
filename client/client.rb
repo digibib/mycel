@@ -16,7 +16,7 @@ if not client_address
   exit 0
 end
 
-uri = URI('http://localhost:9000/api/clients/?mac='+client_address)
+uri = URI('http://libki10.deich.folkebibl.no:9000/api/clients/?mac='+client_address)
 res = nil
 
 until res
@@ -67,9 +67,9 @@ class LogOnWindow < Gtk::Window
     frame = Gtk::Frame.new frame_label
     frame.label_xalign = 0.5
 
-    userlabel = Gtk::Label.new "Lånenummer"
+    userlabel = Gtk::Label.new "Lånenummer/brukernavn"
     userlabel.set_alignment 1, 0.5
-    pinlabel = Gtk::Label.new "PIN-kode"
+    pinlabel = Gtk::Label.new "PIN-kode/passord"
     pinlabel.set_alignment 1, 0.5
     table = Gtk::Table.new 3, 2, false
     table.row_spacings = 7
@@ -81,7 +81,7 @@ class LogOnWindow < Gtk::Window
     @userentry.set_size_request 150, 23
     @pinentry = Gtk::Entry.new
     @pinentry.set_size_request 150, 23
-    @pinentry.max_length = 4
+    @pinentry.max_length = 10
     @pinentry.visibility = false # password-mode
     table.attach userlabel, 0, 1, 0, 1
     table.attach @userentry, 1, 2, 0, 1
@@ -110,6 +110,7 @@ class LogOnWindow < Gtk::Window
         error.show
       else
         destroy
+        # TODO authenticate here!
         Gtk.main_quit
       end
     end
@@ -137,15 +138,25 @@ class LogOnWindow < Gtk::Window
   def invalid?
     error = nil
     if @pin != "" and @user == ""
-      error = "Skriv inn ditt lånenummer"
+      error = "Skriv inn lånenummer/brukernavn"
       @userentry.grab_focus
     elsif @user != "" and @pin == ""
-      error = "Skriv inn PIN-koden din"
+      error = "Skriv inn PIN-kode/passord"
       @pinentry.grab_focus
     elsif @pin == "" and @user == ""
-      error = "Skriv inn lånenummer og PIN-kode"
+      error = "Skriv inn lånenummer/brukernavn og PIN/passord"
       @userentry.grab_focus
+    else
+      uri = URI("http://libki10.deich.folkebibl.no:9000/api/users/authenticate")
+      begin
+        res = Net::HTTP.post_form(uri, 'username'=>@user, 'password'=>@pin)
+        res = JSON.parse(res.body)
+      rescue Exception => e
+        puts e
+      end
+      error = "Feil lånenummer/brukernavn eller PIN/passord" unless res['authenticated']
     end
+    #Gtk.main_quit
     error
   end
 
@@ -154,8 +165,6 @@ end
 LogOn = LogOnWindow.new "LogOn", client['name']
 LogOn.show
 Gtk.main
-
-puts LogOn.user, LogOn.pin
 
 
 class LoggedInWindow < Gtk::Window
@@ -172,17 +181,17 @@ class LoggedInWindow < Gtk::Window
     set_gravity Gdk::Window::GRAVITY_SOUTH_WEST
     move (Gdk.screen_width - size[0] - 50), (Gdk.screen_height - size[1] - 50)
 
-    user = Gtk::Label.new @user
+    @user_label = Gtk::Label.new @user
     minutes = 60
-    time_left = Gtk::Label.new
-    time_left.set_markup "<span size='xx-large'>%d min igjen</span>" % minutes
+    @time_left = Gtk::Label.new
+    @time_left.set_markup "<span size='xx-large'>%d min igjen</span>" % minutes
 
     button = Gtk::Button.new "Logg ut"
 
     box = Gtk::VBox.new false, 5
     box.set_border_width 5
-    box.pack_start_defaults user
-    box.pack_start_defaults time_left
+    box.pack_start_defaults @user_label
+    box.pack_start_defaults @time_left
     box.pack_start_defaults button
     add box
 
@@ -197,6 +206,15 @@ class LoggedInWindow < Gtk::Window
     end
   end
 
+  def set_name_label(name)
+    @user_label.text = name
+  end
+
+  def set_time(minutes)
+    minutes <= 5 ? bg = 'yellow' : bg = '#e0e0e0'
+    @time_left.set_markup "<span background='#{bg}' size='xx-large'>#{minutes} min igjen</span>"
+  end
+
   def show
     show_all
   end
@@ -205,13 +223,13 @@ end
 # authenticate using sip2 - skip for now
 
 EM.run do
-  ws = EM::WebSocketClient.new "ws://localhost:9001/ws"
+  ws = EM::WebSocketClient.new "ws://libki10.deich.folkebibl.no:9001/subscribe/clients/#{client['id']}"
   channel = EM::Channel.new
   LoggedIn = LoggedInWindow.new client['name'], LogOn.user
   LoggedIn.show
 
   ws.onopen do
-    msg = {:action => "log-on", :client => client_address, :user => LogOn.user}
+    msg = {:action => "log-on", :client => client['id'], :user => LogOn.user}
     ws.send_message JSON.generate msg
   end
 
@@ -219,18 +237,24 @@ EM.run do
     message = JSON.parse(msg)
     puts message
     case message["status"]
+      when "logged-on"
+        LoggedIn.set_name_label(message['user']['name'])
+        LoggedIn.set_time(message["user"]["minutes"])
+      when "ping"
+          LoggedIn.set_time(message["user"]["minutes"])
       when "logged-off"
         EM.stop
     end
   end
 
   sid = channel.subscribe { |msg|
-    msg = {:action => "log-off", :client => client_address, :user => LogOn.user}
+    msg = {:action => "log-off", :client => client['id'], :user => LogOn.user}
     ws.send_message JSON.generate msg
   }
 
   give_tick = proc {
     Gtk::main_iteration_do(blocking=false)
+    sleep(0.01)
     EM.next_tick(give_tick)
     if LoggedIn.user.nil?
       channel.push("log-off")
@@ -242,4 +266,13 @@ EM.run do
 end
 
 puts "quit"
-#Gtk.main_quit
+
+=begin
+1. get mac-adress
+2. get client id from api
+3. get username+password
+4. authenticate (guestuser from db, libraryuser usingsip2)
+5. log on
+6. ws eventmachine loop
+7. back to 3
+=end
