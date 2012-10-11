@@ -172,6 +172,7 @@ class LoggedInWindow < Gtk::Window
   def initialize(title, user)
     super(title)
     @user = user
+    @warned = false
     self.resizable = false
     self.keep_above = true
     set_type_hint Gdk::Window::TypeHint::MENU
@@ -213,6 +214,19 @@ class LoggedInWindow < Gtk::Window
   def set_time(minutes)
     minutes <= 5 ? bg = 'yellow' : bg = '#e0e0e0'
     @time_left.set_markup "<span background='#{bg}' size='xx-large'>#{minutes} min igjen</span>"
+    if minutes <= 5 and not @warned
+      md = Gtk::MessageDialog.new(self,
+                  Gtk::Dialog::DESTROY_WITH_PARENT, Gtk::MessageDialog::WARNING,
+                  Gtk::MessageDialog::BUTTONS_OK, "Du blir logget av om #{minutes} minutter. Husk å lagre det du jobber med!")
+      md.set_type_hint Gdk::Window::TypeHint::MENU
+      md.set_gravity Gdk::Window::GRAVITY_CENTER
+      md.move(Gdk.screen_width/2, Gdk.screen_height/2)
+      md.run
+      md.destroy
+      @warned = true
+    end
+    @warned = false if minutes > 5
+    @user = nil if minutes == 0
   end
 
   def show
