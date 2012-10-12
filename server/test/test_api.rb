@@ -213,7 +213,7 @@ describe API do
       it "deletes a given user" do
         num_of_users = User.all.count
         delete "/api/users/#{@guest.id}"
-        last_response.status.must_equal 200
+        last_response.status.must_equal 204
         User.all.count.must_equal num_of_users - 1
         assert @quest.nil?
       end

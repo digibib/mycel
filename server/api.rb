@@ -147,6 +147,7 @@ class API < Grape::API
         throw :error, :status => 404,
               :message => "Det finnes ingen bruker med id #{params[:id]}"
       end
+      status 204
     end
 
     desc "updates a user"
