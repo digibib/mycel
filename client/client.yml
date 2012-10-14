@@ -1,0 +1,8 @@
+api:
+  host: localhost
+  port: 9000
+  username: veiled
+  password: 1ferie
+ws:
+  host: localhost
+  port: 9001

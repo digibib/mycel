@@ -3,6 +3,9 @@ require "gtk2"
 require "json"
 require "net/http"
 require "em-ws-client"
+require "yaml"
+
+CONFIG = YAML::load(File.open("client.yml"))
 
 # NOTE: The following method of getting the MAC-adress works on debian-based
 #       linux, but I'm not sure it works whith every system.
@@ -16,12 +19,15 @@ if not client_address
   exit 0
 end
 
-uri = URI('http://libki10.deich.folkebibl.no:9000/api/clients/?mac='+client_address)
+uri = URI("http://#{CONFIG['api']['host']}:#{CONFIG['api']['port']}/api/clients/?mac="+client_address)
 res = nil
 
 until res
   begin
-    res = Net::HTTP.get_response(uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    request.basic_auth(CONFIG['api']['username'], CONFIG['api']['password'])
+    res = http.request(request)
   rescue Exception => e
     puts "Error connecting to Mycel server: "
     puts e
@@ -147,9 +153,13 @@ class LogOnWindow < Gtk::Window
       error = "Skriv inn lånenummer/brukernavn og PIN/passord"
       @userentry.grab_focus
     else
-      uri = URI("http://libki10.deich.folkebibl.no:9000/api/users/authenticate")
+      uri = URI("http://#{CONFIG['api']['host']}:#{CONFIG['api']['port']}/api/users/authenticate")
       begin
-        res = Net::HTTP.post_form(uri, 'username'=>@user, 'password'=>@pin)
+        http = Net::HTTP.new(uri.host, uri.port)
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data('username'=>@user, 'password'=>@pin)
+        request.basic_auth(CONFIG['api']['username'], CONFIG['api']['password'])
+        res = http.request(request)
         res = JSON.parse(res.body)
       rescue Exception => e
         puts e
@@ -162,121 +172,123 @@ class LogOnWindow < Gtk::Window
 
 end
 
-LogOn = LogOnWindow.new "LogOn", client['name']
-LogOn.show
-Gtk.main
+while true
+  LogOn = LogOnWindow.new "LogOn", client['name']
+  LogOn.show
+  Gtk.main
 
 
-class LoggedInWindow < Gtk::Window
-  attr_accessor :user
-  def initialize(title, user)
-    super(title)
-    @user = user
-    @warned = false
-    self.resizable = false
-    self.keep_above = true
-    set_type_hint Gdk::Window::TypeHint::MENU
-    set_size_request(180, 120)
+  class LoggedInWindow < Gtk::Window
+    attr_accessor :user
+    def initialize(title, user)
+      super(title)
+      @user = user
+      @warned = false
+      self.resizable = false
+      self.keep_above = true
+      set_type_hint Gdk::Window::TypeHint::MENU
+      set_size_request(180, 120)
 
-    # position window in lower right corner, 50 px from screen edges
-    set_gravity Gdk::Window::GRAVITY_SOUTH_WEST
-    move (Gdk.screen_width - size[0] - 50), (Gdk.screen_height - size[1] - 50)
+      # position window in lower right corner, 50 px from screen edges
+      set_gravity Gdk::Window::GRAVITY_SOUTH_WEST
+      move (Gdk.screen_width - size[0] - 50), (Gdk.screen_height - size[1] - 50)
 
-    @user_label = Gtk::Label.new @user
-    minutes = 60
-    @time_left = Gtk::Label.new
-    @time_left.set_markup "<span size='xx-large'>%d min igjen</span>" % minutes
+      @user_label = Gtk::Label.new @user
+      minutes = 60
+      @time_left = Gtk::Label.new
+      @time_left.set_markup "<span size='xx-large'>%d min igjen</span>" % minutes
 
-    button = Gtk::Button.new "Logg ut"
+      button = Gtk::Button.new "Logg ut"
 
-    box = Gtk::VBox.new false, 5
-    box.set_border_width 5
-    box.pack_start_defaults @user_label
-    box.pack_start_defaults @time_left
-    box.pack_start_defaults button
-    add box
+      box = Gtk::VBox.new false, 5
+      box.set_border_width 5
+      box.pack_start_defaults @user_label
+      box.pack_start_defaults @time_left
+      box.pack_start_defaults button
+      add box
 
-    button.signal_connect "clicked" do
-      @user = nil
-      destroy
+      button.signal_connect "clicked" do
+        @user = nil
+        destroy
+      end
+
+      signal_connect "delete_event" do
+        # don't destroy window when x button is clicked
+        true
+      end
     end
 
-    signal_connect "delete_event" do
-      # don't destroy window when x button is clicked
-      true
+    def set_name_label(name)
+      @user_label.text = name
+    end
+
+    def set_time(minutes)
+      minutes <= 5 ? bg = 'yellow' : bg = '#e0e0e0'
+      @time_left.set_markup "<span background='#{bg}' size='xx-large'>#{minutes} min igjen</span>"
+      if minutes <= 5 and not @warned
+        md = Gtk::MessageDialog.new(self,
+                    Gtk::Dialog::DESTROY_WITH_PARENT, Gtk::MessageDialog::WARNING,
+                    Gtk::MessageDialog::BUTTONS_OK, "Du blir logget av om #{minutes} minutter. Husk å lagre det du jobber med!")
+        md.set_type_hint Gdk::Window::TypeHint::MENU
+        md.set_gravity Gdk::Window::GRAVITY_CENTER
+        md.move(Gdk.screen_width/2, Gdk.screen_height/2)
+        md.run
+        md.destroy
+        @warned = true
+      end
+      @warned = false if minutes > 5
+      @user = nil if minutes == 0
+    end
+
+    def show
+      show_all
     end
   end
 
-  def set_name_label(name)
-    @user_label.text = name
-  end
+  # authenticate using sip2 - skip for now
 
-  def set_time(minutes)
-    minutes <= 5 ? bg = 'yellow' : bg = '#e0e0e0'
-    @time_left.set_markup "<span background='#{bg}' size='xx-large'>#{minutes} min igjen</span>"
-    if minutes <= 5 and not @warned
-      md = Gtk::MessageDialog.new(self,
-                  Gtk::Dialog::DESTROY_WITH_PARENT, Gtk::MessageDialog::WARNING,
-                  Gtk::MessageDialog::BUTTONS_OK, "Du blir logget av om #{minutes} minutter. Husk å lagre det du jobber med!")
-      md.set_type_hint Gdk::Window::TypeHint::MENU
-      md.set_gravity Gdk::Window::GRAVITY_CENTER
-      md.move(Gdk.screen_width/2, Gdk.screen_height/2)
-      md.run
-      md.destroy
-      @warned = true
+  EM.run do
+    ws = EM::WebSocketClient.new "ws://#{CONFIG['ws']['host']}:#{CONFIG['ws']['port']}/subscribe/clients/#{client['id']}"
+    channel = EM::Channel.new
+    LoggedIn = LoggedInWindow.new client['name'], LogOn.user
+    LoggedIn.show
+
+    ws.onopen do
+      msg = {:action => "log-on", :client => client['id'], :user => LogOn.user}
+      ws.send_message JSON.generate msg
     end
-    @warned = false if minutes > 5
-    @user = nil if minutes == 0
-  end
 
-  def show
-    show_all
-  end
-end
-
-# authenticate using sip2 - skip for now
-
-EM.run do
-  ws = EM::WebSocketClient.new "ws://libki10.deich.folkebibl.no:9001/subscribe/clients/#{client['id']}"
-  channel = EM::Channel.new
-  LoggedIn = LoggedInWindow.new client['name'], LogOn.user
-  LoggedIn.show
-
-  ws.onopen do
-    msg = {:action => "log-on", :client => client['id'], :user => LogOn.user}
-    ws.send_message JSON.generate msg
-  end
-
-  ws.onmessage do |msg, binary|
-    message = JSON.parse(msg)
-    puts message
-    case message["status"]
-      when "logged-on"
-        LoggedIn.set_name_label(message['user']['name'])
-        LoggedIn.set_time(message["user"]["minutes"])
-      when "ping"
+    ws.onmessage do |msg, binary|
+      message = JSON.parse(msg)
+      puts message
+      case message["status"]
+        when "logged-on"
+          LoggedIn.set_name_label(message['user']['name'])
           LoggedIn.set_time(message["user"]["minutes"])
-      when "logged-off"
-        EM.stop
+        when "ping"
+            LoggedIn.set_time(message["user"]["minutes"])
+        when "logged-off"
+          EM.stop
+      end
     end
-  end
 
-  sid = channel.subscribe { |msg|
-    msg = {:action => "log-off", :client => client['id'], :user => LogOn.user}
-    ws.send_message JSON.generate msg
-  }
-
-  give_tick = proc {
-    Gtk::main_iteration_do(blocking=false)
-    sleep(0.01)
-    EM.next_tick(give_tick)
-    if LoggedIn.user.nil?
-      channel.push("log-off")
-      LoggedIn.user = "logging-off"
-    end
+    sid = channel.subscribe { |msg|
+      msg = {:action => "log-off", :client => client['id'], :user => LogOn.user}
+      ws.send_message JSON.generate msg
     }
-  give_tick.call
 
+    give_tick = proc {
+      Gtk::main_iteration_do(blocking=false)
+      sleep(0.01)
+      EM.next_tick(give_tick)
+      if LoggedIn.user.nil?
+        channel.push("log-off")
+        LoggedIn.user = "logging-off"
+      end
+      }
+    give_tick.call
+
+  end
 end
 
 puts "quit"
