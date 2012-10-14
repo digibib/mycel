@@ -8,16 +8,29 @@ require "cgi"
 require "./models"
 require "./api"
 
+CONFIG = YAML::load(File.open("config/mycel.yml"))
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
-class Server < Goliath::API
-  use Goliath::Rack::Params
-  include Goliath::Rack::Templates
+class Auth
+  def self.username
+    CONFIG['auth']['username']
+  end
+  def self.password
+    CONFIG['auth']['password']
+  end
+end
 
+class Server < Goliath::API
+  include Goliath::Rack::Templates
+  use Goliath::Rack::Params
   use(Rack::Static,
       :root => Goliath::Application.app_path('public'),
       :urls => ['/favicon.ico', '/css', '/js', '/img'])
+
+  use Rack::Auth::Basic, "Restricted Area" do |username, password|
+    [username, password] == [Auth.username, Auth.password]
+  end
 
   @@org = Organization.first
 

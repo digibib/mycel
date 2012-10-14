@@ -1,0 +1,12 @@
+api:
+  host: localhost
+  port: 9000
+ws:
+  host: localhost
+  port: 9001
+sip2:
+  host: 10.172.2.1
+  port: 1965
+auth:
+  username: veiled
+  password: 1ferie
