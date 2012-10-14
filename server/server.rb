@@ -39,11 +39,6 @@ ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
 class Server < Goliath::WebSocket
   plugin Goliath::Plugin::TimeManager
-    # ws path structure (= channel structure as well):
-    # subscribe/branches/id
-    # subscribe/departments/id
-    # subscribe/clients/id   subscribe/clients => all clients
-    # subscribe/users
 
   def on_open(env)
     path = env['PATH_INFO'].split('/')
@@ -52,13 +47,13 @@ class Server < Goliath::WebSocket
 
     env['subscription'] = env.channels[env['type']+'/'+env['id']].subscribe { |m| env.stream_send(m) }
     env.logger.info("WS OPEN")
-    env.logger.info("env.channels: #{env.channels}")
+    #env.logger.debug("env.channels: #{env.channels}")
   end
 
   def on_close(env)
     env.channels[env['type']+'/'+env['id']].unsubscribe(env['subscription'])
     env.logger.info("WS CLOSED")
-    env.logger.info("env.channels: #{env.channels}")
+    #env.logger.debug("env.channels: #{env.channels}")
   end
 
   def on_message(env, message)
