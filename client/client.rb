@@ -6,20 +6,15 @@ require "em-ws-client"
 require "yaml"
 
 CONFIG = YAML::load(File.open("client.yml"))
+MAC = %x[cat '/sys/class/net/eth0/address'].strip
 
-# NOTE: The following method of getting the MAC-adress works on debian-based
-#       linux, but I'm not sure it works whith every system.
-#       This fetches address of eth0; make sure to fetch the right eth (or wlan)
-#       if the client has several network connections
-client_address = %x[cat '/sys/class/net/eth0/address'].strip
-
-if not client_address
+if not MAC
   puts "Fatal error: Could not retreive MAC-address of client."
   puts "This is needed for identifying the client."
   exit 0
 end
 
-uri = URI("http://#{CONFIG['api']['host']}:#{CONFIG['api']['port']}/api/clients/?mac="+client_address)
+uri = URI("http://#{CONFIG['api']['host']}:#{CONFIG['api']['port']}/api/clients/?mac="+MAC)
 res = nil
 
 until res

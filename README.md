@@ -60,6 +60,13 @@ The client is written in Ruby, so obviously you should have Ruby installed. Deve
 
 Note: when I got the system stable and running, I plan to rewrite the client in a compiled language like C or Go. At our Library most clients are thin clients with Linux images loaded in RAM at start up, and we therefore want the images to be as small and efficient as possible.
 
+#### Notes
+The client is identified by sending by sending the mac-adress to the API. The mac adress is obtained using the following command:
+
+```cat '/sys/class/net/eth0/address```
+
+It should work on all *nix systems, but note that this fetches address of eth0; so make sure to fetch the correct eth (or wlan) if the client has several network connections.
+
 ## Potential feature enhancements
 * Allow booking of clients
 * Manage users printer quota
@@ -73,6 +80,7 @@ Note: when I got the system stable and running, I plan to rewrite the client in 
 * Admin users and authentication (10h)
 * Thorough cross-browser testing (3h)
 * Documentation, especially installation and setup (5h)
+* Simplify setup, remove harcoded values from application & move all settings to one file, congig/mycel.yml (2h)
 * Handling network disconnects, both server and client side (20h)
 * Time managment, edge cases in model (5h)
 * Store user time in seconds instead of minutes, allowing for more accurate time management. Adjust time every 15 sec. (2h)
