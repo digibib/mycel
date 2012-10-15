@@ -11,6 +11,22 @@ Rake::TestTask.new do |test|
   test.verbose = true
 end
 
+desc "clear user table (cronjob)"
+task :delete_users do
+  dbconfig = YAML::load(File.open("config/database.yml"))
+  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  puts "[#{Time.now}] :: Clears user table. Number of users deleted: #{User.delete_all}"
+end
+
+desc "setup application for proudction deployment"
+task :setup do
+  puts "1. Seed database"
+  #task db:seed
+  puts "2. Prepare template views"
+  #task prepare[host, port]
+  puts "3. Writes to crontab"
+  %x[whenever -w]
+end
 
 desc "exchange 'localhost' for deployment server adress in template views"
 task :prepare, :host, :port do |t, args|
