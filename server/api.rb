@@ -118,7 +118,7 @@ class API < Grape::API
       user = LibraryUser.find_or_create_by_username params["username"] unless user
       authenticated = true if user and user.authenticate params["password"]
       status 200
-      {:authenticated => authenticated}
+      {:authenticated => authenticated, :minutes => user.minutes || nil}
     end
 
     desc "returns a specific user"
