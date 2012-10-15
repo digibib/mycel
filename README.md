@@ -43,14 +43,21 @@ This is the server communicating with the clients via WebSockets. In addition, t
 Goliath is not tied to any particular Ruby, but recommended is MRI Ruby 1.9.3.
 
 **Server configuration**
-Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/server.rb`
+Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/mycel.yml`
  
-**Cronjobs** 
+To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up cronjobs.
 
-* Reset user table
-* Log rotation?
-* WRITEME
-	
+#### Cronjob troubleshooting
+Mycel sets up a cronjob to remove all users at midnight. If the cronjob doesn't get executed, check your `var/log/syslog` for hints on what might be wrong. 
+
+Try to comment out the following line from your `~/.bashrc` file:
+
+```[  -z "$PS1" ] && return``` 
+
+As well as adding the following to `~/.rmvrc`:
+
+```rvm_trust_rvmrcs_flag=1``` 
+
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
 
