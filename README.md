@@ -52,11 +52,12 @@ Mycel sets up a cronjob to remove all users at midnight. If the cronjob doesn't 
 
 Try to comment out the following line from your `~/.bashrc` file:
 
-```[  -z "$PS1" ] && return```
+    [  -z "$PS1" ] && return
 
-As well as adding the following to your `~/.rmvrc` file:
+As well as adding the following to `~/.rmvrc`:
 
-```rvm_trust_rvmrcs_flag=1```
+    rvm_trust_rvmrcs_flag=1
+
 
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
