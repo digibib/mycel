@@ -52,6 +52,17 @@ class Server < Goliath::WebSocket
   def on_close(env)
     env.channels[env['type']+'/'+env['id']].unsubscribe(env['subscription'])
     #env.logger.debug("env.channels: #{env.channels}")
+
+    # Log off manually if user was unintentionally disconnected
+    if env['user']
+      Fiber.new do
+        if env['user'].client
+          env.logger.info("#{env['user'].client.log_friendly} disconnected, logging out #{env['user'].log_friendly}")
+          env['user'].log_off
+        end
+      end.resume
+    end
+
   end
 
   def on_message(env, message)
@@ -67,6 +78,7 @@ class Server < Goliath::WebSocket
           #NB must be authenticated! i.e user object must exist
           user.log_on client
           user.save
+          env['user'] = user
 
           timer = EM.add_periodic_timer(30) do
             Fiber.new do
@@ -116,6 +128,7 @@ class Server < Goliath::WebSocket
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
           env.channels['users/'] << broadcast
+          env['user'] = nil
       end
     end.resume
   end
