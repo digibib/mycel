@@ -54,7 +54,7 @@ Try to comment out the following line from your `~/.bashrc` file:
 
 ```[  -z "$PS1" ] && return```
 
-As well as adding the following to `~/.rmvrc`:
+As well as adding the following to your `~/.rmvrc` file:
 
 ```rvm_trust_rvmrcs_flag=1```
 
