@@ -56,7 +56,8 @@ class Server < Goliath::WebSocket
     if env['user']
       Fiber.new do
         if env['user'].client
-          env.logger.info("#{env['user'].client.log_friendly} disconnected, logging out #{env['user'].log_friendly}")
+          env.logger.error("#{env['user'].log_friendly}, disconnected from: #{env['user'].client.log_friendly}")
+          env.logger.info("#{env['user'].log_friendly}, logged off: #{env['user'].client.log_friendly}")
           env['user'].log_off
         end
       end.resume
