@@ -33,7 +33,6 @@ module Goliath
   end
 end
 
-# TODO move this to config files
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
@@ -53,7 +52,7 @@ class Server < Goliath::WebSocket
     env.channels[env['type']+'/'+env['id']].unsubscribe(env['subscription'])
     #env.logger.debug("env.channels: #{env.channels}")
 
-    # Log off manually if user was unintentionally disconnected
+    # Log off manually if the client was unintentionally disconnected
     if env['user']
       Fiber.new do
         if env['user'].client
@@ -67,7 +66,7 @@ class Server < Goliath::WebSocket
 
   def on_message(env, message)
     msg = JSON.parse(message)
-    env.logger.info("WS MESSAGE: #{msg}")
+    #env.logger.debug("WS MESSAGE: #{msg}")
 
     Fiber.new do
       user = User.find_by_username msg["user"]
