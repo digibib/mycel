@@ -116,7 +116,6 @@ class Department < ActiveRecord::Base
     opt.merge! "opening_hours" => oh
     opt.except("owner_options_id", "owner_options_type", "id")
   end
-
 end
 
 class Client < ActiveRecord::Base
@@ -137,6 +136,9 @@ class Client < ActiveRecord::Base
     self.user
   end
 
+  def log_friendly
+    "#{self.branch.name}/#{self.department.name}/#{self.name}[#{self.hwaddr}]"
+  end
 end
 
 class OpeningHours < ActiveRecord::Base
@@ -315,6 +317,10 @@ class LibraryUser < User
   def type_short
     'B'
   end
+
+  def log_friendly
+    "LibraryUser, #{self.age}"
+  end
 end
 
 class GuestUser < User
@@ -328,11 +334,19 @@ class GuestUser < User
   def type_short
     'G'
   end
+
+  def log_friendly
+    "GuestUser, #{self.age > 15 ? 'adult' : 'child'}"
+  end
 end
 
 class AnonymousUser < User
   def type_short
     'A'
+  end
+
+  def log_friendly
+    "AnonymousUser, unknown"
   end
 end
 

@@ -46,13 +46,11 @@ class Server < Goliath::WebSocket
     env['id'] = path[3] || ""
 
     env['subscription'] = env.channels[env['type']+'/'+env['id']].subscribe { |m| env.stream_send(m) }
-    env.logger.info("WS OPEN")
     #env.logger.debug("env.channels: #{env.channels}")
   end
 
   def on_close(env)
     env.channels[env['type']+'/'+env['id']].unsubscribe(env['subscription'])
-    env.logger.info("WS CLOSED")
     #env.logger.debug("env.channels: #{env.channels}")
   end
 
@@ -87,7 +85,7 @@ class Server < Goliath::WebSocket
             end.resume
           end
 
-          env.logger.info("User: #{user.name} logged on client: #{client.name}")
+          env.logger.info("#{user.log_friendly}, logged on: #{client.log_friendly}")
 
           broadcast = JSON.generate({:status => "logged-on",
                                      :client => {:id => client.id,
@@ -107,7 +105,7 @@ class Server < Goliath::WebSocket
           user.save
           EM.cancel_timer(timer)
 
-          env.logger.info("User: #{user.name} logged off client: #{client.name}")
+          env.logger.info("#{user.log_friendly}, logged off: #{client.log_friendly}")
 
           broadcast = JSON.generate({:status => "logged-off",
                                      :client => {:id => client.id},
