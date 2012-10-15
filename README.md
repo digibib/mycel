@@ -10,7 +10,7 @@ The server is composed of two [Goliath] processes:
 
 1. A websocket server handling log on/off requests from the clients, adjusting the time spent by users, as well as broadcasting this information to the clients and web administration interface.
 
-2. An API server implemented using [Grape], exposing the database via a REST/JSON. The API is used by the web interface to store and retrieve configuration settings. It is also used to identify the clients and authenticate users before they connect to the WebSocket server. This process is also serving the HTML views.
+2. An API server implemented using [Grape], exposing the database via a REST/JSON. This process is also serving the HTML views. The API is used by the web interface to store and retrieve configuration settings. It is also used to identify the clients and authenticate users before they connect to the WebSocket server. 
 
 ###Database
 The database keeps track of how the library is organized hierarchicaly in branches, departments and clients, as well as users and which user is logged on to which client. Most settings are configurable at all levels (organization -> branch -> department -> client). If a given setting is not set, it is inherited from the parent level in the hierarchy.
@@ -63,9 +63,23 @@ Note: when I got the system stable and running, I plan to rewrite the client in 
 #### Notes
 The client is identified by sending by sending the mac-adress to the API. The mac adress is obtained using the following command:
 
-```cat '/sys/class/net/eth0/address```
+```cat /sys/class/net/eth0/address```
 
 It should work on all *nix systems, but note that this fetches address of eth0; so make sure to fetch the correct eth (or wlan) if the client has several network connections.
+
+## Statistics
+
+### Logging
+Logging format:
+>[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]} 
+
+>[4896:INFO] 2012-10-14 18:47:17 :: LibraryUser, 31, logs on : hovedbiblioteket/voksenavdelingen/hovedklient1[00:01:2e:bc:c8:7d]
+
+>[4896:INFO] 2012-10-14 18:54:09 :: LibraryUser, 11, logs off : hovedbiblioteket/unge deichman/ungeklient2[00:01:2e:bc:c8:7d]
+
+> [4896: INFO] 2012-10-14 19:14:29 :: GuestUser, adult, logs on ....
+
+> [4896: INFO] 2012-10-14 19:14:29 :: AnonymousUser, unknown, logs on ....
 
 ## Potential feature enhancements
 * Allow booking of clients
