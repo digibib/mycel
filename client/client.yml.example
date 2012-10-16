@@ -1,0 +1,8 @@
+api:
+  host: localhost
+  port: 6666
+  username: admin
+  password: secret
+ws:
+  host: localhost
+  port: 66667
