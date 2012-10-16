@@ -21,7 +21,7 @@ module Goliath
       def run
         EM.add_periodic_timer(60) do
           Fiber.new do
-            @logger.info "Number of users logged on: #{Client.joins(:user).count}"
+            @logger.info "Users logged on: #{Client.joins(:user).count} / Total clients: #{Client.count}"
             for user in User.joins(:client).readonly(false).all
               user.minutes -= 1
               user.save
@@ -59,6 +59,7 @@ class Server < Goliath::WebSocket
           env.logger.error("#{env['user'].log_friendly}, disconnected from: #{env['user'].client.log_friendly}")
           env.logger.info("#{env['user'].log_friendly}, logged off: #{env['user'].client.log_friendly}")
           env['user'].log_off
+          EM.cancel_timer(env['timer']) if env['timer']
         end
       end.resume
     end
@@ -80,10 +81,10 @@ class Server < Goliath::WebSocket
           user.save
           env['user'] = user
 
-          timer = EM.add_periodic_timer(30) do
+          env['timer'] = EM.add_periodic_timer(30) do
             Fiber.new do
               user.reload
-              timer.cancel if user.client.nil?
+              env['timer'].cancel if user.client.nil?
 
               broadcast = JSON.generate({:status => "ping",
                                          :client => {:id => client.id},
@@ -115,7 +116,7 @@ class Server < Goliath::WebSocket
         when 'log-off'
           user.log_off
           user.save
-          EM.cancel_timer(timer)
+          EM.cancel_timer(env['timer'])
 
           env.logger.info("#{user.log_friendly}, logged off: #{client.log_friendly}")
 
