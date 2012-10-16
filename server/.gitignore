@@ -2,7 +2,7 @@
 *.rbc
 .bundle
 .config
-config/sip2.yml
+config/mycel.yml
 coverage
 InstalledFiles
 lib/bundler/man

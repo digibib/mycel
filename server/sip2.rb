@@ -1,7 +1,7 @@
 require "socket"
 require "time"
 
-SIP2 = YAML::load(File.open("config/sip2.yml"))
+SIP2 = YAML::load(File.open("config/mycel.yml"))['sip2']
 
 class DGClient
   def initialize()
