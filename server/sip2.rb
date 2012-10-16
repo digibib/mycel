@@ -5,7 +5,7 @@ SIP2 = YAML::load(File.open("config/mycel.yml"))['sip2']
 
 class DGClient
   def initialize()
-    @host, @port = SIP2['server'], SIP2['port']
+    @host, @port = SIP2['host'], SIP2['port']
   end
 
   def send_message(msg)
