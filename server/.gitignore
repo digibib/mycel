@@ -3,6 +3,7 @@
 .bundle
 .config
 config/mycel.yml
+config/database.yml
 coverage
 InstalledFiles
 lib/bundler/man

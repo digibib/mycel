@@ -4,9 +4,9 @@ test:
 
 development:
   adapter: em_mysql2
-  database: myceldev
-  username: mycel
-  password: test
+  database: mycel
+  username: user
+  password: password
   host: localhost
   pool: 5
   reconnect: true
@@ -14,7 +14,8 @@ development:
 production:
   adapter: em_mysql2
   database: mycel
-  username: secret
-  password: secret
-  host: example.com
+  username: user
+  password: password
+  host: localhost
   pool: 5
+  reconnect: true
