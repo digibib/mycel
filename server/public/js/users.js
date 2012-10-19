@@ -1,0 +1,188 @@
+$(document).ready(function () {
+  // ** connect to mycel websocket server
+
+  var ws = new WebSocket("ws://localhost:9001/subscribe/users");
+
+  // handle ws events
+
+  ws.onopen = function() {
+    //var message = {action: "subscribe", department: dept};
+    //ws.send(JSON.stringify(message));
+  }
+
+  ws.onclose = function() {
+    // close
+  }
+
+  ws.onmessage = function(evt) {
+    // message
+    console.log(evt.data);
+    data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
+
+    $tr = $("tr#"+data.user.id);
+
+    switch (data.status) {
+      case "ping":
+        $tr.find('.td-minutes').html(data.user.minutes);
+        break;
+      case "logged-on":
+        $tr.remove();
+
+        $trcopy = $("tr#clone").clone().removeClass("invisible");
+        $trcopy.attr("id", data.user.id);
+        $trcopy.find('.td-usertype').html(data.user.type);
+        $trcopy.find('.td-username').html(data.user.name);
+        $trcopy.find('.td-minutes').html(data.user.minutes);
+        $trcopy.find('input.users.minutes').val(data.user.minutes);
+        $trcopy.find('.td-clientname').html(data.client.name);
+        var link1 = $('<a>', {href: "/"+data.client.branch, text: data.client.branch});
+        var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
+
+        $trcopy.find('.td-branchdept').html("").append(link1).append(" / ").append(link2);
+        $trcopy.find('input.nr').setMask('999');
+
+        $trcopy.appendTo('table.active');
+        break;
+      case "logged-off":
+        $tr.remove();
+
+        $trcopy = $("table.inactive tr:last").clone();
+        $trcopy.attr("id", data.user.id);
+        $trcopy.find('.td-usertype').html(data.user.type);
+        $trcopy.find('.td-username').html(data.user.name);
+        $trcopy.find('.td-minutes').html(data.user.minutes);
+        $trcopy.find('input.users.minutes').val(data.user.minutes);
+        $trcopy.find('input.nr').setMask('999');
+
+        $trcopy.appendTo('table.inactive');
+        break;
+    }
+
+  }
+
+  // ** global functions and handles **
+
+  $('.main').on('focus', ':input', function () {
+    if ($(this).hasClass('inputmissing')) {
+      $(this).removeClass('inputmissing');
+    }
+  });
+
+
+  // ** set input masks **
+
+  $('input.nr').setMask('999');
+
+
+  // ** Handle delete user
+
+  $('table.users.inactive').on('click', 'button.users.delete',  function () {
+    var user_id = $(this).parents('tr').attr('id');
+
+    var request = $.ajax({
+      url: "/api/users/"+user_id,
+      type: "DELETE"
+    });
+
+    request.done(function(msg) {
+      $('tr#'+user_id).remove();
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+        // TODO where to display error message?
+        //alert(jqXHR.responseText);
+    });
+  });
+
+  // ** Handle adjust user minutes
+  $('table.users').on('click', 'button.users.add_time', function () {
+
+    var $i = $(this).siblings('input.nr.required');
+    if (parseInt($i.val()) == 0) {
+      $i.val('');
+      return;
+    }
+    if ($i.val() =='' ) {
+      $i.addClass('inputmissing');
+      return;
+    }
+
+    var user_id = $(this).parents('tr').attr('id');
+    var $min = $('tr#'+user_id).find('input.users.minutes');
+    var user_minutes = $min.val();
+
+    var request = $.ajax({
+      url: '/api/users/'+user_id,
+      type: "PUT",
+      data: {
+            minutes: parseInt(user_minutes)+parseInt($i.val())
+            },
+      dataType: "json"
+    });
+
+    request.done(function(data) {
+      $min.val(data.user.minutes); // update hidden input
+      $('tr#'+user_id).find('td.td-minutes').html(data.user.minutes);
+      $i.val('');
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+         // TODO where to display error message?
+         //alert(jqXHR.responseText);
+     });
+
+  });
+
+  // ** handle add-guest-user events **
+
+  $("button#adduser").on("click", function() {
+    $('table.userform').toggle();
+  });
+  $("button#usercancel").on("click", function() {
+    $('table.userform').hide();
+  });
+
+  $('button#usersave').on('click', function () {
+    var missing = 0;
+    $('#add_user_form').find('input.required').each(function() {
+      if ($(this).val() == '' ) {
+        $(this).addClass('inputmissing');
+        missing = 1;
+      }
+    });
+
+    if (missing) { return; }
+
+    var request = $.ajax({
+      url: '/api/users',
+      type: 'POST',
+      data: {
+             username: $('input#username').val(),
+             password: $('input#user_password').val(),
+             age: $('select#user_age').val(),
+             minutes: $('input#user_minutes').val(),
+             },
+      dataType: "json"
+      });
+
+    request.done(function(data) {
+      $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
+        .show().fadeOut(5000);
+        // Show in inactive users table
+        $('#add_user_form')[0].reset();
+        $('table.userform').hide();
+        var tr = '<tr id="' + data.user.id + '"><td>G</td><td>'+data.user.username;
+        tr +=  '</td><td class="td-minutes" style="width:40px">' + data.user.minutes;
+        tr += '</td><td><input class="users minutes" type="hidden" value="'+data.user.minutes;
+        tr += '"><input class="nr required" type="text"><button class="users add_time" type="button">';
+        tr += '+</button></td><td><button class="users delete" type="button">Slett</button></td></tr>';
+        $('table.users.inactive').append(tr);
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $('td#user_form_response').find('span.error')
+        .html("Brukeren finnes allerede! Velg et annet brukernavn.").show().fadeOut(5000);
+    })
+  });
+
+});
