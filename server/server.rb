@@ -21,7 +21,7 @@ module Goliath
       def run
         EM.add_periodic_timer(60) do
           Fiber.new do
-            @logger.info "Users logged on: #{Client.joins(:user).count} / Total clients: #{Client.count}"
+            @logger.info "Users logged on: #{Client.joins(:user).count}, Total clients: #{Client.count}"
             for user in User.joins(:client).readonly(false).all
               user.minutes -= 1
               user.save
