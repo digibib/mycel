@@ -1,4 +1,3 @@
-== render :slim, :'_header'
 - org = Organization.first
 div class="main"
   h2 Filialer
@@ -15,6 +14,4 @@ div class="main"
                 img src="/img/pc_green.png" style="margin-left:5px"
               - (dept.clients.size - dept.clients.joins(:user).count).times do
                 img src="/img/pc_black.png" style="margin-left:5px"
-
-  == render :slim, :'_footer'
 

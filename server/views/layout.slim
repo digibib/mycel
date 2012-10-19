@@ -1,0 +1,38 @@
+doctype html
+html
+  head
+    meta charset='utf-8'
+    title Mycel
+    link href='/css/style.css' rel='stylesheet' type='text/css'
+    script src="/js/jquery.min.js"
+
+  body
+    div class="main"
+      div id="header"
+        a href="/": img src="/img/logo.png" class="logo"
+        div id="header-buttons"
+          ul
+            a[href="/branches"]: li[class="header"] FILIALER
+            a[href="/users"]: li[class="header"] BRUKERE
+            a[href="/statistics"]: li[class="header"] STATISTIKK
+      div id="debug"
+
+      == yield
+
+      div id="footer"
+        span Versjon
+        a href="https://github.com/digibib/mycel" Mycel 0.0.1-pre
+        span .&nbsp;Send tilbakemeldinger til
+        a href="mailto:petter.goksoyr.asen@kul.oslo.kommune.no" Petter Goksøyr Åsen
+
+      javascript:
+        function debug(str) {
+          $("#debug").append("<pre>" + str + "</pre>");
+        };
+
+        $(document).ready(function () {
+          if (!("WebSocket" in window)) {
+            debug('Nettleseren din støtter ikke websockets, og systemet derfor ikke kunne oppdateres i sanntid.\nDu vil allikevel kunne administrere klientene, men for best funksjonalitet bør du bruke en nyere nettleser.');
+            return;
+          };
+        });
