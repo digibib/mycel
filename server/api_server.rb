@@ -12,6 +12,8 @@ CONFIG = YAML::load(File.open("config/mycel.yml"))
 dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
 
+Slim::Engine.set_default_options :pretty => true
+
 class Auth
   def self.username
     CONFIG['auth']['username']
@@ -41,7 +43,7 @@ class Server < Goliath::API
     else
       case path.length
       when 0    # matches /
-        [200, {}, slim(:index)]
+        [200, {}, erb(:index)]
       when 2    # matches {branches}|users|statistics
         if @@org.branches.find_by_name(path[1])
           [200, {}, slim(:branch, :locals => {:branch => Branch.find_by_name(path[1])})]
