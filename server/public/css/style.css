@@ -10,7 +10,7 @@ pre         { background-color: #ef9384; border: 1px solid #c03019;
 .invisible { display:none;}
 a:link, a:visited { color: #5740e6; text-decoration: none }
 a:hover     { text-decoration: underline }
-div.main    { width: 800px; margin: auto;}
+div.container    { width: 800px; margin: auto;}
 div#header  { background-color: #888;}
 div#footer  { border-top: 1px solid #ccc; margin-top: 30px; margin-bottom: 20px;
                 font-family: "Consolas", Courier, monospace; font-size: 14px; padding:5px;}
