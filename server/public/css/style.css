@@ -48,6 +48,8 @@ ul            { list-style: none; }
 li.header     { padding:10px; margin-right:13px; border: 1px solid #eee; color:#fff;
 				background-color: #999; letter-spacing: 0.15em; display:inline-block;
 				font-family: "Consolas", Courier, monospace; font-size: 14px; border-radius: 2px;}
+li.header a    {color:#fff;}
+li.header a:hover {text-decoration:none;}
 li.header:hover { background-color: #88a; }
 
 
