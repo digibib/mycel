@@ -4,6 +4,7 @@ require 'goliath/rack/templates'
 require "em-synchrony/activerecord"
 require "mysql2"
 require "slim"
+require "erb"
 require "cgi"
 require "./models"
 require "./api"
@@ -50,7 +51,7 @@ class Server < Goliath::API
         elsif path[1] == 'users'
           [200, {}, slim(:users, :locals => {:users => User.all})]
         elsif path[1] == 'branches'
-          [200, {}, slim(:branches)]
+          [200, {}, erb(:branches)]
         elsif path[1] == 'statistics'
           [200, {}, slim(:statistics)]
         else    # matches non-existing branch
