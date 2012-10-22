@@ -179,7 +179,7 @@ class API < Grape::API
 
     desc "get specific department"
     get "/:id" do
-      {:department => Department.find(params[:id])}
+      {:department => Department.find(params[:id]).as_json}
     end
 
     desc "update department options"
@@ -218,7 +218,7 @@ class API < Grape::API
       # persist the changes:
       dept.options.opening_hours.save if dept.options.opening_hours
       dept.options.save
-      {:department => dept}
+      {:department => dept.as_json}
     end
   end
 
@@ -230,7 +230,7 @@ class API < Grape::API
 
     desc "get specific branch"
     get "/:id" do
-      {:branch => Branch.find(params[:id])}
+      {:branch => Branch.find(params[:id]).as_json}
     end
 
     desc "update branch options"
@@ -269,7 +269,7 @@ class API < Grape::API
       # persist the changes:
       branch.options.opening_hours.save if branch.options.opening_hours
       branch.options.save
-      {:branch => branch}
+      {:branch => branch.as_json}
     end
   end
 
