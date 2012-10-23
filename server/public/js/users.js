@@ -28,7 +28,7 @@ $(document).ready(function () {
       case "logged-on":
         $tr.remove();
 
-        $trcopy = $("tr#clone").clone().removeClass("invisible");
+        $trcopy = $("#clone").clone().removeClass("invisible");
         $trcopy.attr("id", data.user.id);
         $trcopy.find('.td-usertype').html(data.user.type);
         $trcopy.find('.td-username').html(data.user.name);

@@ -59,17 +59,17 @@ div class="main"
             a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name}
           td[class="td-clientname"] #{client.name}
           td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
-        tr class="invisible" id="clone"
-          td[class="td-usertype"]
-          td[class="td-username"]
-          td[class="td-minutes"]
-          td[class="td-adjust"]
-            input[type="hidden" class="users minutes"]
-            input[type="text" class="nr required"]
-            button[type='button' class="users add_time"] = "+"
-          td[class="td-branchdept"]
-          td[class="td-clientname"]
-          td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
+      tr id="clone" class="invisible"
+        td[class="td-usertype"]
+        td[class="td-username"]
+        td[class="td-minutes"]
+        td[class="td-adjust"]
+          input[type="hidden" class="users minutes"]
+          input[type="text" class="nr required"]
+          button[type='button' class="users add_time"] = "+"
+        td[class="td-branchdept"]
+        td[class="td-clientname"]
+        td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
 
   h2 Inaktive brukere
 
