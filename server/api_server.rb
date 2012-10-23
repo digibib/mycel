@@ -38,6 +38,9 @@ class Server < Goliath::API
   @@org = Organization.first
 
   def response(env)
+    #TODO debug SQL queries & optimize
+    #ActiveRecord::Base.logger = env.logger
+
     path = CGI.unescape(env['PATH_INFO']).split('/')
     if path[1] == 'api'
       API.call(env)
