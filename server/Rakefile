@@ -64,9 +64,9 @@ RUBY
   end
 end
 
-desc "exchange 'localhost' for deployment server adress in template views"
+desc "exchange 'localhost' for deployment server adress in javascript files"
 task :prepare, :host, :port do |t, args|
-  views = FileList['views/*.slim']
+  views = FileList['public/js/*.js']
   views.each do |view|
     file = File.read(view)
     modified = file.gsub(/localhost:9001/, "#{args[:host]}:#{args[:port]}")
