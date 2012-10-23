@@ -32,6 +32,8 @@ Mycel is written and tested with MySQL. To compile the mysql2 gem you will need 
 If you want to use a different database, it's vital that you choose one with asynchronous drivers. PostgreSQL is also known to work with Goliath using the [em_postgresql] adapter.
 
 ### Server
+*Note:* We currently have some unresolved bugs related to fibers, probably in one of the dependencies, leadning to failures (Stack overflow) in Ruby 1.9.3. Until we manage to resolve this, Ruby version 1.9.2 must be used on the serverside,
+
 The server is written using the asynchronous web server framework [Goliath]. It provides its own server. To get it up running, simply do a bundle install and, start and deamonize the server using:
 
 ```ruby server.rb -d -e production -p 9001```
@@ -40,9 +42,8 @@ This is the server communicating with the clients via WebSockets. In addition, t
 
 ```ruby api_server.rb -d -e production'-p 9000```
 
-Goliath is not tied to any particular Ruby, but recommended is MRI Ruby 1.9.3.
-
 **Server configuration**
+
 Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/mycel.yml`
  
 To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up cronjobs.
