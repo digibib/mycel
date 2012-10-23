@@ -38,7 +38,7 @@ class Server < Goliath::API
 
   def response(env)
     #TODO debug SQL queries & optimize
-    #ActiveRecord::Base.logger = env.logger
+    ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development"
 
     path = CGI.unescape(env['PATH_INFO']).split('/')
     if path[1] == 'api'
