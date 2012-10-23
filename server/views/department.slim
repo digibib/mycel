@@ -1,12 +1,11 @@
-== render :slim, :'_header'
 div class="main"
+  input[type="hidden" value="#{department.name}" id="department-name"]
   - if department.name == department.branch.name
     h2 #{department.branch.name}
   - else
     h2 #{department.branch.name}: #{department.name}
 
   h2 Klienter
-  p Endringer på klientinstillinger vil ført tre i kraft ved neste pålogging.
 
   table class="clients"
     thead
@@ -19,84 +18,62 @@ div class="main"
         th info
     tbody
     - for client in department.clients
+
       - if client.occupied?
         - user = User.find(client.user.id)
-        tr class="occupied" id="#{client.id}"
-          td[style="width:34px"]: img src="/img/pc_green.png" class="pc"
-          td #{client.name}
-          td[style="width:160px"] #{user.username}
-          td[style="width:34px" class="td-minutes"] #{user.minutes}
-          td
-            input[type="hidden" class="user_id" value="#{user.id}"]
-            input[type="hidden" class="users minutes" value="#{user.minutes}"]
+        - klass = "occupied"
+        - image = "/img/pc_green.png"
+      - else
+        - klass = "available"
+        - image = "/img/pc_black.png"
+
+      tr class="#{klass}" id="#{client.id}"
+        td[style="width:34px"]: img src="#{image}" class="pc"
+        td #{client.name}
+        td[style="width:160px" class="td-user"]
+          div class="toggle"
+            #{user.name if client.occupied?}
+        td[style="width:34px" class="td-minutes"] #{user.minutes if client.occupied?}
+        td
+          div class="toggle #{'hidden' unless client.occupied?}"
+            input[type="hidden" class="user_id" value="#{user.id if client.occupied?}"]
+            input[type="hidden" class="users minutes" value="#{user.minutes if client.occupied?}"]
             input[type="text" class="nr required"]
             button[type='button' class="users add_time"] = "+"
-          td[style="width:124px"]: button[type='button' class="throw-out"]  = "Kast ut!"
-          td[style="width:160px"]
-            span class="info"
-            span class="error"
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]
-          td MAC-addresse
-          td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
-          td[colspan="2"] IP-addresse
-          td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
-          td
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
-          td skjermoppløsning
-          td: select[class="client_screen_res"]
-              - for res in screen_res do
-                |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
-          td[colspan="2"] korttidsmaskin
-          td[style="text-align:center"]
-            - if client.shorttime
-              input[type="checkbox" class="shorttimemachine" checked=true]
-            - else
-              input[type="checkbox" class="shorttimemachine"]
-          td[colspan="4"]
-            button[type='button' class="clientsave"]  = "Lagre"
-            button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
-      - else
-        tr class="available" id="#{client.id}"
-          td[style="width:34px"]: img src="/img/pc_black.png" class="pc"
-          td #{client.name}
-          td -
-          td
-          td
-          td
-          td[style="width:160px"]
-            span class="info"
-            span class="error"
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]
-          td MAC-addresse
-          td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
-          td[colspan="2"] IP-addresse
-          td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
-          td
-        tr class="clientoptions client_#{client.id}"
-          td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
-          td skjermoppløsning
-          td: select[class="client_screen_res"]
-              - for res in screen_res do
-                |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
-          td[colspan="2"] korttidsmaskin
-          td[style="text-align:center"]
-            - if client.shorttime
-              input[type="checkbox" class="shorttimemachine" checked=true]
-            - else
-              input[type="checkbox" class="shorttimemachine"]
-          td[colspan="4"]
-            button[type='button' class="clientsave"]  = "Lagre"
-            button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
-
+        td[style="width:124px"]
+          div class="toggle #{'hidden' unless client.occupied?}"
+            button[type='button' class="throw-out"]  = "Kast ut!"
+        td[style="width:160px"]
+          span class="info"
+          span class="error"
+      tr class="clientoptions client_#{client.id}"
+        td[style="width:34px"]
+        td MAC-addresse
+        td: input[type="text" value="#{client.hwaddr}" disabled="disabled"]
+        td[colspan="2"] IP-addresse
+        td: input[type="text" value="#{client.ipaddr}" disabled="disabled"]
+        td
+      tr class="clientoptions client_#{client.id}"
+        td[style="width:34px"]: input type="hidden" value="#{client.id}" class="client_id"
+        td skjermoppløsning
+        td: select[class="client_screen_res"]
+            - for res in screen_res do
+              |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+        td[colspan="2"] korttidsmaskin
+        td[style="text-align:center"]
+          - if client.shorttime
+            input[type="checkbox" class="shorttimemachine" checked=true]
+          - else
+            input[type="checkbox" class="shorttimemachine"]
+        td[colspan="4"]
+          button[type='button' class="clientsave"]  = "Lagre"
+          button[type='button' class="clientcancel" style="margin: 0 20px 0 20px"]  = "Avbryt"
 
   h2 Lokale innstillinger
   p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
   p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde i steden.
   h3 Åpningstider
-  - hours = department.opening_hours_inherited
+  - hours = OpeningHours.find department.options_self_or_inherited['opening_hours']['id']
   div class="divdot inputf"
     form id="change_hours_form" autocomplete="off"
       input[id="department_id" hidden value="#{department.id}"]
@@ -104,7 +81,7 @@ div class="main"
       table class="genform"
         tr
           td[colspan="6"]
-          - if hours.owner_hours_type == 'Department'
+          - if hours.options.owner_options_type == 'Department'
             span[class="inherited" style="display:none" ] Disse innstillingene er arvet:
           - else
             span[class="inherited" ] Disse innstillingene er arvet:
@@ -201,14 +178,14 @@ div class="main"
   h3 Aldersbegrensninger
   p Hvis det er ønskelig, kan klientene være forbeholdt brukere innenfor en gitt aldersgruppe. Angi nedre og øvre aldersgrense i år:
   div class="divdot inputf"
-    span[class="inherited" id="age_inherited" style="margin:7px; #{'display:none' unless department.age_limit_lower.nil? }"]Disse innstillingene er arvet:
+    span[class="inherited" id="age_inherited" style="margin:7px; #{'display:none' unless department.options.age_limit_lower.nil? }"]Disse innstillingene er arvet:
     form id="age_limit_form" autocomplete="off"
       table class="genform"
         tr
           td nedre aldergrense
-          td: input[type="text" id="age_lower" class="nr required" value="#{department.age_limit_lower_inherited}"]
+          td: input[type="text" id="age_lower" class="nr required" value="#{department.options_self_or_inherited['age_limit_lower']}"]
           td øvre aldergrense
-          td: input[type="text" id="age_higher" class="nr required" value="#{department.age_limit_higher_inherited}"]
+          td: input[type="text" id="age_higher" class="nr required" value="#{department.options_self_or_inherited['age_limit_higher']}"]
           td: button[type='button' id="agesave" ]  = "Lagre"
           td
             span[id="age_info" class="info" style="margin-left:48px"]
@@ -218,11 +195,11 @@ div class="main"
   h3 Tidsbegrensninger
   p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
   div class="divdot inputf"
-    span[class="inherited" id="time_inherited" style="margin:7px; #{'display:none' unless department.time_limit.nil? }"]Disse innstillingene er arvet:
+    span[class="inherited" id="time_inherited" style="margin:7px; #{'display:none' unless department.options.time_limit.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
         td minutter per dag
-        td: input[type="text" id="time_limit" class="nr" value="#{department.time_limit_inherited}"]
+        td: input[type="text" id="time_limit" class="nr" value="#{department.options_self_or_inherited['time_limit']}"]
         td fri bruk?
         td: input[type="checkbox" id="time_limit_no_limit"]
         td: button[type='button' id="time_save"]  = "Lagre"
@@ -233,11 +210,11 @@ div class="main"
   h3 Hjemmeside
   p Startside til klientens nettleser.
   div class="divdot inputf"
-    span[class="inherited" id="homepage_inherited" style="margin:7px; #{'display:none' unless department.homepage.nil? }"]Disse innstillingene er arvet:
+    span[class="inherited" id="homepage_inherited" style="margin:7px; #{'display:none' unless department.options.homepage.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
         td  hjemmeside
-        td: input[type="text" id="homepage" value="#{department.homepage_inherited}"]
+        td: input[type="text" id="homepage" value="#{department.options_self_or_inherited['homepage']}"]
         td: button[type='button' id="homepagesave"]  = "Lagre"
         td
           span[id="homepage_info" class="info" style="margin-left:48px"]
@@ -248,404 +225,10 @@ div class="main"
     table class="genform"
       tr
         td  printeradresse
-        td: input[type="text" id="printer" value="#{department.printeraddr}"]
+        td: input[type="text" id="printer" value="#{department.options_self_or_inherited['printeraddr']}"]
         td: button[type='button' id="printersave"]  = "Lagre"
         td
           span[id="printer_info" class="info" style="margin-left:48px"]
           span[id="printer_error" class="error" style="margin-left:48px"]
 
-  script src="/js/jquery.meio.mask.min.js"
-  javascript:
-    // TODO change all # duplicates to .class
-    // TODO split this into common.js, department.js and branch.js when done
-    // read dept_id here at top
-
-    // ** conveniece functions **
-
-    $.fn.exists = function () {
-      return this.length != 0;
-    }
-
-    $(document).ready(function () {
-
-      // ** set input masks **
-
-      $('input#user_minutes').setMask('999');
-      $('input#age_lower').setMask('99');
-      $('input#age_higher').setMask('99');
-      $('input#minutes_limit').setMask('999');
-      $('table.clients').find('input.nr.required').setMask('999');
-      $('input#minutes_before_closing').setMask('99');
-
-      // ** global functions and handles **
-
-      $(':input').focus(function () {
-        if ($(this).hasClass('inputmissing')) {
-          $(this).removeClass('inputmissing');
-        }
-      });
-
-       // ** handle client-options events **
-
-      $("img.pc").on("click", function() {
-        var client_id = $(this).parents("tr").attr('id');
-        var $s = $("tr.clientoptions.client_"+client_id);
-        $s.toggle();
-        if (($s).is(':visible')) {
-          $('tr.options_open').removeClass("options_open").hide();
-          $s.addClass("options_open");
-        } else {
-          $s.removeClass("options_open");
-        }
-      });
-
-
-      $('button.clientsave').on('click', function () {
-        var $s = $('tr.options_open');
-        var shortbool = false;
-        if ($s.find('input.shorttimemachine').is(':checked')) {
-          shortbool = true;
-        }
-
-        var client_id = $s.find('input.client_id').val();
-
-        var request = $.ajax({
-          url: '/api/clients/'+client_id,
-          type: 'PUT',
-          data: {
-                screen_resolution_id: $s.find('.client_screen_res option:selected').val(),
-                shorttime: shortbool
-                },
-          dataType: "json"
-        });
-
-        request.done(function(msg) {
-          $('tr#'+client_id).find('span.info').html('OK! Lagret.').show().fadeOut(5000);
-          $s.removeClass("options_open");
-          $s.toggle();
-        })
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('tr#'+client_id).find('span.error')
-            .html(jqXHR.responseText).show().fadeOut(5000);
-        });
-      });
-
-      $('button.clientcancel').on('click', function () {
-        $s = $('tr.options_open');
-        $s.removeClass("options_open");
-        $s.toggle();
-      });
-
-      // ** handle client-user events **
-
-      $('button.throw-out').on('click', function () {
-        result = confirm("Brukeren vil bli logget av uten forvarsel.\nEr du sikker?");
-        if (result) {
-          $(this).parents('tr').find('span.info').html("Ikke ennå!").show().fadeOut(5000);
-          }
-      });
-
-      // ** Handle adjust user minutes
-      $('button.users.add_time').on('click', function () {
-
-        var $i = $(this).siblings('input.nr.required')
-        if (parseInt($i.val()) == 0) {
-          $i.val('');
-          return;
-        }
-        if ($i.val() =='' ) {
-          $i.addClass('inputmissing');
-          return;
-        }
-
-        var $tr = $(this).parents('tr');
-        var user_id = $tr.find('input.user_id').val();
-        var $min = $tr.find('input.users.minutes');
-        var user_minutes = $min.val();
-
-        var request = $.ajax({
-          url: '/api/users/'+user_id,
-          type: "PUT",
-          data: {
-                minutes: parseInt(user_minutes)+parseInt($i.val())
-                },
-          dataType: "json"
-        });
-
-        request.done(function(data) {
-          $min.val(data.user.minutes); // update hidden input
-          $tr.find('td.td-minutes').html(data.user.minutes);
-          $i.val('');
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-            $tr.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-         });
-
-      });
-
-      // ** handle opening-hours events **
-
-      $(':input.chk').change(function () {
-        if($(this).attr("checked"))
-        {
-          var id = $(this).attr("id").slice(0, -6);
-          $("#"+id+"opens").attr("disabled", "disabled").removeClass("inputmissing");
-          $("#"+id+"closes").attr("disabled", "disabled").removeClass("inputmissing");
-        } else {
-          var id = $(this).attr("id").slice(0, -6);
-          $("#"+id+"opens").removeAttr("disabled");
-          $("#"+id+"closes").removeAttr("disabled");
-        }
-      });
-
-      $(':input.hour').setMask('29:59').keypress(function() {
-        var currentMask = $(this).data('mask').mask;
-        var newMask = $(this).val().match(/^2.*/) ? "23:59" : "29:59";
-        if (newMask != currentMask) {
-          $(this).setMask(newMask);
-        }
-        });
-
-      $('button#hoursclear').on('click', function () {
-        $('#change_hours_form')[0].reset();
-        $('input#minutes_before_closing').val('')
-        $(':input.hour').val('').removeClass("inputmissing");
-        $(':input.hour').removeAttr("disabled");
-        $(':input.chk').removeAttr('checked');
-      });
-
-      $('button#hourssave').on('click', function() {
-
-        var missing = 0;
-        $('input.hour.required:not(:disabled)').each(function () {
-          if ($(this).val() == '' ) {
-            $(this).addClass('inputmissing');
-            missing += 1;
-          }
-        });
-
-        // return if one or more (but not all 14) input fields are missing
-        if (missing && (missing != 14 )) { return; }
-
-        $(':input.hour').removeClass("inputmissing");
-
-        var dept_id = $('input#department_id').val();
-
-        // remove opening_hours on department, and inherit from branch
-        // if all fields are blank
-
-        // TODO refactor into one request, create data on beforehand
-        if (missing == 14) {
-          var request = $.ajax({
-            url: '/api/departments/'+dept_id,
-            type: 'PUT',
-            cache: false,
-            data: {
-                  opening_hours: "inherit"
-                  },
-            dataType: "json"
-          });
-        } else {
-          var request = $.ajax({
-            url: '/api/departments/'+dept_id,
-            type: 'PUT',
-            cache: false,
-            data: {
-                  opening_hours: {
-                  monday_opens: $('input#monday_opens').val(),
-                  monday_closes: $('input#monday_closes').val(),
-                  tuesday_opens: $('input#tuesday_opens').val(),
-                  tuesday_closes: $('input#tuesday_closes').val(),
-                  wednsday_opens: $('input#wednsday_opens').val(),
-                  wednsday_closes: $('input#wednsday_closes').val(),
-                  thursday_opens: $('input#thursday_opens').val(),
-                  thursday_closes: $('input#thursday_closes').val(),
-                  friday_opens: $('input#friday_opens').val(),
-                  friday_closes: $('input#friday_closes').val(),
-                  saturday_opens: $('input#saturday_opens').val(),
-                  saturday_closes: $('input#saturday_closes').val(),
-                  sunday_opens: $('input#sunday_opens').val(),
-                  sunday_closes: $('input#sunday_closes').val(),
-                  monday_closed: $('input#monday_closed').is(':checked'),
-                  tuesday_closed: $('input#tuesday_closed').is(':checked'),
-                  wednsday_closed: $('input#wednsday_closed').is(':checked'),
-                  thursday_closed: $('input#thursday_closed').is(':checked'),
-                  friday_closed: $('input#friday_closed').is(':checked'),
-                  saturday_closed: $('input#saturday_closed').is(':checked'),
-                  sunday_closed: $('input#sunday_closed').is(':checked'),
-                  minutes_before_closing: $('input#minutes_before_closing').val()
-                  }},
-            dataType: "json"
-          });
-        }
-
-
-        request.done(function(data) {
-          $('span#hours_error').hide();
-          if (data.department.opening_hours) {
-            $('span#hours_info').html("OK! Lagret.").show().fadeOut(5000);
-            $('#change_hours_form').find('span.inherited').hide();
-          } else {
-            $('span#hours_info').html("OK! Arver instillinger").show().fadeOut(5000);
-            $('#change_hours_form').find('span.inherited').show();
-            $.each(data.department.inherited.opening_hours, function(k, v) {
-              if (v == true) {
-                $('input#'+k).attr('checked', true);
-                $('#'+k.slice(0,-6)+'opens').attr("disabled", "disabled");
-                $('#'+k.slice(0,-6)+'closes').attr("disabled", "disabled");
-              } else {
-                $('input#'+k).val(v); }
-            });
-          }
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('span#hours_info').hide();
-          console.log(jqXHR.responseText);
-          $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
-        });
-      });
-
-      // ** handle age-limit events
-      $('button#agesave').on('click', function () {
-        var dept_id = $('input#department_id').val();
-        var lower = $('input#age_lower').val();
-        var higher = $('input#age_higher').val();
-        if ((lower == "") && (higher == "")) {
-          var age_data = { age_limit_lower: "inherit", age_limit_higher: "inherit" };
-        } else {
-          var age_data = { age_limit_lower: lower, age_limit_higher: higher};
-        }
-
-        request = $.ajax({
-          url: "/api/departments/"+dept_id,
-          type: "PUT",
-          cache: false,
-          data: age_data,
-          dataType: "json"
-        });
-
-        request.done(function(data) {
-          if (data.department.age_limit_higher) {
-            $('input#age_lower').val(data.department.age_limit_lower);
-            $('input#age_higher').val(data.department.age_limit_higher);
-            $('span#age_inherited').hide();
-            var msg = "OK! Lagret.";
-          } else {
-            $('input#age_lower').val(data.department.inherited.age_limit_lower);
-            $('input#age_higher').val(data.department.inherited.age_limit_higher);
-            $('span#age_inherited').show();
-            var msg = "OK! Arver instillinger";
-          }
-          $('span#age_info').html(msg).show().fadeOut(5000);
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('span#age_error').html(jqXHR.responseText).show().fadeOut(5000);
-        });
-
-      });
-
-      // ** handle timie-limit events
-
-      $('input#time_limit_no_limit').change(function () {
-        if($(this).attr("checked"))
-        {
-          $('input#time_limit').attr("disabled", "disabled");
-        } else {
-          $('input#time_limit').removeAttr("disabled");
-        }
-      });
-
-      $('button#time_save').on('click', function () {
-        var dept_id = $('input#department_id').val();
-        var time = $('input#time_limit').val();
-        if (time == "") { hp = "inherit"; }
-
-        request = $.ajax({
-          url: "/api/departments/"+dept_id,
-          type: "PUT",
-          cache: false,
-          data: {
-                time_limit: time,
-                time_limit_no_limit: $('input#time_limit_no_limit').is(':checked')
-                },
-          dataType: "json"
-        });
-
-        request.done(function(data) {
-          if (data.department.time_limit) {
-            $('span#time_inherited').hide();
-            var msg = "OK! Lagret.";
-          } else {
-            $('span#time_inherited').show();
-            $('input#time_limit').val(data.department.inherited.time_limit);
-            var msg = "OK! Arver instillinger";
-          }
-          $('span#time_info').html(msg).show().fadeOut(5000);
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('span#time_error').html(jqXHR.responseText).show().fadeOut(5000);
-        });
-      });
-
-
-      // ** handle save homepage
-      $('button#homepagesave').on('click', function () {
-        var dept_id = $('input#department_id').val();
-        var hp = $('input#homepage').val();
-        if (hp == "") { hp = "inherit"; }
-
-        request = $.ajax({
-          url: "/api/departments/"+dept_id,
-          type: "PUT",
-          cache: false,
-          data: { homepage: hp },
-          dataType: "json"
-        });
-
-        request.done(function(data) {
-          if (data.department.homepage) {
-            $('span#homepage_inherited').hide();
-            var msg = "OK! Lagret.";
-          } else {
-            $('span#homepage_inherited').show();
-            $('input#homepage').val(data.department.inherited.homepage);
-            var msg = "OK! Arver instillinger";
-          }
-          $('span#homepage_info').html(msg).show().fadeOut(5000);
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('span#homepage_error').html(jqXHR.responseText).show().fadeOut(5000);
-        });
-      });
-
-      // ** handle save printer
-      $('button#printersave').on('click', function () {
-        var dept_id = $('input#department_id').val();
-
-        request = $.ajax({
-          url: "/api/departments/"+dept_id,
-          type: "PUT",
-          cache: false,
-          data: { printeraddr: $('input#printer').val() },
-          dataType: "json"
-        });
-
-        request.done(function(data) {
-          $('span#printer_info').html("OK! Lagret.").show().fadeOut(5000);
-        });
-
-        request.fail(function(jqXHR, textStatus, errorThrown) {
-          $('span#printer_error').html(jqXHR.responseText).show().fadeOut(5000);
-        });
-      });
-
-
-    });
-
-  == render :slim, :'_footer'
+  script src="/js/department.js"

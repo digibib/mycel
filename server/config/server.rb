@@ -1,10 +1,3 @@
-require "mysql2"
-require "yaml"
+import("shared")
 
-dbconfig = YAML::load(File.open("config/database.yml"))
-
-environment :test do
-  ActiveRecord::Base.establish_connection(dbconfig["test"])
-end
-
-
+config['channels'] = Hash.new{ |h,k| h[k] = EM::Channel.new }

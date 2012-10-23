@@ -1,6 +1,9 @@
 require "rake/testtask"
 require "em-synchrony/activerecord"
 require "./models"
+require "pry"
+
+APP_ROOT = File.expand_path(File.dirname( __FILE__ ))
 
 task :default => [:test]
 
@@ -8,6 +11,74 @@ Rake::TestTask.new do |test|
   test.libs << "test"
   test.test_files = Dir[ "test/test_*.rb" ]
   test.verbose = true
+end
+
+desc "clear user table (cronjob)"
+task :delete_users do
+  dbconfig = YAML::load(File.open("config/database.yml"))
+  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  puts "[#{Time.now}] :: Clears user table. Number of users deleted: #{User.delete_all}"
+end
+
+desc "setup application for proudction deployment"
+task :setup do
+  puts "1. Seed database"
+  Rake::Task["db:seed"].execute
+
+  puts "2. Prepare template views"
+  config = YAML::load(File.open("config/mycel.yml"))['ws']
+  puts "   using host: #{config['host']} and port: #{config['port']}"
+  Rake::Task["prepare"].invoke(config['host'], config['port'])
+
+  puts "3. Writes to crontab"
+  %x[whenever -w]
+  puts %x[whenever -k]
+
+  puts "4. Sets up log rotation"
+  Rake::Task["logrotate"].execute
+  puts "Done."
+end
+
+desc "set up log rotatation"
+task :logrotate do
+  logrotate_conf = <<-RUBY
+#{APP_ROOT}/logs/production.log {
+  weekly
+  missingok
+  rotate 36500
+  compress
+  delaycompress
+  notifempty
+  copytruncate
+  dateext
+  nomail
+}
+RUBY
+  begin
+    File.open('/etc/logrotate.d/mycel', 'w') do |fin|
+      fin.write logrotate_conf
+    end
+  rescue Exception => e
+    puts e
+    puts "Could not install logrotate configs. Try to run this task as root and ensuring logrotate is installed:\n#{logrotate_conf}"
+  end
+end
+
+desc "exchange 'localhost' for deployment server adress in template views"
+task :prepare, :host, :port do |t, args|
+  views = FileList['views/*.slim']
+  views.each do |view|
+    file = File.read(view)
+    modified = file.gsub(/localhost:9001/, "#{args[:host]}:#{args[:port]}")
+    File.open(view, "w") {|f| f.puts modified}
+  end
+end
+
+
+task :console do
+  dbconfig = YAML::load(File.open("config/database.yml"))
+  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  binding.pry
 end
 
 namespace :db do
@@ -18,14 +89,17 @@ namespace :db do
 
     load "db/schema.rb"
 
-    seed = YAML::load(File.open("db/seed.yml"))
+    seed = YAML::load(File.open("db/seed_REAL.yml"))
     org = Organization.create(seed['organization'])
+
 
     seed['branches'].each do |branch|
       b = Branch.create(:name => branch['name'])
       org.branches << b
       branch['departments'].each do |department|
-        d = Department.create(:name => department['name'], :homepage => department['homepage'])
+        d = Department.create(:name => department['name'])
+        d.build_options(:homepage => department['homepage'], :printeraddr => department['printeraddr'])
+        d.options.save
         b.departments << d
         department['clients'].each do |client|
           short = client['shorttime'] ||= 0
@@ -46,14 +120,9 @@ namespace :db do
                         :friday_opens => h['friday_opens'], :friday_closes => h['friday_closes'],
                         :saturday_opens => h['saturday_opens'], :saturday_closes => h['saturday_closes'],
                         :sunday_closed => h['sunday_closed'], :minutes_before_closing => h['minutes_before_closing'])
-    org.opening_hours = hours
-
-    seed['users'].each do |user|
-      u = LibraryUser.create(:username => user['username'], :minutes => user['minutes'],
-                             :age => user['age'])
-      c = Client.find_by_name(user['using'])
-      u.log_on(c)
-    end
+    #org.options = Options.new(:homepage => "http://www.deichman.no", :opening_hours => hours)
+    options = org.build_options(:homepage => "http://www.deichman.no", :opening_hours => hours, :time_limit => 60)
+    options.save
 
   end
 end

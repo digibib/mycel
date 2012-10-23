@@ -6,5 +6,15 @@ gem "em-synchrony"
 gem "mysql2"
 gem "slim"
 gem "grape"
-gem "clean_test", :require => false
-gem "rack-test", :require => false
+gem "whenever", :require => false
+gem "rake"
+
+group :development do
+  gem "pry"
+  gem "awesome_print"
+end
+
+group :test do
+  gem "clean_test", :require => false
+  gem "rack-test", :require => false
+end

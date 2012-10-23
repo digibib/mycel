@@ -1,6 +1,6 @@
 require "em-synchrony/activerecord"
-
-# set initial settings
+require "./sip2.rb"
+# initial settings
 ActiveRecord::Base.include_root_in_json = false
 
 class Organization < ActiveRecord::Base
@@ -8,49 +8,73 @@ class Organization < ActiveRecord::Base
 
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
-  has_one :opening_hours, :as => :owner_hours
+  has_one :options, :as => :owner_options
   has_one :admin, :conditions => "superadmin = 1"
 
   validates_presence_of :name
+
+  accepts_nested_attributes_for :options
+
+  def init
+    self.options ||= Options.new()
+  end
+
+  def as_json(*args)
+    hash = super()
+    hash.merge!(:options => self.options.as_json)
+  end
+
 end
+
+class Options < ActiveRecord::Base
+  belongs_to :owner_options, :polymorphic => true
+  has_one :opening_hours
+
+  accepts_nested_attributes_for :opening_hours
+
+  def as_json(*args)
+    hash = super()
+    hash.merge!(:opening_hours => self.opening_hours.as_json)
+    hash.except("owner_options_id", "owner_options_type", "id")
+  end
+end
+
 
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
   has_many :admins
-  has_one :opening_hours, :as => :owner_hours, :dependent => :destroy
+  has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
 
+  accepts_nested_attributes_for :options
+
+  after_initialize :init
+
+  def init
+    self.options ||= Options.new()
+  end
+
   def as_json(*args)
     hash = super()
-    hash.merge!(:opening_hours => self.opening_hours, :inherited => {
-      :opening_hours => self.opening_hours_inherited,
-      :age_limit_lower => self.age_limit_lower_inherited,
-      :age_limit_higher => self.age_limit_higher_inherited,
-      :homepage => self.homepage_inherited,
-      :time_limit => self.time_limit_inherited
-      })
+    hash.merge!(:options => self.options.as_json)
+    hash.merge!(:options_inherited => self.organization.options.as_json)
+    hash.except("organization_id")
   end
 
-  def homepage_inherited
-    read_attribute(:homepage) || Organization.first.homepage
-  end
-
-  def time_limit_inherited
-    read_attribute(:time_limit) || Organization.first.time_limit
-  end
-
-  def age_limit_lower_inherited
-    read_attribute(:age_limit_lower) || Organization.first.age_limit_lower
-  end
-
-  def age_limit_higher_inherited
-    read_attribute(:age_limit_higher) || Organization.first.age_limit_higher
-  end
-
-  def opening_hours_inherited
-    self.opening_hours || Organization.first.opening_hours
+  def options_self_or_inherited
+    opt = {}
+    self.options.attributes.each do |k,v|
+      if self.options[k]
+        opt[k] = v
+      else
+        opt[k] = self.organization.options.send(k.to_sym)
+      end
+    end
+    oh = self.options.opening_hours.as_json || self.organization.options.opening_hours.as_json
+    opt.merge! "opening_hours" => oh
+    opt.except("owner_options_id", "owner_options_type", "id")
   end
 
 end
@@ -59,46 +83,39 @@ class Department < ActiveRecord::Base
   belongs_to :branch
   has_many :clients, :dependent => :destroy
   has_many :admins
-  has_one :opening_hours, :as => :owner_hours, :dependent => :destroy
+  has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
 
+  accepts_nested_attributes_for :options
+
+  after_initialize :init
+
+  def init
+    self.options ||= Options.new()
+  end
+
   def as_json(*args)
     hash = super()
-    hash.merge!(:opening_hours => self.opening_hours, :inherited => {
-      :opening_hours => self.opening_hours_inherited,
-      :age_limit_lower => self.age_limit_lower_inherited,
-      :age_limit_higher => self.age_limit_higher_inherited,
-      :homepage => self.homepage_inherited,
-      :time_limit => self.time_limit_inherited
-      })
+    hash.merge!(:options => self.options.as_json)
+    hash.merge!(:options_inherited => self.branch.options_self_or_inherited)
+    hash.except("organization_id")
   end
 
-  def time_limit_inherited
-    read_attribute(:time_limit) || Branch.find(self.branch_id).time_limit_inherited
+  def options_self_or_inherited
+    branch = Branch.find(self.branch_id)
+    opt = {}
+    self.options.attributes.each do |k,v|
+      if self.options[k]
+        opt[k] = v
+      else
+        opt[k] = branch.options_self_or_inherited[k]
+      end
+    end
+    oh = self.options.opening_hours.as_json || self.branch.options_self_or_inherited['opening_hours']
+    opt.merge! "opening_hours" => oh
+    opt.except("owner_options_id", "owner_options_type", "id")
   end
-
-  def homepage_inherited
-    read_attribute(:homepage) || Branch.find(self.branch_id).homepage_inherited
-  end
-
-  def opening_hours_inherited
-    self.opening_hours || Branch.find(self.branch_id).opening_hours_inherited
-  end
-
-  def age_limit_lower_inherited
-    read_attribute(:age_limit_lower) || Branch.find(self.branch_id).age_limit_lower_inherited
-  end
-
-  def age_limit_higher_inherited
-    read_attribute(:age_limit_higher) || Branch.find(self.branch_id).age_limit_higher_inherited
-  end
-
-
-  def printer_addr
-    read_attribute(:printer_addr) || Branch.find(self.branch_id).printer_addr
-  end
-
 end
 
 class Client < ActiveRecord::Base
@@ -109,27 +126,23 @@ class Client < ActiveRecord::Base
 
   has_one :user, :inverse_of => :client, :autosave => true
   has_one :screen_resolution
-
-  def homepage
-    Department.find(self.department_id).homepage
-  end
+  has_one :options
 
   def branch
     Department.find(self.department_id).branch
-  end
-
-  def printer_addr
-    Department.find(self.department_id).printer_addr
   end
 
   def occupied?
     self.user
   end
 
+  def log_friendly
+    "#{self.branch.name}/#{self.department.name}/#{self.name}[#{self.hwaddr}]"
+  end
 end
 
 class OpeningHours < ActiveRecord::Base
-  belongs_to :owner_hours, :polymorphic => true
+  belongs_to :options
 
   validate :hours_or_closed_flag_must_be_present,
            :opening_hours_cant_be_later_than_closing_hours
@@ -174,6 +187,11 @@ class OpeningHours < ActiveRecord::Base
       end
     end
     att
+  end
+
+  def as_json(*args)
+    hash = super()
+    hash.except("options_id")
   end
 
   #TODO: find a more elegant solution to this repeitiveness:
@@ -249,26 +267,59 @@ class User < ActiveRecord::Base
     where("client_id IS NULL")
   end
 
+  def name
+    read_attribute(:name) || self.username
+  end
+
   def log_on(c)
     return false if c.user
-    c.user = self
-    c.user_id = id
-    c.save
+    self.client = c
   end
 
   def log_off
-    self.client.user_id = nil
     self.client.user = nil
+    self.client = nil
   end
 
 end
 
 class LibraryUser < User
-  validates_presence_of :username, :age
+  validates_presence_of :username #, :age, :name, hm need to authenticate w sip2 first!
   validates :username, :uniqueness => true
+
+  def authenticate(pin)
+    msg = formMessage(self.username, pin)
+    msg = appendChecksum(msg)
+    msg += "\r"
+
+    sip2client = DGClient.new
+    result = sip2client.send_message msg
+    result.force_encoding("CP850").encode!("UTF-8")
+
+    authorized = result.match /(?<=\|CQ)(.)(?=\|)/
+    bdate = result.match /(?<=\|PB)(.*?)(?=\|)/
+    name = result.match /(?<=\|AE)(.*?)(?=\|)/
+
+    if name[0].strip().empty? #invalid username(cardnr)
+      false
+    else
+      now = Time.now.utc.to_date
+      dob = Time.strptime(bdate[0], "%Y-%m-%d")
+      age = now.year - dob.year - ((now.month > dob.month || (now.month == dob.month && now.day >= dob.day)) ? 0 : 1)
+      self.age = age
+      self.name = name[0]
+      self.minutes ||= 60
+      save
+      authorized[0] == 'Y'
+    end
+  end
 
   def type_short
     'B'
+  end
+
+  def log_friendly
+    "LibraryUser, #{self.age}"
   end
 end
 
@@ -276,14 +327,26 @@ class GuestUser < User
   validates_presence_of :username, :password, :age
   validates :username, :uniqueness => true
 
+  def authenticate(password)
+    self.password == password
+  end
+
   def type_short
     'G'
+  end
+
+  def log_friendly
+    "GuestUser, #{self.age > 15 ? 'adult' : 'child'}"
   end
 end
 
 class AnonymousUser < User
   def type_short
     'A'
+  end
+
+  def log_friendly
+    "AnonymousUser, unknown"
   end
 end
 

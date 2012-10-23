@@ -78,23 +78,27 @@ describe "Clients", "Client-User interaction" do
 
   it "an user can log on to a client" do
     @lib_user.log_on @client
+    @lib_user.save
     @client.user.must_equal @lib_user
   end
 
   it "an user can log off a client" do
     @lib_user.log_on @client
+    @lib_user.save
     assert @client.user == @lib_user
     @lib_user.log_off
+    @lib_user.save
     assert @lib_user.client.nil?
     assert @client.user.nil?
     refute @client.occupied?
-    assert @client.user_id.nil?
   end
 
   it "only one user can log on to client at a time" do
     @lib_user.log_on @client
+    @lib_user.save
     assert @client.occupied?
     @guest_user.log_on @client
+    @guest_user.save
     refute @client.user == @guest_user
   end
 

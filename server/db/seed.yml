@@ -1,16 +1,11 @@
 organization:
   name: Deichmanske bibliotek
-  homepage: 'http://www.deichman.no'
-  age_limit_lower: 1
-  age_limit_higher: 99
-  time_limit: 60
 branches:
   -
     name: Hovedbiblioteket
     departments:
       -
         name: Digitalt Bibliotek
-        homepage: 'http://digital.deichman.no/'
         clients:
           -
             name: petter-samsung
@@ -22,7 +17,6 @@ branches:
             IPaddr: 192.168.200.998
       -
         name: Musikkavdelingen
-        homepage: 'http://blogg.deichman.no/musikk/'
         clients:
           -
             name: musikkklient1
@@ -104,7 +98,6 @@ branches:
             shorttime: 1
   -
     name: Grünerløkka
-    homepage: 'http://www.deichmanske-bibliotek.oslo.kommune.no/avdelinger_apningstider/grnerlokka/'
     departments:
       -
         name: Barneavdelingen
@@ -167,20 +160,3 @@ opening_hours:
   saturday_closes: '16:00'
   sunday_closed: 1
   minutes_before_closing: 5
-users:
-  -
-    username: "Franz Kafka"
-    minutes: 30
-    age: 129
-    using: hovedklient1
-  -
-    username: "Kurt Vonnegut"
-    minutes: 33
-    age: 90
-    minutes: 10
-    using: hovedklient2
-  -
-    username: "Henry Miller"
-    minutes: 12
-    age: 30
-    using: hovedklient5

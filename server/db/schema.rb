@@ -1,34 +1,30 @@
 require "em-synchrony/activerecord"
 
 ActiveRecord::Schema.define do
-  create_table :organization, :force => true do |t|
-    t.string :name, :null => false
-    t.string :homepage
-    t.integer :age_limit_lower
-    t.integer :age_limit_higher
-    t.integer :time_limit
-    t.boolean :time_limit_no_limit, :default => false
-  end
-
-  create_table :branches, :force => true do |t|
-    t.string :name, :null => false
+  create_table :options, :force => true do |t|
     t.string :homepage
     t.string :printeraddr
     t.integer :age_limit_lower
     t.integer :age_limit_higher
     t.integer :time_limit
     t.boolean :time_limit_no_limit, :default => false
+
+    t.integer :owner_options_id
+    t.string :owner_options_type
+  end
+
+  create_table :organization, :force => true do |t|
+    t.string :name, :null => false
+  end
+
+  create_table :branches, :force => true do |t|
+    t.string :name, :null => false
+
     t.integer :organization_id
   end
 
   create_table :departments, :force => true do |t|
     t.string :name, :null => false
-    t.string :homepage
-    t.string :printeraddr
-    t.integer :age_limit_lower
-    t.integer :age_limit_higher
-    t.integer :time_limit
-    t.boolean :time_limit_no_limit, :default => false
 
     t.integer :branch_id
   end
@@ -38,11 +34,9 @@ ActiveRecord::Schema.define do
     t.string :hwaddr, :null => false
     t.string :ipaddr, :null => false
     t.boolean :shorttime, :default => false
-    t.string :printeraddr
 
     t.integer :screen_resolution_id, :default => 1
     t.integer :department_id
-    t.integer :user_id
   end
 
   create_table :opening_hours, :force => true do |t|
@@ -69,8 +63,7 @@ ActiveRecord::Schema.define do
     t.time :sunday_closes
     t.integer :minutes_before_closing
 
-    t.integer :owner_hours_id
-    t.string :owner_hours_type
+    t.integer :options_id
   end
 
   create_table :admins, :force => true do |t|
@@ -83,6 +76,7 @@ ActiveRecord::Schema.define do
   create_table :users, :force => true do |t|
     t.string :username
     t.string :password
+    t.string :name
     t.integer :minutes
     t.integer :age
 

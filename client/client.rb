@@ -1,30 +1,90 @@
-#    HOW A CLIENT CONNECTS WITH SERVER
-# 1. Fetch MAC-address (HWaddr) from client. This is what identifies the client. Each
-#    MAC-address should correspond to a client row in the db on server.
-# 2. Send this identificator to Server => gets back client name, and its place in the
-#    hierarchy (department).
-# 3. Prompt for username and password (Library card number and personal PIN-code)
-# 4. Validate using the SIP2-protocol. If not valid, show error message and go back to #3
-# 5. Send userID to server with request to log in
-# 6. If user has not exceeded the daily time limit, or is otherwise blocked, the
-#    request to log on is granted
-# 7. After sucessfull logon, a small window stating the users name, number of minutes left,
-#    name of the client, together with a "logg out" button shows up and stays on top of session.
-# 8. Session is valid until user logs out, or is forced to log out when the time limit is
-#    reached. User is warned 5 minutes before the time is up.
-# 9. After logout, got back to #3
+#encoding: UTF-8
+require "json"
+require "net/http"
+require "em-ws-client"
+require "yaml"
+require "./login.rb"
+require "./loggedin.rb"
 
+CONFIG = YAML::load(File.open("client.yml"))
+MAC = %x[cat '/sys/class/net/eth0/address'].strip
 
-# NOTE: The following method of getting the MAC-adress works on debian-based
-#       linux, but I'm not sure it works whith every system.
-#       This fetches address of eth0; make sure to fetch the right eth (or wlan)
-#       if the client has several network connections
-client_address = %x[cat '/sys/class/net/eth0/address'].strip
-
-if not client_address
+if not MAC
   puts "Fatal error: Could not retreive MAC-address of client."
-  puts "This is needed for identifying the client." 
+  puts "This is needed for identifying the client."
   exit 0
 end
 
-puts client_address
+uri = URI("http://#{CONFIG['api']['host']}:#{CONFIG['api']['port']}/api/clients/?mac="+MAC)
+res = nil
+
+until res
+  begin
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    request.basic_auth(CONFIG['api']['username'], CONFIG['api']['password'])
+    res = http.request(request)
+  rescue Exception => e
+    puts "Error connecting to Mycel server: "
+    puts e
+    for i in 1..5
+      printf "retrying in %d seconds..\n", 6-i
+      sleep 1
+    end
+  end
+end
+
+client = JSON.parse(res.body)['client']
+
+
+while true
+  LogOn = LogOnWindow.new "LogOn", client['name']
+  LogOn.show
+  Gtk.main
+
+  EM.run do
+    ws = EM::WebSocketClient.new "ws://#{CONFIG['ws']['host']}:#{CONFIG['ws']['port']}/subscribe/clients/#{client['id']}"
+    channel = EM::Channel.new
+    LoggedIn = LoggedInWindow.new client['name'], LogOn.user
+    LoggedIn.show
+
+    ws.onopen do
+      msg = {:action => "log-on", :client => client['id'], :user => LogOn.user}
+      ws.send_message JSON.generate msg
+    end
+
+    ws.onmessage do |msg, binary|
+      message = JSON.parse(msg)
+      puts message
+      case message["status"]
+        when "logged-on"
+          LoggedIn.set_name_label(message['user']['name'])
+          LoggedIn.set_time(message["user"]["minutes"])
+        when "ping"
+            LoggedIn.set_time(message["user"]["minutes"]) if message["user"]["name"] == LoggedIn.name
+        when "logged-off"
+          EM.stop
+      end
+    end
+
+    sid = channel.subscribe { |msg|
+      msg = {:action => "log-off", :client => client['id'], :user => LogOn.user}
+      ws.send_message JSON.generate msg
+    }
+
+    give_tick = proc {
+      Gtk::main_iteration_do(blocking=false)
+      sleep(0.01)
+      EM.next_tick(give_tick)
+      if LoggedIn.user.nil?
+        channel.push("log-off")
+        LoggedIn.user = "logging-off"
+      end
+      }
+    give_tick.call
+
+  end
+
+  LoggedIn.destroy unless LoggedIn.destroyed?
+  LogOn = nil
+end

@@ -5,6 +5,9 @@ GEM
       glib2 (>= 1.1.4)
     cairo (1.12.2)
       pkg-config
+    em-ws-client (0.2.0)
+      eventmachine (~> 1.0.0.beta.4)
+    eventmachine (1.0.0)
     gdk_pixbuf2 (1.1.4)
       glib2 (>= 1.1.4)
     glib2 (1.1.4)
@@ -22,4 +25,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  em-ws-client
   gtk2

@@ -1,8 +1,6 @@
-== render :slim, :'_header'
 - org = Organization.first
 div class="main"
   h2 Filialer
-  p Følgende #{org.branches.size} filialer er underordnet organisasjonen #{org.name}:
   - org.branches.order('name').each do |branch|
       a href="/#{branch.name}"
         h3 #{branch.name}
@@ -10,7 +8,9 @@ div class="main"
         - branch.departments.each do |dept|
           tr
             td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
-            td #{dept.clients.where("user_id IS NOT NULL").count} av #{dept.clients.size} klient#{'er' if dept.clients.size > 1} i bruk
-
-  == render :slim, :'_footer'
-
+            td #{dept.clients.size - dept.clients.joins(:user).count} av #{dept.clients.size} ledige
+            td
+              - dept.clients.joins(:user).count.times do
+                img src="/img/pc_green.png" style="margin-left:5px"
+              - (dept.clients.size - dept.clients.joins(:user).count).times do
+                img src="/img/pc_black.png" style="margin-left:5px"
