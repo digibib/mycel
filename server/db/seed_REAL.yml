@@ -24,6 +24,10 @@ branches:
             name: mycelmaster
             HWaddr: 00:01:2e:1f:c0:5a
             IPaddr: ukjent4
+          -
+            name: client-test
+            HWaddr: 00:01:2e:34:89:31
+            IPaddr: ukjent6
       -
         name: Unge Deichman
         printeraddr: 'socket://10.172.2.32:9100'
