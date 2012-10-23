@@ -4,7 +4,6 @@ require 'goliath/rack/templates'
 require "em-synchrony/activerecord"
 require "mysql2"
 require "slim"
-require "erb"
 require "cgi"
 require "./models"
 require "./api"
