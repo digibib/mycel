@@ -47,14 +47,14 @@ class Server < Goliath::API
     else
       case path.length
       when 0    # matches /
-        [200, {}, erb(:index)]
+        [200, {}, slim(:index)]
       when 2    # matches {branches}|users|statistics
         if @@org.branches.find_by_name(path[1])
           [200, {}, slim(:branch, :locals => {:branch => Branch.find_by_name(path[1])})]
         elsif path[1] == 'users'
           [200, {}, slim(:users, :locals => {:users => User.all})]
         elsif path[1] == 'branches'
-          [200, {}, erb(:branches)]
+          [200, {}, slim(:branches)]
         elsif path[1] == 'statistics'
           [200, {}, slim(:statistics)]
         else    # matches non-existing branch
