@@ -49,16 +49,17 @@ Most of the options can be configured in the web-based administration interface.
 To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up cronjobs.
 
 #### Cronjob troubleshooting
-Mycel sets up a cronjob to remove all users at midnight. If the cronjob doesn't get executed, check your `var/log/syslog` for hints on what might be wrong. 
+Mycel sets up a cronjob to remove all users at midnight. If the cronjob doesn't get executed, check your `var/log/syslog` for hints on what could be wrong. 
 
 Try to comment out the following line from your `~/.bashrc` file:
 
     [  -z "$PS1" ] && return
 
-As well as adding the following to `~/.rmvrc`:
+If you prefer not to have per-user crontabs, you can set the cronjob up manually by creating `/etc/cron.d/mycel`, paste in the following, substituting USER and PATH to suit your environment:
 
-    rvm_trust_rvmrcs_flag=1
-
+```
+0 0 * * * {USER} /bin/bash -l -c 'source /home/{USER}/.rvm/environments/ruby-1.9.2-p320 && cd /{PATH/TO}/mycel/server && bundle exec rake delete_users --silent >> logs/cron.log 2>&1'
+```
 
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
