@@ -36,15 +36,20 @@ end
 
 client = JSON.parse(res.body)['client']
 
-
-#screen resolution
-#client['screen_resolution']
-
-#homepage
+# do local mods before login
+# set screen resolution
+# client['screen_resolution']
+  display = %x[/usr/bin/xrandr | /bin/grep -e " connected [^(]" | /bin/sed "s/\([A-Z0-9]\+\).*/\1/"]
+  %x[/usr/bin/xrandr --output #{display} --mode #{client['screen_resolution']} ]
+ 
+# set firefox homepage
 #client['options_inherited']['homepage']
+  escaped_homepage = client['options_inherited']['homepage'].gsub('/', '\/')
+  %x[/bin/sed -i 's/user_pref("browser.startup.homepage",.*/user_pref("browser.startup.homepage","#{escaped_homepage}");/' $HOME/.mozilla/firefox/*.default/prefs.js]
 
-#printer
+# set local printer
 #client['options_inherited']['printeraddr']
+  %x[/usr/bin/lpstat -p HP-LaserJet-4050 -v #{client['options_inherited']['printeraddr']} ]
 
 
 
