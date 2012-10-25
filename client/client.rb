@@ -40,7 +40,7 @@ client = JSON.parse(res.body)['client']
 # set screen resolution
 # client['screen_resolution']
 if client['screen_resolution'] != "auto"
-  display = %x[/usr/bin/xrandr | /bin/grep -e " connected [^(]" | /bin/sed "s/\([A-Z0-9]\+\).*/\1/"]
+  display = %x[/usr/bin/xrandr | /bin/grep -e " connected [^(]" | /usr/bin/awk '{print $1}']
   %x[/usr/bin/xrandr --output #{display} --mode #{client['screen_resolution']} ]
 end
 
@@ -49,9 +49,9 @@ end
   escaped_homepage = client['options_inherited']['homepage'].gsub('/', '\/')
   %x[/bin/sed -i 's/user_pref("browser.startup.homepage",.*/user_pref("browser.startup.homepage","#{escaped_homepage}");/' $HOME/.mozilla/firefox/*.default/prefs.js]
 
-# set local printer
+# set local printer (using sudo without password, needs sudoers.d rule)
 if client['options_inherited']['printeraddr']
-  %x[/usr/bin/lpstat -p HP-LaserJet-4050 -v #{client['options_inherited']['printeraddr']} ]
+  %x[/usr/bin/sudo -n /usr/sbin/lpadmin -p skranken -v #{client['options_inherited']['printeraddr']} ]
 end
 
 
