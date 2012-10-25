@@ -37,6 +37,17 @@ end
 client = JSON.parse(res.body)['client']
 
 
+#screen resolution
+#client['screen_resolution']
+
+#homepage
+#client['options_inherited']['homepage']
+
+#printer
+#client['options_inherited']['printeraddr']
+
+
+
 while true
   LogOn = LogOnWindow.new "LogOn", client['name']
   LogOn.show
