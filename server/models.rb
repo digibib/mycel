@@ -126,7 +126,13 @@ class Client < ActiveRecord::Base
 
   has_one :user, :inverse_of => :client, :autosave => true
   has_one :screen_resolution
-  has_one :options
+  has_one :options, :as => :owner_options, :dependent => :destroy
+
+  after_initialize :init
+
+  def init
+    self.options ||= Options.new()
+  end
 
   def branch
     Department.find(self.department_id).branch
@@ -138,6 +144,29 @@ class Client < ActiveRecord::Base
 
   def log_friendly
     "#{self.branch.name}/#{self.department.name}/#{self.name}[#{self.hwaddr}]"
+  end
+
+  def options_self_or_inherited
+    dept = Department.find(self.dept_id)
+    opt = {}
+    self.options.attributes.each do |k,v|
+      if self.options[k]
+        opt[k] = v
+      else
+        opt[k] = dept.options_self_or_inherited[k]
+      end
+    end
+    oh = self.options.opening_hours.as_json || self.dept.options_self_or_inherited['opening_hours']
+    opt.merge! "opening_hours" => oh
+    opt.except("owner_options_id", "owner_options_type", "id")
+  end
+
+  def as_json
+    hash = super()
+    hash.merge!(:options => self.options.as_json)
+    hash.merge! "screen_resolution" => ScreenResolution.find(self.screen_resolution_id).resolution
+    hash.merge!(:options_inherited => self.department.options_self_or_inherited)
+    hash.except("screen_resolution_id")
   end
 end
 

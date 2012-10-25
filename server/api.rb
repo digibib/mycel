@@ -54,7 +54,7 @@ class API < Grape::API
         throw :error, :status => 404,
               :message => "Det finnes ingen klient med MAC-adresse " +
                           "#{params[:mac]}" unless client
-        {:client => client}
+        {:client => client.as_json}
       else
         {:clients => Client.all }
       end
@@ -63,7 +63,7 @@ class API < Grape::API
     desc "returns individual client"
     get "/:id" do
       begin
-        {:client => Client.find(params[:id])}
+        {:client => Client.find(params[:id]).as_json}
       rescue ActiveRecord::RecordNotFound
         throw :error, :status => 404,
               :message => "Det finnes ingen klient med id #{params[:id]}"
