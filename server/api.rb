@@ -85,13 +85,19 @@ class API < Grape::API
     desc "updates an existing client and returns the updated version"
     put "/:id" do
       client = Client.find(params[:id])
+      changes = false
 
       # select only the keys from params present in client.attributes
       updates = params.select { |k| client.attributes.keys.include?(k) }
       client.attributes = client.attributes.merge(updates)
 
+      if params[:screen_resolution_id]
+        changes = true if client.screen_resolution.id != params[:screen_resolution_id]
+        client.screen_resolution = ScreenResolution.find(params[:screen_resolution_id])
+      end
+
       throw :error, :status => 400,
-            :message => "Ingen endringer!" unless client.changed?
+            :message => "Ingen endringer!" unless client.changed? || changes
 
       client.save
       {:client => client}

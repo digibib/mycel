@@ -128,10 +128,13 @@ class Client < ActiveRecord::Base
   has_one :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
 
+  accepts_nested_attributes_for :options, :screen_resolution
+
   after_initialize :init
 
   def init
     self.options ||= Options.new()
+    self.screen_resolution ||= ScreenResolution.find_or_create_by_resolution "auto"
   end
 
   def branch
@@ -164,9 +167,8 @@ class Client < ActiveRecord::Base
   def as_json
     hash = super()
     hash.merge!(:options => self.options.as_json)
-    hash.merge! "screen_resolution" => ScreenResolution.find(self.screen_resolution_id).resolution
+    hash.merge! "screen_resolution" => self.screen_resolution.resolution
     hash.merge!(:options_inherited => self.department.options_self_or_inherited)
-    hash.except("screen_resolution_id")
   end
 end
 
@@ -385,4 +387,5 @@ end
 
 class ScreenResolution < ActiveRecord::Base
   validates_presence_of :resolution
+  belongs_to :client
 end

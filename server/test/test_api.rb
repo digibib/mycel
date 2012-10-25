@@ -19,10 +19,19 @@ describe API do
     describe 'GET /api/clients' do
 
       before do
+        @dept = Department.create :name => any_string
         @client1 = Client.create(:id => 1, :name => 'client1',
                                  :hwaddr => any_string, :ipaddr => any_string)
         @client2 = Client.create(:id => 2, :name => 'client2',
                                  :hwaddr => "identifyme!", :ipaddr => any_string)
+        @dept.clients << @client1
+        @dept.clients << @client2
+      end
+
+      after do
+        @dept.destroy
+        @client1.destroy
+        @client2.destroy
       end
 
       it "lists all the clients" do

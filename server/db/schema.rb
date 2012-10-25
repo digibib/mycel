@@ -35,7 +35,6 @@ ActiveRecord::Schema.define do
     t.string :ipaddr, :null => false
     t.boolean :shorttime, :default => false
 
-    t.integer :screen_resolution_id, :default => 1
     t.integer :department_id
   end
 
@@ -88,5 +87,6 @@ ActiveRecord::Schema.define do
 
   create_table :screen_resolutions, :force => true do |t|
     t.string :resolution
+    t.integer :client_id
   end
 end

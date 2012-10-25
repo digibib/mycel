@@ -58,7 +58,7 @@ div class="main"
         td skjermoppløsning
         td: select[class="client_screen_res"]
             - for res in screen_res do
-              |<option #{'selected' if res.id == client.screen_resolution_id} value="#{res.id}">#{res.resolution}</option>
+              |<option #{'selected' if res.id == client.screen_resolution.id} value="#{res.id}">#{res.resolution}</option>
         td[colspan="2"] korttidsmaskin
         td[style="text-align:center"]
           - if client.shorttime
