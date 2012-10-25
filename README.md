@@ -22,9 +22,11 @@ WRITEME
 
 
 ## Installation and setup
-The system is quite easy to set up. Both server and client are (currently) written in Ruby.
+The system can be a bit challenging to set up, especially for those with litle Linux sysadmin experience. The trickiest part is probaby network configuration and setup and distribution of the live client images. This topic will be adressed in our Wiki.
 
-### Database
+Do not hesitate to get in touch if your library wants to try out Mycel and need guidance!
+
+###Database
 Mycel is written and tested with MySQL. To compile the mysql2 gem you will need the development headers:
 
 ```sudo apt-get install libmysqlclient-dev```
@@ -34,13 +36,12 @@ If you want to use a different database, it's vital that you choose one with asy
 ### Server
 *Note:* We currently have some unresolved bugs related to fibers, probably in one of the dependencies, leadning to failures (Stack overflow) in Ruby 1.9.3. Until we manage to resolve this, Ruby version 1.9.2 must be used on the serverside,
 
-The server is written using the asynchronous web server framework [Goliath]. It provides its own server. To get it up running, simply do a bundle install and, start and deamonize the server using:
+To get it up running, simply do a bundle install and, start and deamonize the 2 server processes:
 
-```ruby server.rb -d -e production -p 9001```
+```ruby server.rb -d -e prod -l logs/api.log -p 9001```
 
-This is the server communicating with the clients via WebSockets. In addition, the API-server is running as a separate process. All updates on you make on clients, users and options in the web interface, are made by calling the API underneath. This server is also responsible for serving the web interface views. Start the API with:
+```ruby api_server.rb -d -e prod -l logs/production.log -p 9000```
 
-```ruby api_server.rb -d -e production'-p 9000```
 
 **Server configuration**
 
@@ -48,18 +49,20 @@ Most of the options can be configured in the web-based administration interface.
  
 To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up cronjobs.
 
-#### Cronjob troubleshooting
-Mycel sets up a cronjob to remove all users at midnight. If the cronjob doesn't get executed, check your `var/log/syslog` for hints on what could be wrong. 
-
-Try to comment out the following line from your `~/.bashrc` file:
-
-    [  -z "$PS1" ] && return
+#### Cronjob
+Mycel sets up a cronjob to remove all users at midnight. 
 
 If you prefer not to have per-user crontabs, you can set the cronjob up manually by creating `/etc/cron.d/mycel`, paste in the following, substituting USER and PATH to suit your environment:
 
 ```
 0 0 * * * {USER} /bin/bash -l -c 'source /home/{USER}/.rvm/environments/ruby-1.9.2-p320 && cd /{PATH/TO}/mycel/server && bundle exec rake delete_users --silent >> logs/cron.log 2>&1'
 ```
+
+If the cronjob doesn't get executed, check your `var/log/syslog` for hints on what could be wrong. 
+
+Try to comment out the following line from your `~/.bashrc` file:
+
+    [  -z "$PS1" ] && return
 
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
