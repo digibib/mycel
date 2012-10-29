@@ -1,5 +1,11 @@
 organization:
   name: Deichmanske bibliotek
+options:
+  homepage: www.deichman.no
+  age_limit_lower: 1
+  age_limit_higher: 99
+  time_limit: 60
+  shorttime_limit: 15
 branches:
   -
     name: Hovedbiblioteket

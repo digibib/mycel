@@ -150,7 +150,7 @@ class Client < ActiveRecord::Base
   end
 
   def options_self_or_inherited
-    dept = Department.find(self.dept_id)
+    dept = Department.find(self.department.id)
     opt = {}
     self.options.attributes.each do |k,v|
       if self.options[k]
@@ -159,7 +159,7 @@ class Client < ActiveRecord::Base
         opt[k] = dept.options_self_or_inherited[k]
       end
     end
-    oh = self.options.opening_hours.as_json || self.dept.options_self_or_inherited['opening_hours']
+    oh = self.options.opening_hours.as_json || dept.options_self_or_inherited['opening_hours']
     opt.merge! "opening_hours" => oh
     opt.except("owner_options_id", "owner_options_type", "id")
   end
@@ -299,7 +299,7 @@ class User < ActiveRecord::Base
   end
 
   def name
-    read_attribute(:name) || self.username
+    read_attribute(:name) || self.username || "Anonym_"+self.id.to_s
   end
 
   def log_on(c)

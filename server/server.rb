@@ -71,15 +71,20 @@ class Server < Goliath::WebSocket
     #env.logger.debug("WS MESSAGE: #{msg}")
 
     Fiber.new do
-      user = User.find_by_username msg["user"]
-      client = Client.find msg["client"]
+      env['client'] ||= Client.find msg["client"]
+      if msg["user"] == "Anonym"
+        env['user'] ||= AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
+      else
+        env['user'] ||= User.find_by_username msg["user"]
+      end
 
       case msg['action']
         when 'log-on'
           #NB must be authenticated! i.e user object must exist
+          client = env['client']
+          user = env['user']
           user.log_on client
           user.save
-          env['user'] = user
 
           env['timer'] = EM.add_periodic_timer(30) do
             Fiber.new do
@@ -114,6 +119,8 @@ class Server < Goliath::WebSocket
           env.channels['clients/'+client.id.to_s] << broadcast
           env.channels['users/'] << broadcast
         when 'log-off'
+          user = env['user']
+          client = env['client']
           user.log_off
           user.save
           EM.cancel_timer(env['timer'])

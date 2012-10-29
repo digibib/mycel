@@ -5,6 +5,7 @@ require "em-ws-client"
 require "yaml"
 require "./login.rb"
 require "./loggedin.rb"
+require "./shorttimelogin.rb"
 
 CONFIG = YAML::load(File.open("client.yml"))
 MAC = %x[cat '/sys/class/net/eth0/address'].strip
@@ -59,9 +60,15 @@ age_lower = client['options_inherited']['age_limit_lower']
 age_higher = client['options_inherited']['age_limit_higher']
 
 while true
-  LogOn = LogOnWindow.new "LogOn", client['name'], age_lower, age_higher
+  if client['shorttime']
+    LogOn = ShortWindow.new "LogOn", client['name'], client['options_inherited']['shorttime_limit']
+
+  else
+    LogOn = LogOnWindow.new "LogOn", client['name'], age_lower, age_higher
+  end
   LogOn.show
   Gtk.main
+
 
   EM.run do
     ws = EM::WebSocketClient.new "ws://#{CONFIG['ws']['host']}:#{CONFIG['ws']['port']}/subscribe/clients/#{client['id']}"
