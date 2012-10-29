@@ -123,6 +123,8 @@ class API < Grape::API
       # 2. find or create libraryuser if not a guest user
       user = LibraryUser.find_or_create_by_username params["username"] unless user
       authenticated = true if user and user.authenticate params["password"]
+      # Not OK if user allready logged on
+      authenticated = false if user.client
       status 200
       {:authenticated => authenticated, :minutes => user.minutes || nil}
     end
