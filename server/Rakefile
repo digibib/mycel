@@ -121,7 +121,8 @@ namespace :db do
                         :saturday_opens => h['saturday_opens'], :saturday_closes => h['saturday_closes'],
                         :sunday_closed => h['sunday_closed'], :minutes_before_closing => h['minutes_before_closing'])
     #org.options = Options.new(:homepage => "http://www.deichman.no", :opening_hours => hours)
-    options = org.build_options(:homepage => "http://www.deichman.no", :opening_hours => hours, :time_limit => 60)
+    options = org.build_options(seed['options'])
+    options.opening_hours = hours
     options.save
 
   end
