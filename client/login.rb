@@ -120,11 +120,13 @@ class LogOnWindow < Gtk::Window
       rescue Exception => e
         puts e
       end
-      if @age_lower and res['age'] < @age_lower
-        error = "Denne maskinen er kun for de mellom #{@age_lower} og #{@age_higher}"
-      end
-      if @age_higher and res['age'] > @age_higher
-        error = "Denne maskinen er kun for de mellom #{@age_lower} og #{@age_higher}"
+      if res['age']
+        if @age_lower and res['age'] < @age_lower
+          error = "Denne maskinen er kun for de mellom #{@age_lower} og #{@age_higher}"
+        end
+        if @age_higher and res['age'] > @age_higher
+          error = "Denne maskinen er kun for de mellom #{@age_lower} og #{@age_higher}"
+        end
       end
       error = res['message'] unless res['authenticated']
       error = "Du har brukt opp kvoten din for i dag!" if res['minutes'] == 0 and res['authenticated']
