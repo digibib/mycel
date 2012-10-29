@@ -82,7 +82,7 @@ div class="main"
         th
 
     tbody
-      - for user in User.inactive
+      - for user in User.inactive.where("type != 'AnonymousUser'")
         tr id="#{user.id}"
           td[class="td-usertype"] #{user.type_short}
           td[class="td-username"] #{user.name}
