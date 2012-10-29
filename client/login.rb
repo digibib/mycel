@@ -5,10 +5,12 @@ class LogOnWindow < Gtk::Window
 
   attr_accessor :user, :pin, :clientname
 
-  def initialize(title, clientname)
+  def initialize(title, clientname, age_lower, age_higher)
     super(title)
     @user, @pin = nil
     @clientname = clientname
+    @age_lower = age_lower
+    @age_higher = age_higher
     build_gui
     fullscreen
     self.keep_above = true
@@ -117,6 +119,12 @@ class LogOnWindow < Gtk::Window
         res = JSON.parse(res.body)
       rescue Exception => e
         puts e
+      end
+      if @age_lower and res['age'] < @age_lower
+        error = "Denne maskinen er kun for de mellom #{@age_lower} og #{@age_higher}"
+      end
+      if @age_higher and res['age'] > @age_higher
+        error = "Denne maskinen er kun for de mellom #{@age_lower} og #{@age_higher}"
       end
       error = res['message'] unless res['authenticated']
       error = "Du har brukt opp kvoten din for i dag!" if res['minutes'] == 0 and res['authenticated']

@@ -129,7 +129,8 @@ class API < Grape::API
       authenticated = false if user.client
 
       status 200
-      {:authenticated => authenticated, :minutes => user.minutes || nil, :message => message}
+      {:authenticated => authenticated, :minutes => user.minutes || nil,
+       :age => user.age || nil, :message => message}
     end
 
     desc "returns a specific user"

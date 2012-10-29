@@ -54,9 +54,12 @@ if client['options_inherited']['printeraddr']
   %x[/usr/bin/sudo -n /usr/sbin/lpadmin -p skranken -v #{client['options_inherited']['printeraddr']} ]
 end
 
+# age limits:
+age_lower = client['options_inherited']['age_limit_lower']
+age_higher = client['options_inherited']['age_limit_higher']
 
 while true
-  LogOn = LogOnWindow.new "LogOn", client['name']
+  LogOn = LogOnWindow.new "LogOn", client['name'], age_lower, age_higher
   LogOn.show
   Gtk.main
 
