@@ -116,6 +116,7 @@ class API < Grape::API
       throw :error, :status => 400,
             :message => "Manglende parametere" unless params["username"] and params["password"]
 
+      message = "Feil lånenummer/brukernavn eller PIN/passord"
       authenticated = false
 
       # 1. check if user is a guest user in db
@@ -123,10 +124,12 @@ class API < Grape::API
       # 2. find or create libraryuser if not a guest user
       user = LibraryUser.find_or_create_by_username params["username"] unless user
       authenticated = true if user and user.authenticate params["password"]
-      # Not OK if user allready logged on
+
+      # 3. Not OK if user allready logged on another client
       authenticated = false if user.client
+
       status 200
-      {:authenticated => authenticated, :minutes => user.minutes || nil}
+      {:authenticated => authenticated, :minutes => user.minutes || nil, :message => message}
     end
 
     desc "returns a specific user"

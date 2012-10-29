@@ -118,7 +118,7 @@ class LogOnWindow < Gtk::Window
       rescue Exception => e
         puts e
       end
-      error = "Feil lånenummer/brukernavn eller PIN/passord" unless res['authenticated']
+      error = res['message'] unless res['authenticated']
       error = "Du har brukt opp kvoten din for i dag!" if res['minutes'] == 0 and res['authenticated']
     end
     #Gtk.main_quit
