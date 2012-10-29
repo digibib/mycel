@@ -2,6 +2,7 @@
 *.rbc
 .bundle
 .config
+db/seed_REAL.yml
 config/mycel.yml
 config/database.yml
 coverage
