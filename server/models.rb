@@ -308,7 +308,7 @@ class User < ActiveRecord::Base
   end
 
   def log_off
-    self.client.user = nil
+    self.client.user = nil if self.client.user
     self.client = nil
   end
 
