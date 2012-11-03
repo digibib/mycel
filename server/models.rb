@@ -121,8 +121,8 @@ end
 class Client < ActiveRecord::Base
   belongs_to :department
 
-  validates_presence_of :name, :hwaddr, :ipaddr
-  validates_uniqueness_of :name, :hwaddr, :ipaddr
+  validates_presence_of :name, :hwaddr
+  validates_uniqueness_of :name, :hwaddr
 
   has_one :user, :inverse_of => :client, :autosave => true
   has_one :screen_resolution
