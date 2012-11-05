@@ -93,7 +93,8 @@ class Server < Goliath::WebSocket
 
               broadcast = JSON.generate({:status => "ping",
                                          :client => {:id => client.id},
-                                         :user => {:name => user.username,
+                                         :user => {:name => user.name,
+                                                   :username => user.username,
                                                    :id => user.id,
                                                    :minutes => user.minutes}})
 
@@ -110,7 +111,8 @@ class Server < Goliath::WebSocket
                                                  :name => client.name,
                                                  :department => client.department.name,
                                                  :branch => client.department.branch.name},
-                                     :user => {:name => user.username,
+                                     :user => {:name => user.name,
+                                               :username => user.username,
                                                :id => user.id,
                                                :minutes => user.minutes,
                                                :type => user.type_short}})
@@ -130,6 +132,7 @@ class Server < Goliath::WebSocket
           broadcast = JSON.generate({:status => "logged-off",
                                      :client => {:id => client.id},
                                      :user => {:name => user.name,
+                                               :username => user.username,
                                                :id => user.id,
                                                :minutes => user.minutes}})
 
