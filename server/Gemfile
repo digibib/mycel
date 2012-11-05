@@ -6,7 +6,6 @@ gem "em-synchrony"
 gem "mysql2"
 gem "slim"
 gem "grape"
-gem "whenever", :require => false
 gem "rake"
 
 group :development do
