@@ -56,8 +56,22 @@ class Server < Goliath::WebSocket
     if env['user']
       Fiber.new do
         if env['user'].client
+          user = env['user']
+          client = env['user'].client
           env.logger.error("#{env['user'].log_friendly}, disconnected from: #{env['user'].client.log_friendly}")
           env.logger.info("#{env['user'].log_friendly}, logged off: #{env['user'].client.log_friendly}")
+
+          broadcast = JSON.generate({:status => "logged-off",
+                                     :client => {:id => client.id,
+                                                 :dept_id => client.department.id},
+                                     :user => {:name => user.name,
+                                               :username => user.username,
+                                               :id => user.id,
+                                               :minutes => user.minutes}})
+
+          env.channels['departments/'+client.department.id.to_s] << broadcast
+          env.channels['users/'] << broadcast
+          env.channels['branches/'] << broadcast
 
           env['user'].log_off
           EM.cancel_timer(env['timer']) if env['timer']
