@@ -93,7 +93,7 @@ class Server < Goliath::WebSocket
 
               broadcast = JSON.generate({:status => "ping",
                                          :client => {:id => client.id},
-                                         :user => {:name => user.name,
+                                         :user => {:name => user.username,
                                                    :id => user.id,
                                                    :minutes => user.minutes}})
 
@@ -110,7 +110,7 @@ class Server < Goliath::WebSocket
                                                  :name => client.name,
                                                  :department => client.department.name,
                                                  :branch => client.department.branch.name},
-                                     :user => {:name => user.name,
+                                     :user => {:name => user.username,
                                                :id => user.id,
                                                :minutes => user.minutes,
                                                :type => user.type_short}})
