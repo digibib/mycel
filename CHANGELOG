@@ -1,3 +1,4 @@
+	More detailed log message for cronjob
 	Don't use whenever gem to create cronjob
 	Show library card number instead of user's real name in logged in window
 	Client IP-address not required
