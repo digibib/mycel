@@ -47,20 +47,18 @@ To get it up running, simply do a bundle install and, start and deamonize the 2 
 
 Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/mycel.yml`
  
-To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up cronjobs.
+To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up logrotation.
 
 #### Cronjob
-Mycel sets up a cronjob to remove all users at midnight. 
-
-If you prefer not to have per-user crontabs, you can set the cronjob up manually by creating `/etc/cron.d/mycel`, paste in the following, substituting USER and PATH to suit your environment:
+You need to set up a cronjob to remove all users.Create a file `/etc/cron.d/mycel`, and paste in the following, substituting USER and PATH to suit your environment:
 
 ```
 0 0 * * * {USER} /bin/bash -l -c 'source /home/{USER}/.rvm/environments/ruby-1.9.2-p320 && cd /{PATH/TO}/mycel/server && bundle exec rake delete_users --silent >> logs/cron.log 2>&1'
 ```
 
-If the cronjob doesn't get executed, check your `var/log/syslog` for hints on what could be wrong. 
+It will log number of users deleted to `mycel/server/logs/cron.log`
 
-Try to comment out the following line from your `~/.bashrc` file:
+If the cronjob doesn't get executed, check your `/var/log/syslog` for hints on what could be wrong. In particular, you may need to comment out the following line from your `~/.bashrc` file:
 
     [  -z "$PS1" ] && return
 

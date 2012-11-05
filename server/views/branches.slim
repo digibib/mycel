@@ -6,11 +6,12 @@ div class="main"
         h3 #{branch.name}
       table class="deptlist"
         - branch.departments.each do |dept|
-          tr
+          tr id="#{dept.id}"
             td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
             td #{dept.clients.size - dept.clients.joins(:user).count} av #{dept.clients.size} ledige
             td
               - dept.clients.joins(:user).count.times do
-                img src="/img/pc_green.png" style="margin-left:5px"
+                img src="/img/pc_green.png" style="margin-left:5px" class="active"
               - (dept.clients.size - dept.clients.joins(:user).count).times do
-                img src="/img/pc_black.png" style="margin-left:5px"
+                img src="/img/pc_black.png" style="margin-left:5px" class="inactive"
+  script src="/js/branches.js"

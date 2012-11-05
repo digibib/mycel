@@ -19,7 +19,6 @@ GEM
     awesome_print (1.1.0)
     backports (2.6.4)
     builder (3.0.4)
-    chronic (0.6.7)
     clean_test (1.0.0)
       faker
     coderay (1.0.8)
@@ -86,9 +85,6 @@ GEM
     tzinfo (0.3.33)
     virtus (0.5.2)
       backports (~> 2.6.1)
-    whenever (0.7.3)
-      activesupport (>= 2.3.4)
-      chronic (~> 0.6.3)
 
 PLATFORMS
   ruby
@@ -106,4 +102,3 @@ DEPENDENCIES
   rake
   slim
   sqlite3
-  whenever

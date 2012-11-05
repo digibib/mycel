@@ -56,8 +56,23 @@ class Server < Goliath::WebSocket
     if env['user']
       Fiber.new do
         if env['user'].client
+          user = env['user']
+          client = env['user'].client
           env.logger.error("#{env['user'].log_friendly}, disconnected from: #{env['user'].client.log_friendly}")
           env.logger.info("#{env['user'].log_friendly}, logged off: #{env['user'].client.log_friendly}")
+
+          broadcast = JSON.generate({:status => "logged-off",
+                                     :client => {:id => client.id,
+                                                 :dept_id => client.department.id},
+                                     :user => {:name => user.name,
+                                               :username => user.username,
+                                               :id => user.id,
+                                               :minutes => user.minutes}})
+
+          env.channels['departments/'+client.department.id.to_s] << broadcast
+          env.channels['users/'] << broadcast
+          env.channels['branches/'] << broadcast
+
           env['user'].log_off
           EM.cancel_timer(env['timer']) if env['timer']
         end
@@ -92,14 +107,17 @@ class Server < Goliath::WebSocket
               env['timer'].cancel if user.client.nil?
 
               broadcast = JSON.generate({:status => "ping",
-                                         :client => {:id => client.id},
+                                         :client => {:id => client.id,
+                                                     :dept_id => client.department.id},
                                          :user => {:name => user.name,
+                                                   :username => user.username,
                                                    :id => user.id,
                                                    :minutes => user.minutes}})
 
               env.channels['clients/'+client.id.to_s] << broadcast
               env.channels['departments/'+client.department.id.to_s] << broadcast
               env.channels['users/'] << broadcast
+              env.channels['branches/'] << broadcast
             end.resume
           end
 
@@ -107,10 +125,12 @@ class Server < Goliath::WebSocket
 
           broadcast = JSON.generate({:status => "logged-on",
                                      :client => {:id => client.id,
+                                                 :dept_id => client.department.id,
                                                  :name => client.name,
                                                  :department => client.department.name,
                                                  :branch => client.department.branch.name},
                                      :user => {:name => user.name,
+                                               :username => user.username,
                                                :id => user.id,
                                                :minutes => user.minutes,
                                                :type => user.type_short}})
@@ -118,6 +138,7 @@ class Server < Goliath::WebSocket
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
           env.channels['users/'] << broadcast
+          env.channels['branches/'] << broadcast
         when 'log-off'
           user = env['user']
           client = env['client']
@@ -128,14 +149,18 @@ class Server < Goliath::WebSocket
           env.logger.info("#{user.log_friendly}, logged off: #{client.log_friendly}")
 
           broadcast = JSON.generate({:status => "logged-off",
-                                     :client => {:id => client.id},
+                                     :client => {:id => client.id,
+                                                 :dept_id => client.department.id},
                                      :user => {:name => user.name,
+                                               :username => user.username,
                                                :id => user.id,
                                                :minutes => user.minutes}})
 
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
           env.channels['users/'] << broadcast
+          env.channels['branches/'] << broadcast
+
           env['user'] = nil
       end
     end.resume

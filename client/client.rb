@@ -86,10 +86,10 @@ while true
       puts message
       case message["status"]
         when "logged-on"
-          LoggedIn.set_name_label(message['user']['name'])
+          LoggedIn.set_name_label(message['user']['username'])
           LoggedIn.set_time(message["user"]["minutes"])
         when "ping"
-            LoggedIn.set_time(message["user"]["minutes"]) if message["user"]["name"] == LoggedIn.name
+            LoggedIn.set_time(message["user"]["minutes"]) if message["user"]["username"] == LoggedIn.name
         when "logged-off"
           EM.stop
       end

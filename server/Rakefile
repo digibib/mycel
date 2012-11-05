@@ -17,6 +17,10 @@ desc "clear user table (cronjob)"
 task :delete_users do
   dbconfig = YAML::load(File.open("config/database.yml"))
   ActiveRecord::Base.establish_connection(dbconfig["development"])
+  s = "[#{Time.now}] :: LibraryUsers: #{User.where(:type=>"LibraryUser").count}, "
+  s+= "GuestUsers: #{User.where(:type=>"GuestUser").count}, "
+  s+= "AnonymousUsers: #{User.where(:type=>"AnonymousUser").count}"
+  puts s
   puts "[#{Time.now}] :: Clears user table. Number of users deleted: #{User.delete_all}"
 end
 
@@ -30,11 +34,7 @@ task :setup do
   puts "   using host: #{config['host']} and port: #{config['port']}"
   Rake::Task["prepare"].invoke(config['host'], config['port'])
 
-  puts "3. Writes to crontab"
-  %x[whenever -w]
-  puts %x[whenever -k]
-
-  puts "4. Sets up log rotation"
+  puts "3. Sets up log rotation"
   Rake::Task["logrotate"].execute
   puts "Done."
 end
