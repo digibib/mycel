@@ -302,6 +302,10 @@ class User < ActiveRecord::Base
     read_attribute(:name) || self.username || "Anonym_"+self.id.to_s
   end
 
+  def username
+    read_attribute(:username) || "Anonym_"+self.id.to_s
+  end
+
   def log_on(c)
     return false if c.user
     self.client = c
