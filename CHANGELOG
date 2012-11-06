@@ -1,3 +1,5 @@
+0.0.4
+	Bugfixes on shorttimeclients/AnonymousUsers
 0.0.3
 	Update views when clients disconnects unintentionally
 	Update branches live view with active and inactive clients

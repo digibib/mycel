@@ -117,7 +117,6 @@ class Server < Goliath::WebSocket
               env.channels['clients/'+client.id.to_s] << broadcast
               env.channels['departments/'+client.department.id.to_s] << broadcast
               env.channels['users/'] << broadcast
-              env.channels['branches/'] << broadcast
             end.resume
           end
 
