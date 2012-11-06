@@ -28,7 +28,7 @@ $(document).ready(function () {
         $tr.find('img.inactive:first').removeClass("inactive").addClass("active").attr("src", "/img/pc_green.png");
         break;
       case "logged-off":
-        $tr.find('img.active:first').removeClass("active").addClass("inactive").attr("src", "/img/pc_black.png");
+        $tr.find('img.active:last').removeClass("active").addClass("inactive").attr("src", "/img/pc_black.png");
         break;
       default:
     }
