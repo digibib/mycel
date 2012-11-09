@@ -356,7 +356,7 @@ $(document).ready(function () {
 
   });
 
-  // ** handle timie-limit events
+  // ** handle time-limit events
 
   $('input#time_limit_no_limit').change(function () {
     if($(this).attr("checked"))
@@ -388,7 +388,7 @@ $(document).ready(function () {
         var msg = "OK! Lagret.";
       } else {
         $('span#time_inherited').show();
-        $('input#time_limit').val(data.department.tions_opinherited.time_limit);
+        $('input#time_limit').val(data.department.options_inherited.time_limit);
         var msg = "OK! Arver instillinger";
       }
       $('span#time_info').html(msg).show().fadeOut(5000);
@@ -396,6 +396,39 @@ $(document).ready(function () {
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
       $('span#time_error').html(jqXHR.responseText).show().fadeOut(5000);
+    });
+  });
+
+  // ** handle shorttime-limit events
+
+  $('button#shorttime_save').on('click', function () {
+    var time = $('input#shorttime_limit').val();
+    if (time == "") { hp = "inherit"; }
+
+    request = $.ajax({
+      url: "/api/departments/"+dept_id,
+      type: "PUT",
+      cache: false,
+      data: {
+            shorttime_limit: time,
+            },
+      dataType: "json"
+    });
+
+    request.done(function(data) {
+      if (data.department.options.shorttime_limit) {
+        $('span#shorttime_inherited').hide();
+        var msg = "OK! Lagret.";
+      } else {
+        $('span#shorttime_inherited').show();
+        $('input#shorttime_limit').val(data.department.options_inherited.shorttime_limit);
+        var msg = "OK! Arver instillinger";
+      }
+      $('span#shorttime_info').html(msg).show().fadeOut(5000);
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $('span#shorttime_error').html(jqXHR.responseText).show().fadeOut(5000);
     });
   });
 

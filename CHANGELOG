@@ -1,3 +1,7 @@
+0.0.5
+	Cosmetic changes and description updates to admin interface
+	Add rake task to seed a branch from yaml
+	Allow changing of shorttimemachine time limit in admin interface
 0.0.4
 	Bugfixes on shorttimeclients/AnonymousUsers
 0.0.3

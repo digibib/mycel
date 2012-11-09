@@ -80,6 +80,7 @@ table.users    { width: 100%; }
 table.users th { text-align: left; font-size: 0.9em; font-weight: bold; padding: 5px;
 				 border: 1px solid #ccc; background-color: #eee;}
 table.users td { padding: 5px; font-size: 0.9em;}
+td.td-username { width:200px;}
 table.users tr:hover {background-color:#f5f5f5;}
 div.users-inner { display:inline-block; width: 50px; float:left;}
 

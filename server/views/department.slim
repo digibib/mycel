@@ -193,7 +193,7 @@ div class="main"
 
 
   h3 Tidsbegrensninger
-  p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
+  p Angi tidsbegrensinger per biblioteksbruker per dag, eller tillat fri bruk:
   div class="divdot inputf"
     span[class="inherited" id="time_inherited" style="margin:7px; #{'display:none' unless department.options.time_limit.nil? }"]Disse innstillingene er arvet:
     table class="genform"
@@ -206,6 +206,19 @@ div class="main"
         td
           span[id="time_info" class="info" style="margin-left:48px"]
           span[id="time_error" class="error" style="margin-left:48px"]
+
+  p Angi lengde på sesjoner på korttidsmaskiner:
+  div class="divdot inputf"
+    span[class="inherited" id="shorttime_inherited" style="margin:7px; #{'display:none' unless department.options.shorttime_limit.nil? }"]Disse innstillingene er arvet:
+    table class="genform"
+      tr
+        td minutter per sesjon
+        td: input[type="text" id="shorttime_limit" class="nr" value="#{department.options_self_or_inherited['shorttime_limit']}"]
+        td: button[type='button' id="shorttime_save"]  = "Lagre"
+        td
+          span[id="shorttime_info" class="info" style="margin-left:48px"]
+          span[id="shorttime_error" class="error" style="margin-left:48px"]
+
 
   h3 Hjemmeside
   p Startside til klientens nettleser.

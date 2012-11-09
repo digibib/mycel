@@ -12,6 +12,7 @@ $(document).ready(function () {
 
   // ** global vars
 
+  var branch_id = $('input#branch_id').val();
   var backup = new Object();
   backup.homepage = $('input#homepage').val();
   backup.al = $('input#age_lower').val();
@@ -78,8 +79,6 @@ $(document).ready(function () {
     if (missing && (missing != 14 )) { return; }
 
     $(':input.hour').removeClass("inputmissing");
-
-    var branch_id = $('input#branch_id').val();
 
     // remove opening_hours on branch, and inherit from branch
     // if all fields are blank
@@ -162,7 +161,6 @@ $(document).ready(function () {
 
   // ** handle age-limit events
   $('button#agesave').on('click', function () {
-    var branch_id = $('input#branch_id').val();
     var lower = $('input#age_lower').val();
     var higher = $('input#age_higher').val();
     if ((lower == "") && (higher == "")) {
@@ -205,7 +203,7 @@ $(document).ready(function () {
 
   });
 
-  // ** handle timie-limit events
+  // ** handle time-limit events
 
   $('input#time_limit_no_limit').change(function () {
     if($(this).attr("checked"))
@@ -217,7 +215,6 @@ $(document).ready(function () {
   });
 
   $('button#time_save').on('click', function () {
-    var branch_id = $('input#branch_id').val();
     var time = $('input#time_limit').val();
     if (time == "") { hp = "inherit"; }
 
@@ -249,10 +246,41 @@ $(document).ready(function () {
     });
   });
 
+  // ** handle shorttime-limit events
+
+  $('button#shorttime_save').on('click', function () {
+    var time = $('input#shorttime_limit').val();
+    if (time == "") { hp = "inherit"; }
+
+    request = $.ajax({
+      url: "/api/branches/"+branch_id,
+      type: "PUT",
+      cache: false,
+      data: {
+            shorttime_limit: time,
+            },
+      dataType: "json"
+    });
+
+    request.done(function(data) {
+      if (data.branch.options.shorttime_limit) {
+        $('span#shorttime_inherited').hide();
+        var msg = "OK! Lagret.";
+      } else {
+        $('span#shorttime_inherited').show();
+        $('input#shorttime_limit').val(data.branch.options_inherited.shorttime_limit);
+        var msg = "OK! Arver instillinger";
+      }
+      $('span#shorttime_info').html(msg).show().fadeOut(5000);
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $('span#shorttime_error').html(jqXHR.responseText).show().fadeOut(5000);
+    });
+  });
 
   // ** handle save homepage
   $('button#homepagesave').on('click', function () {
-    var branch_id = $('input#branch_id').val();
     var hp = $('input#homepage').val();
     if (hp == "") { hp = "inherit"; }
 
@@ -284,7 +312,6 @@ $(document).ready(function () {
 
   // ** handle save printer
   $('button#printersave').on('click', function () {
-    var branch_id = $('input#branch_id').val();
 
     request = $.ajax({
       url: "/api/departments/"+branch_id,
