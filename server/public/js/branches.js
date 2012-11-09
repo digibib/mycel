@@ -20,15 +20,18 @@ $(document).ready(function () {
     console.log(evt.data);
     data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
     var $tr =  $("tr#"+data.client.dept_id);
+    var nr = parseInt($tr.find('span.logged_on').html());
     switch (data.status) {
       case "ping":
       	// do nothing
         break;
       case "logged-on":
         $tr.find('img.inactive:first').removeClass("inactive").addClass("active").attr("src", "/img/pc_green.png");
+        $tr.find('span.logged_on').html(nr -1);
         break;
       case "logged-off":
         $tr.find('img.active:last').removeClass("active").addClass("inactive").attr("src", "/img/pc_black.png");
+        $tr.find('span.logged_on').html(nr + 1);
         break;
       default:
     }

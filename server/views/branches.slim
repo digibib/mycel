@@ -8,7 +8,9 @@ div class="main"
         - branch.departments.order('name').each do |dept|
           tr id="#{dept.id}"
             td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
-            td #{dept.clients.size - dept.clients.joins(:user).count} av #{dept.clients.size} ledige
+            td
+              span class="logged_on" #{dept.clients.size - dept.clients.joins(:user).count}
+              span &nbsp;av #{dept.clients.size} ledige
             td
               - dept.clients.joins(:user).count.times do
                 img src="/img/pc_green.png" style="margin-left:5px" class="active"
