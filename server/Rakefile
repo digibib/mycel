@@ -137,6 +137,8 @@ namespace :db do
 
     seed['branches'].each do |branch|
       b = Branch.create(:name => branch['name'])
+      b.build_options(branch['options'])
+      b.options.save
       org.branches << b
       branch['departments'].each do |department|
         d = Department.create(:name => department['name'])
