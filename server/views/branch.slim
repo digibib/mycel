@@ -156,7 +156,7 @@ div class="main"
     span[class="inherited" id="shorttime_inherited" style="margin:7px; #{'display:none' unless branch.options.shorttime_limit.nil? }"]Disse innstillingene er arvet:
     table class="genform"
       tr
-        td minutter per dag
+        td minutter per sesjon
         td: input[type="text" id="shorttime_limit" class="nr" value="#{branch.options_self_or_inherited['shorttime_limit']}"]
         td: button[type='button' id="shorttime_save"]  = "Lagre"
         td
