@@ -354,7 +354,7 @@ class LibraryUser < User
   end
 
   def log_friendly
-    "LibraryUser, #{self.age}"
+    "LibraryUser[#{self.id}], #{self.age}"
   end
 end
 
@@ -371,7 +371,7 @@ class GuestUser < User
   end
 
   def log_friendly
-    "GuestUser, #{self.age > 15 ? 'adult' : 'child'}"
+    "GuestUser[#{self.id}], #{self.age > 15 ? 'adult' : 'child'}"
   end
 end
 
@@ -381,7 +381,7 @@ class AnonymousUser < User
   end
 
   def log_friendly
-    "AnonymousUser, unknown"
+    "AnonymousUser[#{self.id}], unknown"
   end
 end
 
