@@ -3,6 +3,9 @@ Mycel is a client/server network system for monitoring and administering publicl
 
 The clients are intended to be used library patrons, who log on using their library card number and personal code. Guest users can also be allowed if clients are configured so.
 
+## License
+GPLv3
+
 ## Architecture
 ![Mycel architecture](https://github.com/digibib/mycel/raw/develop/docs/architecture.png)
 ###Server
