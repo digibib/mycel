@@ -1,3 +1,4 @@
+	Fixes bug when mycel recieves invalid user birthdates from sip2
 0.0.5
 	Cosmetic changes and description updates to admin interface
 	Add rake task to seed a branch from yaml
