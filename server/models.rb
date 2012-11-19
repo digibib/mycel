@@ -9,7 +9,7 @@ class Organization < ActiveRecord::Base
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
   has_one :options, :as => :owner_options
-  has_one :admin, :conditions => "superadmin = 1"
+  has_one :admin, :as => :owner_admins, :conditions => "superadmin = 1"
 
   validates_presence_of :name
 
@@ -43,7 +43,7 @@ end
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
-  has_many :admins
+  has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
@@ -82,7 +82,7 @@ end
 class Department < ActiveRecord::Base
   belongs_to :branch
   has_many :clients, :dependent => :destroy
-  has_many :admins
+  has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
