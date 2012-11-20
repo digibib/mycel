@@ -28,13 +28,14 @@ class Server < Goliath::API
     if path[1] == 'api'
       API.call(env)
     else
-      #get current admin
-      begin
+      # check if cookie present
+      if env.respond_to?(:HTTP_COOKIE)
         cookie = env.HTTP_COOKIE
-      rescue
+      else
         cookie = "mycellogin=none"
       end
-      puts cookie
+
+      # find current admin from cookie
       if cookie.match(/mycellogin/)
         env['admin'] = cookie.scan(/mycellogin=(\w+)/)[0][0]
       else
