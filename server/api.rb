@@ -45,6 +45,18 @@ class API < Grape::API
   format :json
   default_format :json
 
+  resource :admins do
+    desc "authenticates admin"
+    post "/login" do
+      admin = Admin.where(:username=>params[:username]).first
+      throw :error, :status => 401,
+            :message => "Feil brukernavn eller passord" unless admin and admin.password == params[:password]
+      status 200
+      {:login => true}
+    end
+   end
+
+
   resource :clients do
     desc "returns all clients, or identifies a client given a MACadress"
     get "/" do

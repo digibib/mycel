@@ -1,0 +1,42 @@
+div class="main"
+  h3 Log in
+  pre id="login_error" style="display:none"
+  div class="divdot inputf"
+    table class="genform"
+      tr
+        td  brukernavn
+        td: input[type="text" id="username"]
+      tr
+        td  passord
+        td: input[type="password" id="password"]
+      tr
+        td
+        td: button[type='button' id="login"]  = "Log inn"
+
+javascript:
+  $('button#login').on('click', function () {
+    var username = $('input#username').val();
+    var password = $('input#password').val();
+
+    request = $.ajax({
+      url: "/api/admins/login",
+      type: "POST",
+      cache: false,
+      data: { username: username, password: password },
+      dataType: "json"
+    });
+
+    request.done(function (data) {
+      $.get('/setadmin?admin='+username, function(data) {
+        if ( window.location.pathname == "/loggout") {
+          window.location.replace("/");
+        } else {
+          window.location.reload();
+        }
+      });
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $('pre#login_error').html(jqXHR.responseText).show();
+    });
+  });
