@@ -1,3 +1,4 @@
+	Makes table of users sortable & searchable by name
 	Adminstration interface log in now handled by admin users
 	Fixes bug when mycel recieves invalid user birthdates from sip2
 0.0.5
