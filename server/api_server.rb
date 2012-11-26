@@ -62,8 +62,8 @@ class Server < Goliath::API
             end
           elsif path[1] == 'users'
             [200, {}, slim(:users, :locals => {:users => User.all})]
-          elsif path[1] == 'branches'
-            [200, {}, slim(:branches,
+          elsif path[1] == 'clients'
+            [200, {}, slim(:clients,
                            :locals => {:admin => Admin.find_by_username(env['admin'])})]
           elsif path[1] == 'statistics'
             [200, {}, slim(:statistics)]
