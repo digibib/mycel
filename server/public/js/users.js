@@ -98,7 +98,7 @@ $(document).ready(function () {
          5: { sorter: false }
        },
     widthFixed : true,
-    widgets: ["zebra", "filter"],
+    widgets: ["filter"],
     widgetOptions : {
     }
   });
