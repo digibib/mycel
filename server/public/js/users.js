@@ -50,7 +50,7 @@ $(document).ready(function () {
       case "logged-off":
         $tr.remove();
 
-        if (data.user.type !== "A") {
+        if (data.user.type != "A") {
           $trcopy = $("table.inactive tr:last").clone();
           $trcopy.attr("id", data.user.id);
           $trcopy.find('.td-usertype').html(data.user.type);
