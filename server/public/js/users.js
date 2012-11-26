@@ -104,6 +104,10 @@ $(document).ready(function () {
     }
   });
 
+  // Hide input-filters on last 3 columns
+  // there is no options for this in the plugin
+  $("input.tablesorter-filter").slice(-3).hide();
+
 
   // ** Handle delete user
 
