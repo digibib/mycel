@@ -38,23 +38,32 @@ $(document).ready(function () {
         var link1 = $('<a>', {href: "/"+data.client.branch, text: data.client.branch});
         var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
 
-        $trcopy.find('.td-branchdept').html("").append(link1).append(" / ").append(link2);
+        $trcopy.find('.td-branchdept').html("").append(link1).append("/").append(link2);
         $trcopy.find('input.nr').setMask('999');
 
-        $trcopy.appendTo('table.active');
+        $('table.active').
+          find('tbody').append($trcopy).
+          end().
+          trigger("update", [true]);
+
         break;
       case "logged-off":
         $tr.remove();
 
-        $trcopy = $("table.inactive tr:last").clone();
-        $trcopy.attr("id", data.user.id);
-        $trcopy.find('.td-usertype').html(data.user.type);
-        $trcopy.find('.td-username').html(data.user.name);
-        $trcopy.find('.td-minutes').html(data.user.minutes);
-        $trcopy.find('input.users.minutes').val(data.user.minutes);
-        $trcopy.find('input.nr').setMask('999');
+        if (data.user.type !== "A") {
+          $trcopy = $("table.inactive tr:last").clone();
+          $trcopy.attr("id", data.user.id);
+          $trcopy.find('.td-usertype').html(data.user.type);
+          $trcopy.find('.td-username').html(data.user.name);
+          $trcopy.find('.td-minutes').html(data.user.minutes);
+          $trcopy.find('input.users.minutes').val(data.user.minutes);
+          $trcopy.find('input.nr').setMask('999');
 
-        $trcopy.appendTo('table.inactive');
+          $('table.inactive').
+            find('tbody').append($trcopy).
+            end().
+            trigger("update", [true]);
+        }
         break;
     }
 
@@ -72,6 +81,27 @@ $(document).ready(function () {
   // ** set input masks **
 
   $('input.nr').setMask('999');
+
+
+  // ** tablesorter setup **
+  $("#activeusers").tablesorter({
+    theme : 'blue',
+    headers: {
+         5: { sorter: false }
+       },
+    sortforce: [[3,1]]
+  });
+
+  $("#inactiveusers").tablesorter({
+    theme : 'blue',
+    headers: {
+         5: { sorter: false }
+       },
+    widthFixed : true,
+    widgets: ["zebra", "filter"],
+    widgetOptions : {
+    }
+  });
 
 
   // ** Handle delete user
