@@ -9,7 +9,7 @@ class Organization < ActiveRecord::Base
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
   has_one :options, :as => :owner_options
-  has_one :admin, :conditions => "superadmin = 1"
+  has_one :admin, :as => :owner_admins, :conditions => "superadmin = 1"
 
   validates_presence_of :name
 
@@ -43,7 +43,7 @@ end
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
-  has_many :admins
+  has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
@@ -51,6 +51,7 @@ class Branch < ActiveRecord::Base
   accepts_nested_attributes_for :options
 
   after_initialize :init
+
 
   def init
     self.options ||= Options.new()
@@ -61,6 +62,10 @@ class Branch < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
     hash.except("organization_id")
+  end
+
+  def authorized?(admin)
+    admin.superadmin? || self.admins.include?(admin)
   end
 
   def options_self_or_inherited
@@ -82,7 +87,7 @@ end
 class Department < ActiveRecord::Base
   belongs_to :branch
   has_many :clients, :dependent => :destroy
-  has_many :admins
+  has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
 
   validates_presence_of :name
@@ -100,6 +105,10 @@ class Department < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.branch.options_self_or_inherited)
     hash.except("organization_id")
+  end
+
+  def authorized?(admin)
+    admin.superadmin? || self.admins.include?(admin) || self.branch.admins.include?(admin)
   end
 
   def options_self_or_inherited
