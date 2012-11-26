@@ -2,18 +2,22 @@
 div class="main"
   h2 Filialer
   - org.branches.order('name').each do |branch|
-      a href="/#{branch.name}"
+      - if branch.authorized? admin
+        a href="/#{branch.name}"
+          h3 #{branch.name}
+      - elsif admin.owner_admins_type == "Department" and branch.departments.include?(Department.find(admin.owner_admins_id))
         h3 #{branch.name}
       table class="deptlist"
         - branch.departments.order('name').each do |dept|
-          tr id="#{dept.id}"
-            td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
-            td
-              span class="logged_on" #{dept.clients.size - dept.clients.joins(:user).count}
-              span &nbsp;av #{dept.clients.size} ledige
-            td
-              - dept.clients.joins(:user).count.times do
-                img src="/img/pc_green.png" style="margin-left:5px" class="active"
-              - (dept.clients.size - dept.clients.joins(:user).count).times do
-                img src="/img/pc_black.png" style="margin-left:5px" class="inactive"
+          - if dept.authorized? admin
+            tr id="#{dept.id}"
+              td: a href="/#{branch.name}/#{dept.name}" #{dept.name}
+              td
+                span class="logged_on" #{dept.clients.size - dept.clients.joins(:user).count}
+                span &nbsp;av #{dept.clients.size} ledige
+              td
+                - dept.clients.joins(:user).count.times do
+                  img src="/img/pc_green.png" style="margin-left:5px" class="active"
+                - (dept.clients.size - dept.clients.joins(:user).count).times do
+                  img src="/img/pc_black.png" style="margin-left:5px" class="inactive"
   script src="/js/branches.js"

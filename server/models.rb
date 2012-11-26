@@ -52,6 +52,7 @@ class Branch < ActiveRecord::Base
 
   after_initialize :init
 
+
   def init
     self.options ||= Options.new()
   end
@@ -61,6 +62,10 @@ class Branch < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
     hash.except("organization_id")
+  end
+
+  def authorized?(admin)
+    admin.superadmin? || self.admins.include?(admin)
   end
 
   def options_self_or_inherited
@@ -100,6 +105,10 @@ class Department < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.branch.options_self_or_inherited)
     hash.except("organization_id")
+  end
+
+  def authorized?(admin)
+    admin.superadmin? || self.admins.include?(admin) || self.branch.admins.include?(admin)
   end
 
   def options_self_or_inherited

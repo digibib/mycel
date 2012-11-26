@@ -44,8 +44,6 @@ class Server < Goliath::API
 
       if env['admin'] == "none"
         if path[1] == 'setadmin'
-          puts env.params
-          puts "setting admin cookie..#{env.params['admin']}"
           [200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, slim(:index)]
         else
           [401, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
@@ -56,11 +54,17 @@ class Server < Goliath::API
           [200, {}, slim(:index)]
         when 2    # matches {branches}|users|statistics
           if @@org.branches.find_by_name(path[1])
-            [200, {}, slim(:branch, :locals => {:branch => Branch.find_by_name(path[1])})]
+            branch = Branch.find_by_name(path[1])
+            if branch.authorized?(Admin.find_by_username(env['admin']))
+              [200, {}, slim(:branch, :locals => {:branch => branch})]
+            else
+              [401, {}, slim(:forbidden)]
+            end
           elsif path[1] == 'users'
             [200, {}, slim(:users, :locals => {:users => User.all})]
           elsif path[1] == 'branches'
-            [200, {}, slim(:branches)]
+            [200, {}, slim(:branches,
+                           :locals => {:admin => Admin.find_by_username(env['admin'])})]
           elsif path[1] == 'statistics'
             [200, {}, slim(:statistics)]
           elsif path[1] == 'loggout'
@@ -71,7 +75,12 @@ class Server < Goliath::API
         when 3    # matches {branches}/{departments}
           if @@org.branches.find_by_name(path[1])
             if (dept = @@org.branches.find_by_name(path[1]).departments.find_by_name(path[2]))
-              [200, {}, slim(:department, :locals => {:department => dept, :screen_res => ScreenResolution.all })]
+              if dept.authorized?(Admin.find_by_username(env['admin']))
+                [200, {}, slim(:department, :locals => {:department => dept, :screen_res => ScreenResolution.all })]
+              else
+                [401, {}, slim(:forbidden)]
+              end
+
             else  # matches non-existing department
               raise Goliath::Validation::NotFoundError
             end
