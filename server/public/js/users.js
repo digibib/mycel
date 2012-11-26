@@ -89,7 +89,7 @@ $(document).ready(function () {
     headers: {
          5: { sorter: false }
        },
-    sortforce: [[3,1]]
+    sortList: [[4,0],[1,0]]
   });
 
   $("#inactiveusers").tablesorter({
@@ -97,6 +97,7 @@ $(document).ready(function () {
     headers: {
          5: { sorter: false }
        },
+    sortList: [[1,0]],
     widthFixed : true,
     widgets: ["filter"],
     widgetOptions : {
