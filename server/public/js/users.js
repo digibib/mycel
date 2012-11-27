@@ -89,7 +89,10 @@ $(document).ready(function () {
     headers: {
          5: { sorter: false }
        },
-    sortList: [[4,0],[1,0]]
+    sortList: [[4,0],[1,0]],
+    widthFixed : true,
+    widgets: ["filter"],
+    widgetOptions : {    }
   });
 
   $("#inactiveusers").tablesorter({
@@ -101,13 +104,14 @@ $(document).ready(function () {
     sortList: [[1,0]],
     widthFixed : true,
     widgets: ["filter"],
-    widgetOptions : {
-    }
+    widgetOptions : {    }
   });
 
-  // Hide input-filters on last 3 columns
+  // Hide input-filters on filter-disabled columns
   // there is no options for this in the plugin
   $("input.tablesorter-filter").slice(-3).hide();
+  $("input.tablesorter-filter").slice(2,4).hide();
+  $("input.tablesorter-filter").slice(5,7).hide();
 
 
   // ** Handle delete user
