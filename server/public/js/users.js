@@ -1,6 +1,5 @@
 $(document).ready(function () {
   // ** connect to mycel websocket server
-
   var ws = new WebSocket("ws://localhost:9001/subscribe/users");
 
   // handle ws events
@@ -28,7 +27,7 @@ $(document).ready(function () {
       case "logged-on":
         $tr.remove();
 
-        $trcopy = $("#clone").clone().removeClass("invisible");
+        $trcopy = $("tr#clone").clone().removeClass("invisible");
         $trcopy.attr("id", data.user.id);
         $trcopy.find('.td-usertype').html(data.user.type);
         $trcopy.find('.td-username').html(data.user.name);
@@ -45,7 +44,7 @@ $(document).ready(function () {
           find('tbody').append($trcopy).
           end().
           trigger("update", [true]);
-
+        $("tr#clone").remove();
         break;
       case "logged-off":
         $tr.remove();
