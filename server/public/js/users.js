@@ -95,7 +95,8 @@ $(document).ready(function () {
   $("#inactiveusers").tablesorter({
     theme : 'blue',
     headers: {
-         5: { sorter: false }
+         3: { sorter: false },
+         4: { sorter: false}
        },
     sortList: [[1,0]],
     widthFixed : true,
