@@ -2,6 +2,10 @@ $(document).ready(function () {
   // ** connect to mycel websocket server
   var ws = new WebSocket("ws://localhost:9001/subscribe/users");
 
+  if ( $("table.active tr").size() > 2 ) {
+    console.log($("table.active tr").size() );
+    $("tr#clone").remove();
+  }
   // handle ws events
 
   ws.onopen = function() {
@@ -27,7 +31,7 @@ $(document).ready(function () {
       case "logged-on":
         $tr.remove();
 
-        $trcopy = $("tr#clone").clone().removeClass("invisible");
+        $trcopy = $("table.active tr:last").clone();
         $trcopy.attr("id", data.user.id);
         $trcopy.find('.td-usertype').html(data.user.type);
         $trcopy.find('.td-username').html(data.user.name);
@@ -44,7 +48,6 @@ $(document).ready(function () {
           find('tbody').append($trcopy).
           end().
           trigger("update", [true]);
-        $("tr#clone").remove();
         break;
       case "logged-off":
         $tr.remove();
