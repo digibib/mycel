@@ -2,10 +2,6 @@ $(document).ready(function () {
   // ** connect to mycel websocket server
   var ws = new WebSocket("ws://localhost:9001/subscribe/users");
 
-  if ( $("table.active tr").size() > 2 ) {
-    console.log($("table.active tr").size() );
-    $("tr#clone").remove();
-  }
   // handle ws events
 
   ws.onopen = function() {
