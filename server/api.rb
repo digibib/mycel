@@ -297,5 +297,50 @@ class API < Grape::API
     end
   end
 
+  resource :organization do
+    desc "return the organization with attributes and options"
+    get "/" do
+      {:organization => Organization.first.as_json}
+    end
+
+    desc "update the organization options"
+    put "/:id" do
+      org = Organization.first
+      changes = false
+
+      updates = find_updates org.options_self_or_inherited, params.except(:opening_hours)
+      if updates
+        org.options.attributes = updates
+        changes = true if org.options.changed?
+      end
+
+      if params[:opening_hours] == "inherit"
+        changes = true unless org.options.opening_hours.nil?
+        org.options.opening_hours = nil
+        params.delete :opening_hours
+      end
+
+      if params[:opening_hours]
+        # update current opening hours
+        if org.options.opening_hours
+          org.options.opening_hours.attributes = params[:opening_hours]
+          changes = true if org.options.opening_hours.changed?
+        else # create new opening hours
+          org.options.opening_hours = OpeningHours.create params[:opening_hours]
+          changes = true
+        end
+        throw :error, :status => 400,
+          :message => "Du kan ikke stenge før du har åpnet!" unless org.options.opening_hours.valid?
+      end
+
+      throw :error, :status => 400,
+            :message => "Ingen endringer!" unless changes
+
+      # persist the changes:
+      org.options.opening_hours.save if org.options.opening_hours
+      org.options.save
+      {:organization => org.as_json}
+    end
+  end
 end
 

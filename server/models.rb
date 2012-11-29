@@ -24,6 +24,14 @@ class Organization < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
   end
 
+  def options_self_or_inherited
+    opt = self.options.as_json
+    oh = self.options.opening_hours.as_json
+    opt.merge! "opening_hours" => oh
+    opt.except("owner_options_id", "owner_options_type", "id")
+  end
+
+
 end
 
 class Options < ActiveRecord::Base
