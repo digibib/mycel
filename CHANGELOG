@@ -1,3 +1,4 @@
+	Refactor: Org/Branch/Dept Options now handled by common view partial
 	Table of users sortable and searchable by name
 	Adminstration interface log in now handled by admin users
 	Fixes bug when mycel recieves invalid user birthdates from sip2
