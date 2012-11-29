@@ -11,4 +11,4 @@ div class="main"
   p Følgende innstillinger vil gjelde for alle klientene på denne filialen
   p Hvis du lagrer et skjema med blanke felt, så vil de globale innstillingene for #{branch.organization.name} gjelde i steden.
 
-  == render :slim,  :'options', :layout => false, :locals => {:branch => branch, :level => branch}
+  == render :slim,  :'options', :layout => false, :locals => {:level => branch}

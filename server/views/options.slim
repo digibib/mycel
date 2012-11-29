@@ -2,7 +2,6 @@ h3 Åpningstider
 - hours = OpeningHours.find level.options_self_or_inherited['opening_hours']['id']
 div class="divdot inputf"
   form id="change_hours_form" autocomplete="off"
-    input[id="branch_id" hidden value="#{branch.id}"]
     input[id="level_id" hidden value="#{level.id}"]
     input[id="level_type" hidden value="#{level.class.name}"]
     input[id="opening_hours_id" hidden value="#{hours.id}"]

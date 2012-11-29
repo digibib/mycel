@@ -136,7 +136,7 @@ $(document).ready(function () {
 
 
     request.done(function(data) {
-      var level = data.organization || data.branch || data.deparment;
+      var level = data.organization || data.branch || data.department;
       $('span#hours_error').hide();
       if (level.options.opening_hours) {
         $('span#hours_info').html("OK! Lagret.").show().fadeOut(5000);
@@ -185,7 +185,7 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      var level = data.organization || data.branch || data.deparment;
+      var level = data.organization || data.branch || data.department;
       if (level.options.age_limit_higher || level.options.age_limit_lower) {
         var al = level.options.age_limit_lower ? level.options.age_limit_lower : level.options_inherited.age_limit_lower;
         var ah = level.options.age_limit_higher ? level.options.age_limit_higher : level.options_inherited.age_limit_higher;;
@@ -238,7 +238,7 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      var level = data.organization || data.branch || data.deparment;
+      var level = data.organization || data.branch || data.department;
       if (level.options.time_limit || level.options.time_limit_no_limit) {
         $('span#time_inherited').hide();
         var msg = "OK! Lagret.";
@@ -272,7 +272,7 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      var level = data.organization || data.branch || data.deparment;
+      var level = data.organization || data.branch || data.department;
       if (level.options.shorttime_limit) {
         $('span#shorttime_inherited').hide();
         var msg = "OK! Lagret.";
@@ -303,7 +303,7 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      var level = data.organization || data.branch || data.deparment;
+      var level = data.organization || data.branch || data.department;
       if (level.options.homepage) {
         $('span#homepage_inherited').hide();
         var msg = "OK! Lagret.";
