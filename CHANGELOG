@@ -1,3 +1,5 @@
+0.0.8
+	Bugfix to handle network discconnect on client side
 	Refactor: Org/Branch/Dept Options now handled by common view partial
 	Table of users sortable and searchable by name
 	Adminstration interface log in now handled by admin users
