@@ -357,7 +357,14 @@ class LibraryUser < User
       false
     else
       now = Time.now.utc.to_date
-      dob = Time.strptime(bdate[0], "%Y-%m-%d")
+      begin
+        dob = Time.strptime(bdate[0], "%Y-%m-%d")
+      rescue ArgumentError
+        # When user is stored with invalid date,
+        # set arbitrary date as not to get an invalid user
+        # TODO use age=0 as unknown age?
+        dob = Time.strptime("1980-01-01", "%Y-%m-%d")
+      end
       age = now.year - dob.year - ((now.month > dob.month || (now.month == dob.month && now.day >= dob.day)) ? 0 : 1)
       self.age = age
       self.name = name[0]
@@ -372,7 +379,7 @@ class LibraryUser < User
   end
 
   def log_friendly
-    "LibraryUser, #{self.age}"
+    "LibraryUser[#{self.id}], #{self.age}"
   end
 end
 
@@ -389,7 +396,7 @@ class GuestUser < User
   end
 
   def log_friendly
-    "GuestUser, #{self.age > 15 ? 'adult' : 'child'}"
+    "GuestUser[#{self.id}], #{self.age > 15 ? 'adult' : 'child'}"
   end
 end
 
@@ -399,7 +406,7 @@ class AnonymousUser < User
   end
 
   def log_friendly
-    "AnonymousUser, unknown"
+    "AnonymousUser[#{self.id}], unknown"
   end
 end
 
