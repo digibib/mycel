@@ -129,7 +129,7 @@ class LogOnWindow < Gtk::Window
         end
       end
       error = res['message'] unless res['authenticated']
-      error = "Du har brukt opp kvoten din for i dag!" if res['minutes'] == 0 and res['authenticated']
+      error = "Du har brukt opp kvoten din for i dag!" if res['minutes'] <= 0 and res['authenticated']
     end
     #Gtk.main_quit
     error

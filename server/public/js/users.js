@@ -1,6 +1,5 @@
 $(document).ready(function () {
   // ** connect to mycel websocket server
-
   var ws = new WebSocket("ws://localhost:9001/subscribe/users");
 
   // handle ws events
@@ -28,7 +27,7 @@ $(document).ready(function () {
       case "logged-on":
         $tr.remove();
 
-        $trcopy = $("#clone").clone().removeClass("invisible");
+        $trcopy = $("table.active tr:last").clone();
         $trcopy.attr("id", data.user.id);
         $trcopy.find('.td-usertype').html(data.user.type);
         $trcopy.find('.td-username').html(data.user.name);
@@ -38,23 +37,31 @@ $(document).ready(function () {
         var link1 = $('<a>', {href: "/"+data.client.branch, text: data.client.branch});
         var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
 
-        $trcopy.find('.td-branchdept').html("").append(link1).append(" / ").append(link2);
+        $trcopy.find('.td-branchdept').html("").append(link1).append("/").append(link2);
         $trcopy.find('input.nr').setMask('999');
 
-        $trcopy.appendTo('table.active');
+        $('table.active').
+          find('tbody').append($trcopy).
+          end().
+          trigger("update", [true]);
         break;
       case "logged-off":
         $tr.remove();
 
-        $trcopy = $("table.inactive tr:last").clone();
-        $trcopy.attr("id", data.user.id);
-        $trcopy.find('.td-usertype').html(data.user.type);
-        $trcopy.find('.td-username').html(data.user.name);
-        $trcopy.find('.td-minutes').html(data.user.minutes);
-        $trcopy.find('input.users.minutes').val(data.user.minutes);
-        $trcopy.find('input.nr').setMask('999');
+        if (data.user.type != "A") {
+          $trcopy = $("table.inactive tr:last").clone();
+          $trcopy.attr("id", data.user.id);
+          $trcopy.find('.td-usertype').html(data.user.type);
+          $trcopy.find('.td-username').html(data.user.name);
+          $trcopy.find('.td-minutes').html(data.user.minutes);
+          $trcopy.find('input.users.minutes').val(data.user.minutes);
+          $trcopy.find('input.nr').setMask('999');
 
-        $trcopy.appendTo('table.inactive');
+          $('table.inactive').
+            find('tbody').append($trcopy).
+            end().
+            trigger("update", [true]);
+        }
         break;
     }
 
@@ -72,6 +79,37 @@ $(document).ready(function () {
   // ** set input masks **
 
   $('input.nr').setMask('999');
+
+
+  // ** tablesorter setup **
+  $("#activeusers").tablesorter({
+    theme : 'blue',
+    headers: {
+         5: { sorter: false }
+       },
+    sortList: [[4,0],[1,0]],
+    widthFixed : true,
+    widgets: ["filter"],
+    widgetOptions : {    }
+  });
+
+  $("#inactiveusers").tablesorter({
+    theme : 'blue',
+    headers: {
+         3: { sorter: false },
+         4: { sorter: false}
+       },
+    sortList: [[1,0]],
+    widthFixed : true,
+    widgets: ["filter"],
+    widgetOptions : {    }
+  });
+
+  // Hide input-filters on filter-disabled columns
+  // there is no options for this in the plugin
+  $("input.tablesorter-filter").slice(-3).hide();
+  $("input.tablesorter-filter").slice(2,4).hide();
+  $("input.tablesorter-filter").slice(5,7).hide();
 
 
   // ** Handle delete user

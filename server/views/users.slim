@@ -33,53 +33,43 @@ div class="main"
 
   h2 Påloggede brukere
 
-  table class="users active"
+  table id="activeusers" class="users active tablesorter"
     thead
       tr
-        th type
+        th[style="width:40px"] type
         th bruker
-        th[colspan="2"] minutter igjen
+        th[colspan="2" class="filter-false"] minutter igjen
         th filial / avdeling
-        th klient
-        th
+        th[class="filter-false"] klient
+        th class="filter-false" style="background-image:none"
     tbody
       - for user in User.logged_on
         - client = user.client
         tr id="#{user.id}"
           td[class="td-usertype"] #{user.type_short}
           td[class="td-username"] #{user.name}
-          td[class="td-minutes"] #{user.minutes}
+          td[class="td-minutes" style="width:40px"] #{user.minutes}
           td[class="td-adjust"]
-            input[type="hidden" class="users minutes" value="#{user.minutes}"]
-            input[type="text" class="nr required"]
-            button[type='button' class="users add_time"] = "+"
+            div style="width:80px"
+              input[type="hidden" class="users minutes" value="#{user.minutes}"]
+              input[type="text" class="nr required"]
+              button[type='button' class="users add_time"] = "+"
           td[class="td-branchdept"]
             a href="/#{client.branch.name}" #{client.branch.name}
-            '&nbsp;/
-            a href="/#{client.branch.name}/#{client.department.name}" #{client.department.name}
+            '/<a href="/#{client.branch.name}/#{client.department.name}">#{client.department.name}</a>
           td[class="td-clientname"] #{client.name}
-          td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
-      tr id="clone" class="invisible"
-        td[class="td-usertype"]
-        td[class="td-username"]
-        td[class="td-minutes"]
-        td[class="td-adjust"]
-          input[type="hidden" class="users minutes"]
-          input[type="text" class="nr required"]
-          button[type='button' class="users add_time"] = "+"
-        td[class="td-branchdept"]
-        td[class="td-clientname"]
-        td[class="td-throwout"]: button[type='button' class="users"]  = "Kast ut!"
+          td[class="td-throwout"]: button[type='button' class="users throw-out"]  = "Kast ut!"
 
   h2 Inaktive brukere
 
-  table class="users inactive"
+  table id="inactiveusers" class="users inactive tablesorter"
     thead
       tr
         th[style="width:40px"] type
         th bruker
-        th[colspan="2"] minutter igjen
-        th
+        th[class="filter-false"]
+        th[class="filter-false" style="background-image:none"] minutter igjen
+        th[class="filter-false" style="background-image:none"]
 
     tbody
       - for user in User.inactive.where("type != 'AnonymousUser'")
@@ -94,3 +84,5 @@ div class="main"
           td: button[type='button' class="users delete"]  = "Slett"
 
   script src="/js/users.js"
+  script src="/js/jquery.tablesorter.min.js"
+  script src="/js/jquery.tablesorter.widgets.js"

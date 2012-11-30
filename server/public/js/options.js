@@ -2,17 +2,23 @@
 // TODO split this into common.js, department.js and branch.js when done
 // read branch_id here at top
 
-// ** conveniece functions **
-
-$.fn.exists = function () {
-  return this.length != 0;
-}
-
 $(document).ready(function () {
 
   // ** global vars
+  var level_id = $('input#level_id').val();
+  var level_type = $('input#level_type').val();
+  switch (level_type) {
+    case "Branch":
+      var level_url = "branches";
+      break;
+    case "Department":
+      var level_url = "departments";
+      break
+    case "Organization":
+      var level_url = "organization";
+      break;
+  }
 
-  var branch_id = $('input#branch_id').val();
   var backup = new Object();
   backup.homepage = $('input#homepage').val();
   backup.al = $('input#age_lower').val();
@@ -86,7 +92,7 @@ $(document).ready(function () {
     // TODO refactor into one request, create data on beforehand
     if (missing == 14) {
       var request = $.ajax({
-        url: '/api/branches/'+branch_id,
+        url: '/api/' + level_url + '/' + level_id,
         type: 'PUT',
         cache: false,
         data: {
@@ -96,7 +102,7 @@ $(document).ready(function () {
       });
     } else {
       var request = $.ajax({
-        url: '/api/branches/'+branch_id,
+        url: '/api/' + level_url + '/' + level_id,
         type: 'PUT',
         cache: false,
         data: {
@@ -130,14 +136,15 @@ $(document).ready(function () {
 
 
     request.done(function(data) {
+      var level = data.organization || data.branch || data.department;
       $('span#hours_error').hide();
-      if (data.branch.options.opening_hours) {
+      if (level.options.opening_hours) {
         $('span#hours_info').html("OK! Lagret.").show().fadeOut(5000);
         $('#change_hours_form').find('span.inherited').hide();
       } else {
         $('span#hours_info').html("OK! Arver instillinger").show().fadeOut(5000);
         $('#change_hours_form').find('span.inherited').show();
-        $.each(data.branch.options_inherited.opening_hours, function(k, v) {
+        $.each(level.options_inherited.opening_hours, function(k, v) {
           if (v == true) {
             $('input#'+k).attr('checked', true);
             $('#'+k.slice(0,-6)+'opens').attr("disabled", "disabled");
@@ -170,7 +177,7 @@ $(document).ready(function () {
     }
 
     request = $.ajax({
-      url: "/api/branches/"+branch_id,
+      url: '/api/' + level_url + '/' + level_id,
       type: "PUT",
       cache: false,
       data: age_data,
@@ -178,17 +185,18 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      if (data.branch.options.age_limit_higher || data.branch.options.age_limit_lower) {
-        var al = data.branch.options.age_limit_lower ? data.branch.options.age_limit_lower : data.branch.options_inherited.age_limit_lower;
-        var ah = data.branch.options.age_limit_higher ? data.branch.options.age_limit_higher : data.branch.options_inherited.age_limit_higher;;
+      var level = data.organization || data.branch || data.department;
+      if (level.options.age_limit_higher || level.options.age_limit_lower) {
+        var al = level.options.age_limit_lower ? level.options.age_limit_lower : level.options_inherited.age_limit_lower;
+        var ah = level.options.age_limit_higher ? level.options.age_limit_higher : level.options_inherited.age_limit_higher;;
 
         $('input#age_lower').val(al);
         $('input#age_higher').val(ah);
         $('span#age_inherited').hide();
         var msg = "OK! Lagret.";
       } else {
-        $('input#age_lower').val(data.branch.options_inherited.age_limit_lower);
-        $('input#age_higher').val(data.branch.options_inherited.age_limit_higher);
+        $('input#age_lower').val(level.options_inherited.age_limit_lower);
+        $('input#age_higher').val(level.options_inherited.age_limit_higher);
         $('span#age_inherited').show();
         var msg = "OK! Arver instillinger";
       }
@@ -219,7 +227,7 @@ $(document).ready(function () {
     if (time == "") { hp = "inherit"; }
 
     request = $.ajax({
-      url: "/api/branches/"+branch_id,
+      url: '/api/' + level_url + '/' + level_id,
       type: "PUT",
       cache: false,
       data: {
@@ -230,12 +238,13 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      if (data.branch.options.time_limit || data.branch.options.time_limit_no_limit) {
+      var level = data.organization || data.branch || data.department;
+      if (level.options.time_limit || level.options.time_limit_no_limit) {
         $('span#time_inherited').hide();
         var msg = "OK! Lagret.";
       } else {
         $('span#time_inherited').show();
-        $('input#time_limit').val(data.branch.options_inherited.time_limit);
+        $('input#time_limit').val(level.options_inherited.time_limit);
         var msg = "OK! Arver instillinger";
       }
       $('span#time_info').html(msg).show().fadeOut(5000);
@@ -253,7 +262,7 @@ $(document).ready(function () {
     if (time == "") { hp = "inherit"; }
 
     request = $.ajax({
-      url: "/api/branches/"+branch_id,
+      url: '/api/' + level_url + '/' + level_id,
       type: "PUT",
       cache: false,
       data: {
@@ -263,12 +272,13 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      if (data.branch.options.shorttime_limit) {
+      var level = data.organization || data.branch || data.department;
+      if (level.options.shorttime_limit) {
         $('span#shorttime_inherited').hide();
         var msg = "OK! Lagret.";
       } else {
         $('span#shorttime_inherited').show();
-        $('input#shorttime_limit').val(data.branch.options_inherited.shorttime_limit);
+        $('input#shorttime_limit').val(level.options_inherited.shorttime_limit);
         var msg = "OK! Arver instillinger";
       }
       $('span#shorttime_info').html(msg).show().fadeOut(5000);
@@ -285,7 +295,7 @@ $(document).ready(function () {
     if (hp == "") { hp = "inherit"; }
 
     request = $.ajax({
-      url: "/api/branches/"+branch_id,
+      url: '/api/' + level_url + '/' + level_id,
       type: "PUT",
       cache: false,
       data: { homepage: hp },
@@ -293,12 +303,13 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
-      if (data.branch.options.homepage) {
+      var level = data.organization || data.branch || data.department;
+      if (level.options.homepage) {
         $('span#homepage_inherited').hide();
         var msg = "OK! Lagret.";
       } else {
         $('span#homepage_inherited').show();
-        $('input#homepage').val(data.branch.options_inherited.homepage);
+        $('input#homepage').val(level.options_inherited.homepage);
         var msg = "OK! Arver instillinger";
       }
       $('span#homepage_info').html(msg).show().fadeOut(5000);
@@ -314,7 +325,7 @@ $(document).ready(function () {
   $('button#printersave').on('click', function () {
 
     request = $.ajax({
-      url: "/api/departments/"+branch_id,
+      url: '/api/' + level_url + '/' + level_id,
       type: "PUT",
       cache: false,
       data: { printeraddr: $('input#printer').val() },

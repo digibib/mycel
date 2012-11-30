@@ -71,6 +71,9 @@ ActiveRecord::Schema.define do
     t.string :username, :null => false
     t.string :password, :null => false
     t.string :email
+
+    t.integer :owner_admins_id
+    t.string :owner_admins_type
   end
 
   create_table :users, :force => true do |t|

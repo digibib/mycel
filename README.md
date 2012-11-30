@@ -13,7 +13,7 @@ The server is composed of two [Goliath] processes:
 
 1. A websocket server handling log on/off requests from the clients, adjusting the time spent by users, as well as broadcasting this information to the clients and web administration interface.
 
-2. An API server implemented using [Grape], exposing the database via a REST/JSON. This process is also serving the HTML views. The API is used by the web interface to store and retrieve configuration settings. It is also used to identify the clients and authenticate users before they connect to the WebSocket server. 
+2. An API server implemented using [Grape], exposing the database via a REST/JSON. This process is also serving the HTML views. The API is used by the web interface to store and retrieve configuration settings. It is also used to identify the clients and authenticate users before they connect to the WebSocket server.
 
 ###Database
 The database keeps track of how the library is organized hierarchicaly in branches, departments and clients, as well as users and which user is logged on to which client. Most settings are configurable at all levels (organization -> branch -> department -> client). If a given setting is not set, it is inherited from the parent level in the hierarchy.
@@ -21,8 +21,7 @@ The database keeps track of how the library is organized hierarchicaly in branch
 The user table is reset every day, and only anonymized information is stored for statistical purposes.
 
 ###Clients
-WRITEME
-
+The clients consist of a simple websocket-client to connect to the server, and a GTK-based GUI to show user login information.
 
 ## Installation and setup
 The system can be a bit challenging to set up, especially for those with litle Linux sysadmin experience. The trickiest part is probaby network configuration and setup and distribution of the live client images. This topic will be adressed in our Wiki.
@@ -49,7 +48,7 @@ To get it up running, simply do a bundle install and, start and deamonize the 2 
 **Server configuration**
 
 Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/mycel.yml`
- 
+
 To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up logrotation.
 
 #### Cronjob
@@ -85,7 +84,7 @@ It should work on all *nix systems, but note that this fetches address of eth0; 
 
 ### Logging
 Logging format:
->[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]} 
+>[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]}
 
 >[4896:INFO] 2012-10-14 18:47:17 :: LibraryUser, 31, logs on : hovedbiblioteket/voksenavdelingen/hovedklient1[00:01:2e:bc:c8:7d]
 
@@ -95,6 +94,8 @@ Logging format:
 
 > [4896: INFO] 2012-10-14 19:14:29 :: AnonymousUser, unknown, logs on ....
 
+I am working on scripts to generate usefull statistics automatically for each department and branch, as well as (global) overall statistics and graphs of trends and use.
+
 ## Potential feature enhancements
 * Allow booking of clients
 * Manage users printer quota
@@ -102,17 +103,12 @@ Logging format:
 
 
 ## Remaining TODOs
-
-* Global configuration in web interface (20h)
-* Deciding logging format and implementation (10h)
-* Admin users and authentication (10h)
-* Thorough cross-browser testing (3h)
+* Generate statistics (20h)
+* Allow adding branches/departments/clients in web interface (15h)
 * Documentation, especially installation and setup (5h)
-* Simplify setup, remove harcoded values from application & move all settings to one file, congig/mycel.yml (2h)
+* Simplify setup, remove harcoded values from application & move all settings to one file config.rb, not yml (4h)
 * Handling network disconnects, both server and client side (20h)
 * Time managment, edge cases in model (5h)
-* Store user time in seconds instead of minutes, allowing for more accurate time management. Adjust time every 15 sec. (2h)
-* Live testing with remote clients (10h)
 * Rewrite the client in a compiled language (30h)
 
 
@@ -120,5 +116,3 @@ Logging format:
   [Goliath]: https://github.com/postrank-labs/goliath/
   [Grape]: https://github.com/intridea/grape
   [em_postgresql]: https://github.com/mperham/em_postgresql
-
-

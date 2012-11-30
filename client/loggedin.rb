@@ -64,7 +64,7 @@ class LoggedInWindow < Gtk::Window
       @warned = true
     end
     @warned = false if minutes > 5
-    @user = nil if minutes == 0
+    @user = nil if minutes <= 0
   end
 
   def show
