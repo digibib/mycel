@@ -324,7 +324,8 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
-    return false if c.user
+    #return false if c.user
+    c.user.log_off if c.user
     self.client = c
   end
 
