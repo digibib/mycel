@@ -83,6 +83,8 @@ It should work on all *nix systems, but note that this fetches address of eth0; 
 ## Statistics
 
 ### Logging
+I am working on scripts to generate usefull statistics automatically for each department and branch, as well as (global) overall statistics and graphs of trends and use.
+
 Logging format:
 >[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]}
 
@@ -93,8 +95,6 @@ Logging format:
 > [4896: INFO] 2012-10-14 19:14:29 :: GuestUser, adult, logs on ....
 
 > [4896: INFO] 2012-10-14 19:14:29 :: AnonymousUser, unknown, logs on ....
-
-I am working on scripts to generate usefull statistics automatically for each department and branch, as well as (global) overall statistics and graphs of trends and use.
 
 ## Potential feature enhancements
 * Allow booking of clients
