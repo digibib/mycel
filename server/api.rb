@@ -16,6 +16,7 @@ def find_updates(model, attributes)
   attributes.each do |k,v|
     updates[k] = v if model.has_key? k and model[k].to_s != v
     updates[k] = nil if v == "inherit"
+    updates[k] = nil if v == ""
   end
   return false if updates.empty?
   updates
