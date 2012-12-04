@@ -4,7 +4,7 @@
 $(document).ready(function () {
 
   // ** global vars
-  var dept_id = $('input#department_id').val();
+  var dept_id = $('input#level_id').val();
   var backup = new Object();
   backup.homepage = $('input#homepage').val();
   backup.al = $('input#age_lower').val();
