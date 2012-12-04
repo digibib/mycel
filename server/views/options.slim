@@ -120,7 +120,8 @@ div class="divdot inputf"
 
 
 h3 Tidsbegrensninger
-p Angi tidsbegrensinger per bruker per dag, eller tillat fri bruk:
+p Angi tidsbegrensinger per bruker per dag
+/, eller tillat fri bruk:
 div class="divdot inputf"
   - if level.options.time_limit or level.options.time_limit_no_limit
     span[class="inherited" id="time_inherited" style="margin:7px; display:none;"]Disse innstillingene er arvet:
@@ -130,11 +131,12 @@ div class="divdot inputf"
     tr
       td minutter per dag
       td: input[type="text" id="time_limit" class="nr" value="#{level.options_self_or_inherited['time_limit']}"]
-      td fri bruk?
+      td
+      /fri bruk?
       - if level.options_self_or_inherited['time_limit_no_limit']
-        td: input[type="checkbox" id="time_limit_no_limit" checked="checked"]
+        td[class="invisible"]: input[type="checkbox" id="time_limit_no_limit" checked="checked"]
       - else
-        td: input[type="checkbox" id="time_limit_no_limit"]
+        td[class="invisible"]: input[type="checkbox" id="time_limit_no_limit"]
       td: button[type='button' id="time_save"]  = "Lagre"
       td
         span[id="time_info" class="info" style="margin-left:48px"]
