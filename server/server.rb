@@ -154,7 +154,8 @@ class Server < Goliath::WebSocket
                                      :user => {:name => user.name,
                                                :username => user.username,
                                                :id => user.id,
-                                               :minutes => user.minutes}})
+                                               :minutes => user.minutes,
+                                               :type => user.type_short}})
 
           env.channels['departments/'+client.department.id.to_s] << broadcast
           env.channels['clients/'+client.id.to_s] << broadcast
