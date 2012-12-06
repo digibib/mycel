@@ -5,8 +5,9 @@ class LogOnWindow < Gtk::Window
 
   attr_accessor :user, :pin, :clientname
 
-  def initialize(title, clientname, age_lower, age_higher)
+  def initialize(title, clientname, age_lower, age_higher, extra_min)
     super(title)
+    @extra_min = extra_min
     @user, @pin = nil
     @clientname = clientname
     @age_lower = age_lower
@@ -129,7 +130,7 @@ class LogOnWindow < Gtk::Window
         end
       end
       error = res['message'] unless res['authenticated']
-      error = "Du har brukt opp kvoten din for i dag!" if res['minutes'] <= 0 and res['authenticated']
+      error = "Du har brukt opp kvoten din for i dag!" if (res['minutes'] + @extra_min) <= 0 and res['authenticated']
     end
     #Gtk.main_quit
     error

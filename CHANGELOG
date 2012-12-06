@@ -1,3 +1,4 @@
+	Correctly handles different time limitation on clients
 0.0.8
 	Bugfix to handle network discconnect on client side
 	Refactor: Org/Branch/Dept Options now handled by common view partial

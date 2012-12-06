@@ -59,12 +59,15 @@ end
 age_lower = client['options_inherited']['age_limit_lower']
 age_higher = client['options_inherited']['age_limit_higher']
 
+# extra minutes:
+extra_min = client['options_inherited']['time_limit'] - 60
+
 while true
   if client['shorttime']
     LogOn = ShortWindow.new "LogOn", client['name'], client['options_inherited']['shorttime_limit']
 
   else
-    LogOn = LogOnWindow.new "LogOn", client['name'], age_lower, age_higher
+    LogOn = LogOnWindow.new "LogOn", client['name'], age_lower, age_higher, extra_min
   end
   LogOn.show
   Gtk.main
@@ -87,9 +90,9 @@ while true
       case message["status"]
         when "logged-on"
           LoggedIn.set_name_label(message['user']['username'])
-          LoggedIn.set_time(message["user"]["minutes"])
+          LoggedIn.set_time(message["user"]["minutes"]+extra_min)
         when "ping"
-            LoggedIn.set_time(message["user"]["minutes"]) if message["user"]["username"] == LoggedIn.name
+            LoggedIn.set_time(message["user"]["minutes"]+extra_min) if message["user"]["username"] == LoggedIn.name
         when "logged-off"
           EM.stop
       end
