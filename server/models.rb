@@ -412,6 +412,17 @@ end
 
 class Admin < ActiveRecord::Base
   validates_presence_of :username, :password
+
+  # method returns an array of which departments the admin has access to
+  def allowed_departments
+    if self.owner_admins_type == 'Department'
+      return [self.owner_admins_id]
+    elsif self.owner_admins_type == 'Branch'
+      return Branch.find(self.owner_admins_id).departments.collect { |d| d.id }
+    else
+      return Department.all.collect { |d| d.id }
+    end
+  end
 end
 
 class ScreenResolution < ActiveRecord::Base
