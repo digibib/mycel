@@ -40,11 +40,13 @@ $(document).ready(function () {
         $trcopy.find('.td-branchdept').html("").append(link1).append("/").append(link2);
         $trcopy.find('input.nr').setMask('999');
 
-        $('table.active').
-          find('tbody').append($trcopy).
-          end().
-          trigger("update", [true]);
+        if ( $('input.allowed_departments[value='+data.client.dept_id+']').length != 0 ) {
+          $('table.active').
+            find('tbody').append($trcopy).
+            end().
+            trigger("update", [true]);
         break;
+        }
       case "logged-off":
         $tr.remove();
 

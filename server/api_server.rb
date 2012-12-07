@@ -61,7 +61,8 @@ class Server < Goliath::API
               [401, {}, slim(:forbidden)]
             end
           elsif path[1] == 'users'
-            [200, {}, slim(:users, :locals => {:users => User.all})]
+            [200, {}, slim(:users, :locals => {:users => User.all,
+              :allowed_departments => Admin.find_by_username(env['admin']).allowed_departments})]
           elsif path[1] == 'clients'
             [200, {}, slim(:clients,
                            :locals => {:admin => Admin.find_by_username(env['admin'])})]

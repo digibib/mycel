@@ -1,3 +1,5 @@
+- for d in allowed_departments
+  input class="allowed_departments" type="hidden" value="#{d}"
 div class="main"
   h2 Brukere
   p Her vises alle brukerne som er pålogget, og de inaktive, det vil si de som har logget seg på tidligere i dag. Listen nullstilles hver natt, slik at ingen personopplysninger lagres mer enn ett døgn.
@@ -45,6 +47,8 @@ div class="main"
     tbody
       - for user in User.logged_on
         - client = user.client
+        - if not allowed_departments.member? client.department.id
+          - next
         tr id="#{user.id}"
           td[class="td-usertype"] #{user.type_short}
           td[class="td-username"] #{user.name}
