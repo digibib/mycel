@@ -13,6 +13,38 @@ Rake::TestTask.new do |test|
   test.verbose = true
 end
 
+desc "log opening hours for all departments"
+task :log_hours do
+  dbconfig = YAML::load(File.open("config/database.yml"))
+  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  #format: "Branch Department monday_open monday_closes monday_closed? tuesday_open .. etc"
+  for d in Department.all do
+    puts "\"#{d.branch.name}\" \"#{d.name}\" " +
+          "#{d.options_self_or_inherited['opening_hours']['monday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['monday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['monday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['tuesday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['tuesday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['tuesday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['wednsday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['wednsday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['wednsday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['thursday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['thursday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['thursday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['friday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['friday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['friday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['saturday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['saturday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['saturday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['sunday_opens'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['sunday_closes'] || '-'} " +
+          "#{d.options_self_or_inherited['opening_hours']['sunday_closed']} "
+  end
+
+end
+
 desc "clear user table (cronjob)"
 task :delete_users do
   dbconfig = YAML::load(File.open("config/database.yml"))

@@ -51,7 +51,7 @@ Most of the options can be configured in the web-based administration interface.
 
 To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up logrotation.
 
-#### Cronjob
+#### Cronjobs
 You need to set up a cronjob to remove all users.Create a file `/etc/cron.d/mycel`, and paste in the following, substituting USER and PATH to suit your environment:
 
 ```
@@ -60,7 +60,14 @@ You need to set up a cronjob to remove all users.Create a file `/etc/cron.d/myce
 
 It will log number of users deleted to `mycel/server/logs/cron.log`
 
-If the cronjob doesn't get executed, check your `/var/log/syslog` for hints on what could be wrong. In particular, you may need to comment out the following line from your `~/.bashrc` file:
+Another cron is set up to log the opening hours for all departments. This is needed for generating better and more acurate statistics. In paritciluar it's needed for calculating the utilization level of the clients on any given day.
+
+```
+0 0 * * * {USER} /bin/bash -l -c 'source /home/{USER}/.rvm/environments/ruby-1.9.2-p320 && cd /{PATH/TO}/mycel/server && bundle exec rake log_hours --silent >> logs/hours.log 2>&1'
+```
+
+
+If the cronjobs doesn't get executed, check your `/var/log/syslog` for hints on what could be wrong. In particular, you may need to comment out the following line from your `~/.bashrc` file:
 
     [  -z "$PS1" ] && return
 

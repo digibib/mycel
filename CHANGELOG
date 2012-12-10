@@ -1,3 +1,4 @@
+	Raketask for daily logging of opening hours
 	Shows options in tabs
 	Only show users logged in to a department where admin has access
 	Correctly handles different time limitation on clients
