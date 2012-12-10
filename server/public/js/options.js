@@ -40,6 +40,19 @@ $(document).ready(function () {
     }
   });
 
+  // ** options tabs handling **
+  $('.pane').hide();
+  $('.pane:first').addClass('active').show();
+
+  $('.tabs li').on('click', function() {
+    $('.tabs li.active').removeClass('active');
+    $(this).addClass('active');
+    var idx = $(this).index();
+    $('.pane').hide();
+    $('.pane:eq('+idx+')').show();
+  });
+
+
   // ** handle opening-hours events **
 
   $(':input.chk').change(function () {

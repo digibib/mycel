@@ -1,3 +1,4 @@
+	Shows options in tabs
 	Only show users logged in to a department where admin has access
 	Correctly handles different time limitation on clients
 0.0.8
