@@ -17,7 +17,7 @@ desc "log opening hours for all departments"
 task :log_hours do
   dbconfig = YAML::load(File.open("config/database.yml"))
   ActiveRecord::Base.establish_connection(dbconfig["development"])
-  #format: "Timestamp Branch Department monday_open monday_closes monday_closed? tuesday_open .. etc"
+  #format: "Date Branch Department monday_open monday_closes monday_closed? tuesday_open .. etc"
   for d in Department.all do
     puts "#{Time.now().strftime('%Y-%m-%d')} \"#{d.branch.name}\" \"#{d.name}\" " +
           "#{d.options_self_or_inherited['opening_hours']['monday_opens'] || '-'} " +
