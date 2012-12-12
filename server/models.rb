@@ -142,7 +142,7 @@ class Client < ActiveRecord::Base
   validates_uniqueness_of :name, :hwaddr
 
   has_one :user, :inverse_of => :client, :autosave => true
-  has_one :screen_resolution
+  belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
@@ -427,5 +427,5 @@ end
 
 class ScreenResolution < ActiveRecord::Base
   validates_presence_of :resolution
-  belongs_to :client
+  has_one :clients
 end
