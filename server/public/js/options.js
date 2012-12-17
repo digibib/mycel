@@ -83,11 +83,12 @@ $(document).ready(function () {
     $(':input.hour').val('').removeClass("inputmissing");
     $(':input.hour').removeAttr("disabled");
     $(':input.chk').removeAttr('checked');
+    $(':input.nr').removeClass("inputmissing");
   });
 
   $('button#hourssave').on('click', function() {
     var missing = 0;
-    $('input.hour.required:not(:disabled)').each(function () {
+    $('#oh_table').find('input.required:not(:disabled)').each(function () {
       if ($(this).val() == '' ) {
         $(this).addClass('inputmissing');
         missing += 1;
@@ -95,15 +96,16 @@ $(document).ready(function () {
     });
 
     // return if one or more (but not all 14) input fields are missing
-    if (missing && (missing != 14 )) { return; }
+    if (missing && (missing != 15 )) { return; }
 
+    $(':input.nr').removeClass("inputmissing");
     $(':input.hour').removeClass("inputmissing");
 
     // remove opening_hours on branch, and inherit from branch
     // if all fields are blank
 
     // TODO refactor into one request, create data on beforehand
-    if (missing == 14) {
+    if (missing == 15) {
       var request = $.ajax({
         url: '/api/' + level_url + '/' + level_id,
         type: 'PUT',

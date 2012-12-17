@@ -13,7 +13,7 @@ div class="panes"
         input[id="level_id" hidden value="#{level.id}"]
         input[id="level_type" hidden value="#{level.class.name}"]
         input[id="opening_hours_id" hidden value="#{hours.id}"]
-        table class="genform"
+        table class="genform" id="oh_table"
           tr
             td[colspan="6"]
             - if hours.options.owner_options_type == level.class.name
@@ -102,7 +102,7 @@ div class="panes"
             td[colspan="6"]&nbsp;
           tr
             td[colspan="2"] Brukerne logges av
-            td: input[type="text" class="nr" id="minutes_before_closing" value="#{hours.minutes_before_closing}"]
+            td: input[type="text" class="nr required" id="minutes_before_closing" value="#{hours.minutes_before_closing}"]
             td[colspan="3"] minutter før stengetid
         div[class="hoursbuttons"]=
       button[type='button' id="hourssave" class="gen"]  = "Lagre"

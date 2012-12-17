@@ -62,7 +62,7 @@ ActiveRecord::Schema.define do
     t.boolean :sunday_closed, :default => false
     t.time :sunday_opens
     t.time :sunday_closes
-    t.integer :minutes_before_closing
+    t.integer :minutes_before_closing, :default => 0
 
     t.integer :options_id
   end
