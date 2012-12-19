@@ -7,7 +7,7 @@ The clients are intended to be used library patrons, who log on using their libr
 GPLv3
 
 ## Architecture
-![Mycel architecture](https://github.com/digibib/mycel/raw/develop/docs/architecture.png)
+![Mycel architecture](https://github.com/digibib/mycel/raw/master/docs/architecture.png)
 ###Server
 The server is composed of two [Goliath] processes:
 
@@ -16,9 +16,15 @@ The server is composed of two [Goliath] processes:
 2. An API server implemented using [Grape], exposing the database via a REST/JSON. This process is also serving the HTML views. The API is used by the web interface to store and retrieve configuration settings. It is also used to identify the clients and authenticate users before they connect to the WebSocket server.
 
 ###Database
-The database keeps track of how the library is organized hierarchicaly in branches, departments and clients, as well as users and which user is logged on to which client. Most settings are configurable at all levels (organization -> branch -> department -> client). If a given setting is not set, it is inherited from the parent level in the hierarchy.
+The database keeps track of how the library is organized hierarchicaly in branches, departments and clients, as well as users and which user is logged on to which client. The options are configurable on all levels (organization -> branch -> department -> client). If a given setting is not set, it is inherited from the parent level in the hierarchy.
 
-The user table is reset every day, and only anonymized information is stored for statistical purposes.
+####Model
+A simplified overview of the models:
+![Mycel architecture](https://github.com/digibib/mycel/raw/master/docs/db_model.png)
+
+Although we have aimed at a generic design, the system _is_ tailored for the Oslo public library, and might not be a perfect fit for your organization. If you are considering to use Mycel, please carefully study the model and [database schema](https://github.com/digibib/mycel/raw/master/docs/db_schema.pdf) to see if it can support all your configuration needs. You may, for example, require additional options, so modify the schema and models accordingly.
+
+The user table is reset every night, and only anonymized information about patron usage is stored in logfiles for statistical purposes.
 
 ###Clients
 The clients consist of a simple websocket-client to connect to the server, and a GTK-based GUI to show user login information.
