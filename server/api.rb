@@ -143,7 +143,7 @@ class API < Grape::API
 
       status 200
       {:authenticated => authenticated, :minutes => user.minutes || 0,
-       :age => user.age || 0, :message => message}
+       :age => user.age || 0, :message => message, :type => user.type_short || "N"}
     end
 
     desc "returns a specific user"
