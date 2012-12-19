@@ -427,5 +427,5 @@ end
 
 class ScreenResolution < ActiveRecord::Base
   validates_presence_of :resolution
-  has_one :clients
+  has_one :client
 end
