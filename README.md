@@ -74,11 +74,7 @@ If the cronjobs doesn't get executed, check your `/var/log/syslog` for hints on 
 ### Clients
 Mycel is being developed and tested on clients running lubuntu 11.10 and 12.04, but any system capable of running GTK-based applications should work.
 
-The client is written in Ruby, so obviously you should have Ruby installed. Development is done on version 1.9.3. Simply run bundle install and the client should be good to go. You may have to install some development headers in order to compile the gtk2-gem. On Debian-based systems you can try
-
-```sudo apt-get install libgtk2.0-dev```
-
-Note: when I got the system stable and running, I plan to rewrite the client in a compiled language like C or Go. At our Library most clients are thin clients with Linux images loaded in RAM at start up, and we therefore want the images to be as small and efficient as possible.
+The client is a compiled executable written in Go. For installation instruction see the [mycel-client repository](https://github.com/digibib/mycel-client).
 
 #### Notes
 The client is identified by sending by sending the mac-adress to the API. The mac adress is obtained using the following command:
@@ -114,10 +110,6 @@ Logging format:
 * Allow adding branches/departments/clients in web interface (15h)
 * Documentation, especially installation and setup (5h)
 * Simplify setup, remove harcoded values from application & move all settings to one file config.rb, not yml (4h)
-* Handling network disconnects, both server and client side (20h)
-* Time managment, edge cases in model (5h)
-* Rewrite the client in a compiled language (30h)
-
 
   [Deichmanske bibliotek]: http://deichman.no
   [Goliath]: https://github.com/postrank-labs/goliath/

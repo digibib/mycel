@@ -1,3 +1,8 @@
+	Client: bundle logo image data in executable
+	Assure minutes left in client status window never exceeds available time until closing
+	Client shuts down automatically according to department's closing hours
+	Client tries to reconnect after network disconnects
+	Client rewritten in Go and distributed as a compiled executable
 	Raketask for daily logging of opening hours
 	Shows options in tabs
 	Only show users logged in to a department where admin has access
