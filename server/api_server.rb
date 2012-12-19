@@ -7,9 +7,9 @@ require "slim"
 require "cgi"
 require "./models"
 require "./api"
+require "./config/settings"
 
-dbconfig = YAML::load(File.open("config/database.yml"))
-ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
+ActiveRecord::Base.establish_connection(Settings::DB[Goliath.env.to_sym])
 Slim::Engine.set_default_options :pretty => true
 
 class Server < Goliath::API

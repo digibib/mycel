@@ -8,6 +8,7 @@ require "slim"
 require "cgi"
 require "./models"
 require "./api"
+require "./config/settings"
 
 # This plugin adjusts the time left for all users currently logged on.
 # It's called every minute and substracts 1 minute from the users time
@@ -34,7 +35,7 @@ module Goliath
 end
 
 dbconfig = YAML::load(File.open("config/database.yml"))
-ActiveRecord::Base.establish_connection(dbconfig[Goliath.env.to_s])
+ActiveRecord::Base.establish_connection(Settings::DB[Goliath.env.to_sym])
 
 class Server < Goliath::WebSocket
   plugin Goliath::Plugin::TimeManager

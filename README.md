@@ -115,7 +115,6 @@ Logging format:
 * Generate statistics (20h)
 * Allow adding branches/departments/clients in web interface (15h)
 * Documentation, especially installation and setup (5h)
-* Simplify setup, remove harcoded values from application & move all settings to one file config.rb, not yml (4h)
 
   [Deichmanske bibliotek]: http://deichman.no
   [Goliath]: https://github.com/postrank-labs/goliath/

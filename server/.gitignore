@@ -3,8 +3,7 @@
 .bundle
 .config
 db/seed_REAL.yml
-config/mycel.yml
-config/database.yml
+config/settings.rb
 coverage
 InstalledFiles
 lib/bundler/man

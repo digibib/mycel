@@ -1,0 +1,22 @@
+module Settings
+  DEFAULT_MINUTES = 60
+  API = {:host => 'localhost', :port => 9000 }
+  WS = {:host => 'localhost', :port => 9001 }
+  SIP2 = {:host => "sip2server.com", :port => 999}
+  DB = {:test => {:adapter => 'sqlite3',
+                  :database => ':memory:'},
+        :development => {:adapter => 'em_mysql2',
+                         :database => 'mycel',
+                         :username => 'mycel',
+                         :password => 'secret',
+                         :host => 'localhost',
+                         :pool => 5,
+                         :reconnect => true},
+        :production => {:adapter => 'em_mysql2',
+                        :database => 'mycel',
+                        :username => 'mycel',
+                        :password => 'secret',
+                        :host => 'localhost',
+                        :pool => 5,
+                        :reconnect => true}}
+end

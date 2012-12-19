@@ -1,5 +1,7 @@
 require "em-synchrony/activerecord"
 require "./sip2.rb"
+require "./config/settings"
+
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
 
@@ -368,7 +370,7 @@ class LibraryUser < User
       age = now.year - dob.year - ((now.month > dob.month || (now.month == dob.month && now.day >= dob.day)) ? 0 : 1)
       self.age = age
       self.name = name[0]
-      self.minutes ||= 60
+      self.minutes ||= Settings::DEFAULT_MINUTES
       save
       authorized[0] == 'Y'
     end

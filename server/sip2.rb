@@ -1,11 +1,10 @@
 require "socket"
 require "time"
-
-SIP2 = YAML::load(File.open("config/mycel.yml"))['sip2']
+require "./config/settings"
 
 class DGClient
   def initialize()
-    @host, @port = SIP2['host'], SIP2['port']
+    @host, @port = Settings::SIP2[:host], Settings::SIP2[:port]
   end
 
   def send_message(msg)

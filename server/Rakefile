@@ -1,6 +1,7 @@
 require "rake/testtask"
 require "em-synchrony/activerecord"
 require "./models"
+require "./config/settings"
 require "pry"
 
 APP_ROOT = File.expand_path(File.dirname( __FILE__ ))
@@ -15,8 +16,7 @@ end
 
 desc "log opening hours for all departments"
 task :log_hours do
-  dbconfig = YAML::load(File.open("config/database.yml"))
-  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  ActiveRecord::Base.establish_connection(Settings::DB[:production])
   #format: "Date Branch Department num_clients monday_open monday_closes monday_closed? tuesday_open .. etc"
   for d in Department.all do
     puts "#{Time.now().strftime('%Y-%m-%d')} \"#{d.branch.name}\" \"#{d.name}\" #{d.clients.count} " +
@@ -47,8 +47,7 @@ end
 
 desc "clear user table (cronjob)"
 task :delete_users do
-  dbconfig = YAML::load(File.open("config/database.yml"))
-  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  ActiveRecord::Base.establish_connection(Settings::DB[:production])
   s = "[#{Time.now}] :: LibraryUsers: #{User.where(:type=>"LibraryUser").count}, "
   s+= "GuestUsers: #{User.where(:type=>"GuestUser").count}, "
   s+= "AnonymousUsers: #{User.where(:type=>"AnonymousUser").count}"
@@ -62,9 +61,8 @@ task :setup do
   Rake::Task["db:seed"].execute
 
   puts "2. Prepare template views"
-  config = YAML::load(File.open("config/mycel.yml"))['ws']
-  puts "   using host: #{config['host']} and port: #{config['port']}"
-  Rake::Task["prepare"].invoke(config['host'], config['port'])
+  puts "   using host: #{Settings::WS[:host]} and port: #{Settings::WS[:port]}"
+  Rake::Task["prepare"].invoke(Settings::WS[:host], Settings::WS[:port])
 
   puts "3. Sets up log rotation"
   Rake::Task["logrotate"].execute
@@ -108,16 +106,14 @@ end
 
 
 task :console do
-  dbconfig = YAML::load(File.open("config/database.yml"))
-  ActiveRecord::Base.establish_connection(dbconfig["development"])
+  ActiveRecord::Base.establish_connection(Settings::DB[:production])
   binding.pry
 end
 
 namespace :db do
   desc 'Build tables and seed MySQL for development'
   task :seed do
-    dbconfig = YAML::load(File.open("config/database.yml"))
-    ActiveRecord::Base.establish_connection(dbconfig["development"])
+    ActiveRecord::Base.establish_connection(Settings::DB[:production])
 
     load "db/schema.rb"
 
@@ -161,8 +157,7 @@ namespace :db do
 
   desc 'seed branch'
   task :branch do
-    dbconfig = YAML::load(File.open("config/database.yml"))
-    ActiveRecord::Base.establish_connection(dbconfig["development"])
+    ActiveRecord::Base.establish_connection(Settings::DB[:production])
 
     seed = YAML::load(File.open("db/branch.yml"))
     org = Organization.first
