@@ -34,7 +34,6 @@ module Goliath
   end
 end
 
-dbconfig = YAML::load(File.open("config/database.yml"))
 ActiveRecord::Base.establish_connection(Settings::DB[Goliath.env.to_sym])
 
 class Server < Goliath::WebSocket
