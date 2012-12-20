@@ -12,6 +12,22 @@ require "./config/settings"
 ActiveRecord::Base.establish_connection(Settings::DB[Goliath.env.to_sym])
 Slim::Engine.set_default_options :pretty => true
 
+Goliath::Request.log_block = proc do |env, response, elapsed_time|
+  params = env[Goliath::Request::RACK_INPUT].string
+
+  # Logging format:
+  # request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)
+  env[Goliath::Request::RACK_LOGGER].info "%s %s %s %s%s %s %.2f" % [
+      env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
+      response.status,
+      env[Goliath::Request::REQUEST_METHOD],
+      env[Goliath::Request::REQUEST_PATH],
+      params.empty? ? "" : "?"+params,
+      response.headers['Content-Length'].nil? ? "0" : response.headers['Content-Length'],
+      elapsed_time
+    ]
+end
+
 class Server < Goliath::API
   include Goliath::Rack::Templates
   use Goliath::Rack::Params

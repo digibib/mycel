@@ -90,11 +90,14 @@ The client is identified by sending by sending the mac-adress to the API. The ma
 It should work on all *nix systems, but note that this fetches address of eth0; so make sure to fetch the correct eth (or wlan) if the client has several network connections.
 
 ## Statistics
-
-### Logging
 I am working on scripts to generate usefull statistics automatically for each department and branch, as well as (global) overall statistics and graphs of trends and use.
 
-Logging format:
+### Logging
+Logging format for the API-server (column-based,  '|' denotes a space):
+
+```#[PID:LEVEL] timestamp :: request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)```
+
+Logging format for the webosocket server (soon to be revised to made easier to parse!):
 >[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]}
 
 >[4896:INFO] 2012-10-14 18:47:17 :: LibraryUser, 31, logs on : hovedbiblioteket/voksenavdelingen/hovedklient1[00:01:2e:bc:c8:7d]
