@@ -27,22 +27,20 @@ $(document).ready(function () {
       case "logged-on":
         $tr.remove();
 
-        $trcopy = $("table.active tr:last").clone();
-        $trcopy.attr("id", data.user.id);
-        $trcopy.find('.td-usertype').html(data.user.type);
-        $trcopy.find('.td-username').html(data.user.name);
-        $trcopy.find('.td-minutes').html(data.user.minutes);
-        $trcopy.find('input.users.minutes').val(data.user.minutes);
-        $trcopy.find('.td-clientname').html(data.client.name);
-        var link1 = $('<a>', {href: "/"+data.client.branch, text: data.client.branch});
-        var link2 = $('<a>', {href: "/"+data.client.branch+"/"+data.client.department, text: data.client.department});
-
-        $trcopy.find('.td-branchdept').html("").append(link1).append("/").append(link2);
-        $trcopy.find('input.nr').setMask('999');
+        var trstr = "<tr id='"+data.user.id +"'><td class='td-usertype'>" +data.user.type +"</td>"
+        trstr += "<td class='td-username'>"+data.user.name+"</td><td class='td-minutes' style='width:40px'>"
+        trstr += data.user.minutes+"</td><td class='td-adjust'><div style='width:80px'>"
+        trstr += "<input class='users minutes' type='hidden' value='"+data.user.minutes+"'>"
+        trstr += "<input class='nr required' type='text'><button class='users add_time' type='button'>+</button></div>"
+        trstr += "</td><td class='td-branchdept'><a href='/"+data.client.branch+"'>"+data.client.branch+"</a>/"
+        trstr += "<a href='/"+data.client.branch+"/"+data.client.department+"'>"+data.client.department+"</a></td>"
+        trstr += "<td class='td-clientname'>"+data.client.name+"</td><td class='td-throwout'>"
+        trstr += "<button class='users throw-out' type='button'>Kast ut!</button></td></tr>"
 
         if ( $('input.allowed_departments[value='+data.client.dept_id+']').length != 0 ) {
           $('table.active').
-            find('tbody').append($trcopy).
+            find('tbody').append(trstr).
+            find('input.nr').setMask('999').
             end().
             trigger("update", [true]);
         break;
