@@ -13,7 +13,7 @@ ActiveRecord::Base.establish_connection(Settings::DB[Goliath.env.to_sym])
 Slim::Engine.set_default_options :pretty => true
 
 Goliath::Request.log_block = proc do |env, response, elapsed_time|
-  params = env[Goliath::Request::RACK_INPUT].string
+  params = env[Goliath::Request::RACK_INPUT].string+env[Goliath::Request::QUERY_STRING]
 
   # Logging format:
   # request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)
