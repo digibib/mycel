@@ -95,7 +95,9 @@ I am working on scripts to generate usefull statistics automatically for each de
 ### Logging
 Logging format for the API-server (column-based,  '|' denotes a space):
 
-```#[PID:LEVEL] timestamp :: request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)```
+```
+#[PID:LEVEL] timestamp :: request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)
+```
 
 Logging format for the webosocket server (soon to be revised to made easier to parse!):
 >[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]}
