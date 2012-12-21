@@ -121,7 +121,7 @@ class API < Grape::API
   resource :users do
     desc "returns all users"
     get "/" do
-      {:users => User.all}
+      {:users => User.all.as_json}
     end
 
     desc "authenticates a user"
@@ -148,7 +148,7 @@ class API < Grape::API
 
     desc "returns a specific user"
     get "/:id" do
-      {:user => User.find(params[:id])}
+      {:user => User.find(params[:id]).as_json}
     end
 
     desc "creates a new guest user"
@@ -188,7 +188,7 @@ class API < Grape::API
               :message => "Ingen endringer!" unless user.changed?
 
         user.save
-        {:user => user}
+        {:user => user.as_json}
       rescue ActiveRecord::RecordNotFound
         throw :error, :status => 404,
               :message => "Det finnes ingen bruker med id #{params[:id]}"

@@ -336,6 +336,11 @@ class User < ActiveRecord::Base
     self.client = nil
   end
 
+  def as_json(*args)
+    hash = super()
+    hash.except("password")
+  end
+
 end
 
 class LibraryUser < User
