@@ -141,7 +141,8 @@ class API < Grape::API
       # 3. Not OK if user allready logged on another client
       authenticated = false if user.client
 
-      status 200
+      status 401
+      status 200 if authenticated
       {:authenticated => authenticated, :minutes => user.minutes || 0,
        :age => user.age || 0, :message => message, :type => user.type_short || "N"}
     end
