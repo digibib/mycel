@@ -96,19 +96,20 @@ I am working on scripts to generate usefull statistics automatically for each de
 Logging format for the API-server (column-based,  '|' denotes a space):
 
 ```
-#[PID:LEVEL] timestamp :: request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)
+[PID:LEVEL] timestamp :: response.status|request.IP|request.method|request.path|response.length(bytes)|response.time(ms)
 ```
 
-Logging format for the webosocket server (soon to be revised to made easier to parse!):
->[PID:INFO] {DateTimestamp} :: {UserType}, {age}, {logs on|logs_off} : {branch/dept/client[MAC]}
+The websocket server logs events:
 
->[4896:INFO] 2012-10-14 18:47:17 :: LibraryUser, 31, logs on : hovedbiblioteket/voksenavdelingen/hovedklient1[00:01:2e:bc:c8:7d]
+```
+[PID:LEVEL] timestamp :: event|user|user.id|user.age|action|branch|department|client.name|client.hwaddr
+```
 
->[4896:INFO] 2012-10-14 18:54:09 :: LibraryUser, 11, logs off : hovedbiblioteket/unge deichman/ungeklient2[00:01:2e:bc:c8:7d]
+As well as a status message once a minute:
 
-> [4896: INFO] 2012-10-14 19:14:29 :: GuestUser, adult, logs on ....
-
-> [4896: INFO] 2012-10-14 19:14:29 :: AnonymousUser, unknown, logs on ....
+```
+[PID:LEVEL] timestamp :: stats|users-logged-on|number-of-clients
+```
 
 ## Potential feature enhancements
 * Allow booking of clients

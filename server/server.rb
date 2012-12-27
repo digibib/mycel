@@ -22,7 +22,8 @@ module Goliath
       def run
         EM.add_periodic_timer(60) do
           Fiber.new do
-            @logger.info "Users logged on: #{Client.joins(:user).count}, Total clients: #{Client.count}"
+            # log format: type  active-users                 num-clients
+            @logger.info "stats #{Client.joins(:user).count} #{Client.count}"
             for user in User.joins(:client).readonly(false).all
               user.minutes -= 1
               user.save
@@ -58,8 +59,7 @@ class Server < Goliath::WebSocket
         if env['user'].client
           user = env['user']
           client = env['user'].client
-          env.logger.error("#{env['user'].log_friendly}, disconnected from: #{env['user'].client.log_friendly}")
-          env.logger.info("#{env['user'].log_friendly}, logged off: #{env['user'].client.log_friendly}")
+          env.logger.info("event #{user.type} #{user.id} #{user.age_log} disconnect #{client.log_friendly}")
 
           broadcast = JSON.generate({:status => "logged-off",
                                      :client => {:id => client.id,
@@ -75,6 +75,7 @@ class Server < Goliath::WebSocket
           env.channels['branches/'] << broadcast
 
           env['user'].log_off
+          env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")
           EM.cancel_timer(env['timer']) if env['timer']
         end
       end.resume
@@ -121,7 +122,8 @@ class Server < Goliath::WebSocket
             end.resume
           end
 
-          env.logger.info("#{user.log_friendly}, logged on: #{client.log_friendly}")
+          # log format:    type    who          who-id   who-age         actionS    where
+          env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-on #{client.log_friendly}")
 
           broadcast = JSON.generate({:status => "logged-on",
                                      :client => {:id => client.id,
@@ -145,8 +147,8 @@ class Server < Goliath::WebSocket
           user.log_off
           user.save
           EM.cancel_timer(env['timer'])
-
-          env.logger.info("#{user.log_friendly}, logged off: #{client.log_friendly}")
+          # log format:    type    who          who-id   who-age         action    where
+          env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")
 
           broadcast = JSON.generate({:status => "logged-off",
                                      :client => {:id => client.id,

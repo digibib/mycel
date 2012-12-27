@@ -165,7 +165,7 @@ class Client < ActiveRecord::Base
   end
 
   def log_friendly
-    "#{self.branch.name}/#{self.department.name}/#{self.name}[#{self.hwaddr}]"
+    "\"#{self.branch.name}\" \"#{self.department.name}\" \"#{self.name}\" #{self.hwaddr}"
   end
 
   def options_self_or_inherited
@@ -385,6 +385,10 @@ class LibraryUser < User
     'B'
   end
 
+  def age_log
+    self.age
+  end
+
   def log_friendly
     "LibraryUser[#{self.id}], #{self.age}"
   end
@@ -398,6 +402,10 @@ class GuestUser < User
     self.password == password
   end
 
+  def age_log
+    "#{self.age > 15 ? 'adult' : 'child'}"
+  end
+
   def type_short
     'G'
   end
@@ -408,6 +416,10 @@ class GuestUser < User
 end
 
 class AnonymousUser < User
+  def age_log
+    'unknown'
+  end
+
   def type_short
     'A'
   end

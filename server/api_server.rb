@@ -16,10 +16,10 @@ Goliath::Request.log_block = proc do |env, response, elapsed_time|
   params = env[Goliath::Request::RACK_INPUT].string+env[Goliath::Request::QUERY_STRING]
 
   # Logging format:
-  # request.IP | response.status | request.method | request.path | response.length(bytes) | response.time(ms)
+  # response.status | request.IP | request.method | request.path | response.length(bytes) | response.time(ms)
   env[Goliath::Request::RACK_LOGGER].info "%s %s %s %s%s %s %.2f" % [
-      env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
       response.status,
+      env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
       env[Goliath::Request::REQUEST_METHOD],
       env[Goliath::Request::REQUEST_PATH],
       params.empty? ? "" : "?"+params,
