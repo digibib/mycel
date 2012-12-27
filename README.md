@@ -96,19 +96,19 @@ I am working on scripts to generate usefull statistics automatically for each de
 Logging format for the API-server (column-based,  '|' denotes a space):
 
 ```
-[PID:LEVEL] timestamp :: response.status|request.IP|request.method|request.path|response.length(bytes)|response.time(ms)
+timestamp :: response.status|request.IP|request.method|request.path|response.length(bytes)|response.time(ms)
 ```
 
-The websocket server logs events:
+The Websocket server logs events:
 
 ```
-[PID:LEVEL] timestamp :: event|user|user.id|user.age|action|branch|department|client.name|client.hwaddr
+timestamp :: event|user|user.id|user.age|action|branch|department|client.name|client.hwaddr
 ```
 
 As well as a status message once a minute:
 
 ```
-[PID:LEVEL] timestamp :: stats|users-logged-on|number-of-clients
+timestamp :: stats|users-logged-on|number-of-clients
 ```
 
 ## Potential feature enhancements
