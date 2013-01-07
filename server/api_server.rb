@@ -15,6 +15,7 @@ Slim::Engine.set_default_options :pretty => true
 Goliath::Request.log_block = proc do |env, response, elapsed_time|
   params = env[Goliath::Request::RACK_INPUT].string+env[Goliath::Request::QUERY_STRING]
   params = '**hidden**' if env[Goliath::Request::REQUEST_PATH].match(/authenticate/)
+  params = '**hidden**' if env[Goliath::Request::REQUEST_PATH].match(/admins/)
 
   # Logging format:
   # response.status | request.IP | request.method | request.path | response.length(bytes) | response.time(ms)
