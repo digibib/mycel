@@ -1,3 +1,5 @@
+- for d in Department.all
+  input id="dm_#{d.id}" class="adjust-minutes" type="hidden" value="#{d.options_self_or_inherited['time_limit'].to_i - 60}"
 div class="main"
   input[type="hidden" value="#{department.name}" id="department-name"]
   - if department.name == department.branch.name

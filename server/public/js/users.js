@@ -22,7 +22,12 @@ $(document).ready(function () {
 
     switch (data.status) {
       case "ping":
-        $tr.find('.td-minutes').html(data.user.minutes);
+        if (data.user.type === "B" ) {
+            $tr.find('.td-minutes').html(data.user.minutes);
+        } else {
+            var adjust = parseInt($('#dm_'+data.client.dept_id).val());
+            $tr.find('.td-minutes').html(data.user.minutes+adjust);
+        }
         break;
       case "logged-on":
         $tr.remove();

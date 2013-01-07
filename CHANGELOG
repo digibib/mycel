@@ -1,3 +1,4 @@
+	Display acutal minutes left in admin view
 	Changing logging format to make it easier to parse
 	More detailed logging for the API-server
 	Bundle all settings into config/settings.rb
