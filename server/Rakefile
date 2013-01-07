@@ -40,7 +40,8 @@ task :log_hours do
           "#{d.options_self_or_inherited['opening_hours']['saturday_closed']} " +
           "#{d.options_self_or_inherited['opening_hours']['sunday_opens'] || '-'} " +
           "#{d.options_self_or_inherited['opening_hours']['sunday_closes'] || '-'} " +
-          "#{d.options_self_or_inherited['opening_hours']['sunday_closed']} "
+          "#{d.options_self_or_inherited['opening_hours']['sunday_closed']} " +
+          "#{d.options_self_or_inherited['opening_hours']['minutes_before_closing']}"
   end
 
 end
