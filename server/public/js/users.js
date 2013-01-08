@@ -23,18 +23,22 @@ $(document).ready(function () {
     switch (data.status) {
       case "ping":
         if (data.user.type === "B" ) {
-            $tr.find('.td-minutes').html(data.user.minutes);
-        } else {
             var adjust = parseInt($('#dm_'+data.client.dept_id).val());
             $tr.find('.td-minutes').html(data.user.minutes+adjust);
+        } else {
+            $tr.find('.td-minutes').html(data.user.minutes);
         }
         break;
+
       case "logged-on":
         $tr.remove();
-
+        var adjust = 0;
+        if (data.user.type === "B" ) {
+          adjust = parseInt($('#dm_'+data.client.dept_id).val());
+        }
         var trstr = "<tr id='"+data.user.id +"'><td class='td-usertype'>" +data.user.type +"</td>"
         trstr += "<td class='td-username'>"+data.user.name+"</td><td class='td-minutes' style='width:40px'>"
-        trstr += data.user.minutes+"</td><td class='td-adjust'><div style='width:80px'>"
+        trstr += (parseInt(data.user.minutes)+adjust)+"</td><td class='td-adjust'><div style='width:80px'>"
         trstr += "<input class='users minutes' type='hidden' value='"+data.user.minutes+"'>"
         trstr += "<input class='nr required' type='text'><button class='users add_time' type='button'>+</button></div>"
         trstr += "</td><td class='td-branchdept'><a href='/"+data.client.branch+"'>"+data.client.branch+"</a>/"
@@ -164,6 +168,13 @@ $(document).ready(function () {
     });
 
     request.done(function(data) {
+      // var adjust;
+      //   if (data.user.type == "G" ) {
+      //     adjust = parseInt($('#dm_'+data.client.dept_id).val());
+      //     console.log(adjust);
+      //   } else {
+      //     adjust = 0
+      //   }
       $min.val(data.user.minutes); // update hidden input
       $('tr#'+user_id).find('td.td-minutes').html(data.user.minutes);
       $i.val('');

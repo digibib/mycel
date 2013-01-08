@@ -338,6 +338,7 @@ class User < ActiveRecord::Base
 
   def as_json(*args)
     hash = super()
+    hash.merge!(:type => self.type_short)
     hash.except("password")
   end
 

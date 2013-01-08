@@ -37,10 +37,10 @@ $(document).ready(function () {
           // to counter late ping with minutes update
           $tr.find('input.minutes').val(data.user.minutes);
           if (data.user.type === "B" ) {
-              $tr.find('.td-minutes').html(data.user.minutes);
-          } else {
               var adjust = parseInt($('#dm_'+data.client.dept_id).val());
               $tr.find('.td-minutes').html(data.user.minutes+adjust);
+          } else {
+              $tr.find('.td-minutes').html(data.user.minutes);
           }
         }
         break;
