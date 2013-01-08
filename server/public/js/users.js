@@ -28,6 +28,8 @@ $(document).ready(function () {
         } else {
             $tr.find('.td-minutes').html(data.user.minutes);
         }
+        var $min = $('tr#'+data.user.id).find('input.users.minutes');
+        $min.val(data.user.minutes);
         break;
 
       case "logged-on":
