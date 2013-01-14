@@ -95,77 +95,79 @@ class Server < Goliath::WebSocket
         env['user'] ||= User.find_by_username msg["user"]
       end
 
-      case msg['action']
-        when 'log-on'
-          #NB must be authenticated! i.e user object must exist
-          client = env['client']
-          user = env['user']
-          user.log_on client
-          user.save
+      if env['user'] && env['client']
+        case msg['action']
+          when 'log-on'
+            #NB must be authenticated! i.e user object must exist
+            client = env['client']
+            user = env['user']
+            user.log_on client
+            user.save
 
-          env['timer'] = EM.add_periodic_timer(30) do
-            Fiber.new do
-              user.reload
-              env['timer'].cancel if user.client.nil?
+            env['timer'] = EM.add_periodic_timer(30) do
+              Fiber.new do
+                user.reload
+                env['timer'].cancel if user.client.nil?
 
-              broadcast = JSON.generate({:status => "ping",
-                                         :client => {:id => client.id,
-                                                     :dept_id => client.department.id},
-                                         :user => {:name => user.name,
-                                                   :username => user.username,
-                                                   :id => user.id,
-                                                   :minutes => user.minutes,
-                                                   :type => user.type_short}})
+                broadcast = JSON.generate({:status => "ping",
+                                           :client => {:id => client.id,
+                                                       :dept_id => client.department.id},
+                                           :user => {:name => user.name,
+                                                     :username => user.username,
+                                                     :id => user.id,
+                                                     :minutes => user.minutes,
+                                                     :type => user.type_short}})
 
-              env.channels['clients/'+client.id.to_s] << broadcast
-              env.channels['departments/'+client.department.id.to_s] << broadcast
-              env.channels['users/'] << broadcast
-            end.resume
-          end
+                env.channels['clients/'+client.id.to_s] << broadcast
+                env.channels['departments/'+client.department.id.to_s] << broadcast
+                env.channels['users/'] << broadcast
+              end.resume
+            end
 
-          # log format:    type    who          who-id   who-age         actionS    where
-          env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-on #{client.log_friendly}")
+            # log format:    type    who          who-id   who-age         actionS    where
+            env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-on #{client.log_friendly}")
 
-          broadcast = JSON.generate({:status => "logged-on",
-                                     :client => {:id => client.id,
-                                                 :dept_id => client.department.id,
-                                                 :name => client.name,
-                                                 :department => client.department.name,
-                                                 :branch => client.department.branch.name},
-                                     :user => {:name => user.name,
-                                               :username => user.username,
-                                               :id => user.id,
-                                               :minutes => user.minutes,
-                                               :type => user.type_short}})
+            broadcast = JSON.generate({:status => "logged-on",
+                                       :client => {:id => client.id,
+                                                   :dept_id => client.department.id,
+                                                   :name => client.name,
+                                                   :department => client.department.name,
+                                                   :branch => client.department.branch.name},
+                                       :user => {:name => user.name,
+                                                 :username => user.username,
+                                                 :id => user.id,
+                                                 :minutes => user.minutes,
+                                                 :type => user.type_short}})
 
-          env.channels['departments/'+client.department.id.to_s] << broadcast
-          env.channels['clients/'+client.id.to_s] << broadcast
-          env.channels['users/'] << broadcast
-          env.channels['branches/'] << broadcast
-        when 'log-off'
-          user = env['user']
-          client = env['client']
-          user.log_off
-          user.save
-          EM.cancel_timer(env['timer'])
-          # log format:    type    who          who-id   who-age         action    where
-          env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")
+            env.channels['departments/'+client.department.id.to_s] << broadcast
+            env.channels['clients/'+client.id.to_s] << broadcast
+            env.channels['users/'] << broadcast
+            env.channels['branches/'] << broadcast
+          when 'log-off'
+            user = env['user']
+            client = env['client']
+            user.log_off
+            user.save
+            EM.cancel_timer(env['timer'])
+            # log format:    type    who          who-id   who-age         action    where
+            env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")
 
-          broadcast = JSON.generate({:status => "logged-off",
-                                     :client => {:id => client.id,
-                                                 :dept_id => client.department.id},
-                                     :user => {:name => user.name,
-                                               :username => user.username,
-                                               :id => user.id,
-                                               :minutes => user.minutes,
-                                               :type => user.type_short}})
+            broadcast = JSON.generate({:status => "logged-off",
+                                       :client => {:id => client.id,
+                                                   :dept_id => client.department.id},
+                                       :user => {:name => user.name,
+                                                 :username => user.username,
+                                                 :id => user.id,
+                                                 :minutes => user.minutes,
+                                                 :type => user.type_short}})
 
-          env.channels['departments/'+client.department.id.to_s] << broadcast
-          env.channels['clients/'+client.id.to_s] << broadcast
-          env.channels['users/'] << broadcast
-          env.channels['branches/'] << broadcast
+            env.channels['departments/'+client.department.id.to_s] << broadcast
+            env.channels['clients/'+client.id.to_s] << broadcast
+            env.channels['users/'] << broadcast
+            env.channels['branches/'] << broadcast
 
-          env['user'] = nil
+            env['user'] = nil
+        end
       end
     end.resume
   end
