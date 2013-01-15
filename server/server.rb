@@ -92,13 +92,13 @@ class Server < Goliath::WebSocket
       if msg["user"] == "Anonym"
         env['user'] ||= AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
       else
-  	begin
-	  env['user'] ||= User.find_by_username msg["user"]
-	rescue Exception => e
-	  env['user'] = nil
-	  env.logger.error(e.message)
-	  env.logger.error("trying to find this user: #{msg['user']}")
-	end
+        begin
+          env['user'] ||= User.find_by_username msg["user"]
+        rescue Exception => e
+          env['user'] = nil
+          env.logger.error(e.message)
+          env.logger.error("trying to find this user: #{msg['user']}")
+        end
       end
 
       if env['user'] && env['client']
