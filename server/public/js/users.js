@@ -90,6 +90,7 @@ $(document).ready(function () {
   // ** set input masks **
 
   $('input.nr').setMask('999');
+  $('#username').setMask('**********');
 
 
   // ** tablesorter setup **
