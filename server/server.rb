@@ -74,7 +74,7 @@ class Server < Goliath::WebSocket
           env.channels['users/'] << broadcast
           env.channels['branches/'] << broadcast
 
-          env['user'].log_off
+          env['user'].log_off if env['user']
           env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")
           EM.cancel_timer(env['timer']) if env['timer']
         end
