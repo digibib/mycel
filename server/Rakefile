@@ -185,7 +185,7 @@ namespace :db do
 end
 
 desc "extract session data from logs and append to statstics csv file"
-task :log2csv do
+task :log2sql do
   puts "processing log file..."
-  %x[./log2csv.sh]
+  %x[./log2sql.sh]
 end
