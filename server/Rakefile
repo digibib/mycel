@@ -188,4 +188,7 @@ desc "extract session data from logs and append to statstics csv file"
 task :log2sql do
   puts "processing log file..."
   %x[./log2sql.sh]
+  sleep(2)
+  puts "generating statistics"
+  require "./stats.rb"
 end

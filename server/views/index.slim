@@ -19,3 +19,22 @@ div class="main"
     == render :slim,  :'options', :layout => false, :locals => {:level => org}
   - else
     pre ingen tilgang
+
+  h2 Statistikk
+  p Samlet statistikk for alle klienter i Deichman. Gjelder for 2013 og oppdateres daglig.
+  p Tall for den enkelte filial og avdeling kommer snart.
+
+  h3 Grafer
+  p Disse grafene kommer etterhvert:
+  div.divdot
+    ol
+      li Brukere pr uke
+      li Brukere fordelt på døgnets tider
+      li Utnyttelsesgrad
+
+
+  h3 Tallenes tale
+  div.divdot
+    == render :slim, :'stats_all', :layout => false
+    p.statscomment: em * gjennomsnitt er foreløbig beregnet ut i fra alle dager, og ikke bare virkedager når biblioteket er åpent
+  p Si fra om det er andre tall dere vil ha, så skal jeg se hva jeg kan få til.
