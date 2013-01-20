@@ -1,2 +1,2 @@
 .separator ,
-.import insert.csv sessions
+.import logs/stats/insert.csv sessions
