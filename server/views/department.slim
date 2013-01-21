@@ -36,7 +36,7 @@ div class="main"
           div class="toggle"
             #{user.name if client.occupied?}
         - adjust = 0
-        - adjust = client.options_self_or_inherited['time_limit'].to_i - 60 if user.type_short === "B"
+        - adjust = client.options_self_or_inherited['time_limit'].to_i - 60 if client.user and client.user.type_short === "B"
         td[style="width:34px" class="td-minutes"] #{user.minutes+adjust if client.occupied?}
         td
           div class="toggle #{'hidden' unless client.occupied?}"
