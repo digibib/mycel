@@ -12,7 +12,10 @@ rdoc
 spec/reports
 test/tmp
 test/version_tmp
+views/stats*
 tmp
+*.db
+*.csv
 
 # YARD artifacts
 .yardoc
