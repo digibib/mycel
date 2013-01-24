@@ -12,3 +12,13 @@ div class="main"
   p Hvis du lagrer et skjema med blanke felt, så vil de globale innstillingene for #{branch.organization.name} gjelde i steden.
 
   == render :slim,  :'options', :layout => false, :locals => {:level => branch}
+
+  h2 Statistikk
+  p Gjelder for alle klienter på filial #{branch.name}
+
+  div.divdot
+    p: strong Noen tall for 2013 </strong> (oppdateres daglig)
+    - filename = 'stats_b_'+branch.id.to_s
+    == render :slim, filename.to_sym, :layout => false
+    p.statscomment: em * gjennomsnitt er beregnet ut i fra alle dager, og ikke bare virkedager når biblioteket er åpent
+  p Si fra om det er andre tall dere vil ha, så skal jeg se hva jeg kan få til.
