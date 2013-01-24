@@ -1,3 +1,7 @@
+0.1.0
+	Automatically generate statistics from logfiles
+	Dependency updates
+	More robust websocket server to deal with failures and MySQL locks
 	Display acutal minutes left in admin view
 	Changing logging format to make it easier to parse
 	More detailed logging for the API-server

@@ -6,6 +6,9 @@ The clients are intended to be used library patrons, who log on using their libr
 ###License
 GPLv3
 
+### Status
+Mycel has been running stable in production at Oslo public library since November 2012, currently administering around 120 clients.
+
 ## Architecture
 ![Mycel architecture](https://github.com/digibib/mycel/raw/master/docs/architecture.png)
 ###Server
@@ -50,10 +53,11 @@ To get it up running, simply do a bundle install and, start and deamonize the 2 
 
 ```ruby api_server.rb -d -e prod -l logs/production.log -p 9000```
 
+For a more robust depoloyment, you should set up a proper upstart job. TODO: WRITEME
 
 **Server configuration**
 
-Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/mycel.yml`
+Most of the options can be configured in the web-based administration interface. The remaining settings (SIP2 server address and so on) can be found in `config/settings.rb`
 
 To make the application ready for production, run `rake setup`. This will 1) seed the database with `db/seed.yml`, 2) prepare the template views with production hostname and port, and 3) set up logrotation.
 
@@ -90,7 +94,12 @@ The client is identified by sending by sending the mac-adress to the API. The ma
 It should work on all *nix systems, but note that this fetches address of eth0; so make sure to fetch the correct eth (or wlan) if the client has several network connections.
 
 ## Statistics
-I am working on scripts to generate usefull statistics automatically for each department and branch, as well as (global) overall statistics and graphs of trends and use.
+The following crontask ensures that statistics is generated automatically from logfiles each night:
+
+```
+0 0 * * * {USER} /bin/bash -l -c 'source /home/{USER}/.rvm/environments/ruby-1.9.2-p320 && cd /{PATH/TO}/mycel/server && bundle exec rake log2sql'
+```
+Statistics data is stored in the logs directory, both in a `CSV` and a `SQLite` database, for easy processing.
 
 ### Logging
 Logging format for the API-server (column-based,  '|' denotes a space):
@@ -118,7 +127,6 @@ timestamp :: stats|users-logged-on|number-of-clients
 
 
 ## Remaining TODOs
-* Generate statistics (20h)
 * Allow adding branches/departments/clients in web interface (15h)
 * Documentation, especially installation and setup (5h)
 
