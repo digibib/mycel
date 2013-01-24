@@ -6,7 +6,7 @@ The clients are intended to be used library patrons, who log on using their libr
 ###License
 GPLv3
 
-### Status
+## Status
 Mycel has been running stable in production at Oslo public library since November 2012, currently administering around 120 clients.
 
 ## Architecture
@@ -53,7 +53,7 @@ To get it up running, simply do a bundle install and, start and deamonize the 2 
 
 ```ruby api_server.rb -d -e prod -l logs/production.log -p 9000```
 
-For a more robust depoloyment, you should set up a proper upstart job. TODO: WRITEME
+For a more robust depoloyment, you should set up a proper upstart job.
 
 **Server configuration**
 
@@ -99,7 +99,7 @@ The following crontask ensures that statistics is generated automatically from l
 ```
 0 0 * * * {USER} /bin/bash -l -c 'source /home/{USER}/.rvm/environments/ruby-1.9.2-p320 && cd /{PATH/TO}/mycel/server && bundle exec rake log2sql'
 ```
-Statistics data is stored in the logs directory, both in a `CSV` and a `SQLite` database, for easy processing.
+Statistics data is stored in the logs directory, both in a `CSV`-file and a `SQLite` database, for easy processing.
 
 ### Logging
 Logging format for the API-server (column-based,  '|' denotes a space):
