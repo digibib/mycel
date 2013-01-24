@@ -29,7 +29,7 @@ table.stats
       td.usertype #{hours.values.compact.inject(:+) || '-'}
     tr
       td.desc Antall sesjoner per dag, gjennomsnitt*
-      td.usertype #{nums["LibraryUser"] ? nums["LibraryUser"]/days : '-nums["LibraryUser"] ? '}
+      td.usertype #{nums["LibraryUser"] ? nums["LibraryUser"]/days : '-'}
       td.usertype #{nums["GuestUser"] ? nums["GuestUser"]/days : '-'}
       td.usertype #{nums["AnonymousUser"] ? nums["AnonymousUser"]/days : '-'}
       td.usertype #{(nums.values.compact.inject(:+)/days).round(2) || '-' }
