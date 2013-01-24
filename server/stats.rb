@@ -81,19 +81,19 @@ table.stats
       td.usertype #{nums["LibraryUser"]/days}
       td.usertype #{nums["GuestUser"]/days}
       td.usertype #{nums["AnonymousUser"]/days}
-      td.usertype #{(nums.values.inject(:+)/days).round(2)}
+      td.usertype #{(nums.values.inject(:+)/days/3).round(2)}
     tr
       td.desc Antall timer bruk per dag, gjennomsnitt*
       td.usertype #{hours["LibraryUser"]/days}
       td.usertype #{hours["GuestUser"]/days}
       td.usertype #{hours["AnonymousUser"]/days}
-      td.usertype #{hours.values.inject(:+)/days}
+      td.usertype #{hours.values.inject(:+)/days/3}
     tr
       td.desc Lengde på sesjon, gjennomsnitt i minutter
       td.usertype #{length["LibraryUser"]}
       td.usertype #{length["GuestUser"]}
       td.usertype #{length["AnonymousUser"]}
-      td.usertype #{(length.values.inject(:+)).round(2)}
+      td.usertype #{(length.values.inject(:+)/3).round(2)}
     tr
       td.desc Alder, gjennomsnitt
       td.usertype #{age}
