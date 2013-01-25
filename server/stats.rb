@@ -32,13 +32,13 @@ table.stats
       td.usertype #{nums["LibraryUser"] ? nums["LibraryUser"]/days : '-'}
       td.usertype #{nums["GuestUser"] ? nums["GuestUser"]/days : '-'}
       td.usertype #{nums["AnonymousUser"] ? nums["AnonymousUser"]/days : '-'}
-      td.usertype #{nums.values ? (nums.values.compact.inject(:+)/days).round(2) : '-' }
+      td.usertype #{nums.values.compact.length >= 1 ? (nums.values.compact.inject(:+)/days).round(2) : '-' }
     tr
       td.desc Antall timer bruk per dag, gjennomsnitt*
       td.usertype #{hours["LibraryUser"] ? hours["LibraryUser"]/days : '-'}
       td.usertype #{hours["GuestUser"] ? hours["GuestUser"]/days : '-'}
       td.usertype #{hours["AnonymousUser"] ? hours["AnonymousUser"]/days : '-'}
-      td.usertype #{hours.values.compact.inject(:+)/days || '-'}
+      td.usertype #{hours.values.compact.length >= 1 ? hours.values.compact.inject(:+)/days : '-'}
     tr
       td.desc Lengde på sesjon, gjennomsnitt i minutter
       td.usertype #{length["LibraryUser"] || '-'}
