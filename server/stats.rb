@@ -153,6 +153,7 @@ for b in Branch.all
   res = stm.execute
   res.each do |row|
     length[row[0]] = row[1].round(2)
+    length[row[0]] = length[row[0]].round(2) if row[1].round(2)
   end
   stm.close if stm
 
@@ -160,8 +161,9 @@ for b in Branch.all
   res = stm.execute
   length_total=0
   res.each do |row|
-    length_total = row[0].round(2)
+    length_total = row[0]
   end
+  length_total = length_total.round(2) if length_total
   stm.close if stm
 
   stm = db.prepare "select avg(age) from sessions #{constraint} and usertype='LibraryUser'"
@@ -212,6 +214,7 @@ for b in Branch.all
     res = stm.execute
     res.each do |row|
       length[row[0]] = row[1].round(2)
+      length[row[0]] = length[row[0]].round(2) if row[1].round(2)
     end
     stm.close if stm
 
@@ -219,8 +222,9 @@ for b in Branch.all
     stm = db.prepare "select avg((strftime('%s', stop)-strftime('%s', start)))/60.0 from sessions #{constraint}"
     res = stm.execute
     res.each do |row|
-      length_total = row[0].round(2)
+      length_total = row[0]
     end
+    length_total = length_total.round(2) if length_total
     stm.close if stm
 
     stm = db.prepare "select avg(age) from sessions #{constraint} and usertype='LibraryUser'"
