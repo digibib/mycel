@@ -13,12 +13,10 @@ div class="main"
     p Mycel er et system for å administrere Deichmans publikumsmaskiner.
     p Denne siden er kun for superbruker (IT-admin) - klikk deg inn på <a href="/clients">klienter</a> eller <a href="/users">brukere</a> for å administrere din avdeling/filial.
 
-  h2 Globale innstillinger
-  p Følgende innstillinger vil gjelde på alle klienter, med mindre de overstyres på filial- eller avdelingsnivå:
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
+    h2 Globale innstillinger
+    p Følgende innstillinger vil gjelde på alle klienter, med mindre de overstyres på filial- eller avdelingsnivå:
     == render :slim,  :'options', :layout => false, :locals => {:level => org}
-  - else
-    pre ingen tilgang
 
   h2 Statistikk
   p Samlet statistikk for alle #{Client.count} klienter i systemet.
