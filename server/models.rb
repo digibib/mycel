@@ -187,7 +187,7 @@ class Client < ActiveRecord::Base
     hash = super()
     hash.merge!(:options => self.options.as_json)
     hash.merge! "screen_resolution" => self.screen_resolution.resolution
-    hash.merge!(:options_inherited => self.department.options_self_or_inherited)
+    hash.merge!(:options_inherited => self.options_self_or_inherited)
   end
 end
 

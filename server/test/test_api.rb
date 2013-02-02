@@ -19,7 +19,13 @@ describe API do
     describe 'GET /api/clients' do
 
       before do
+        @org = Organization.create :name => any_string
+        @org.options = Options.new
+        @org.options.update_attributes :homepage => any_string
+        @branch = Branch.create :name => any_string
         @dept = Department.create :name => any_string
+        @org.branches << @branch
+        @branch.departments << @dept
         @client1 = Client.create(:id => 1, :name => 'client1',
                                  :hwaddr => any_string, :ipaddr => any_string)
         @client2 = Client.create(:id => 2, :name => 'client2',
@@ -29,6 +35,8 @@ describe API do
       end
 
       after do
+        @org.destroy
+        @branch.destroy
         @dept.destroy
         @client1.destroy
         @client2.destroy
@@ -44,8 +52,10 @@ describe API do
         response["clients"][1]['name'].must_equal 'client2'
       end
 
+      # FIXME - dunno why this fails i testing, works in development and production environments
       it "can access individual clients" do
-        get "/api/clients/2"
+        id = @client2.id
+        get "/api/clients/#{id}"
         last_response.status.must_equal 200
         JSON.parse(last_response.body)["client"].wont_be_instance_of Array
         JSON.parse(last_response.body)['client']['name'].must_equal "client2"
@@ -59,7 +69,7 @@ describe API do
       it "identifies client given a corresponding mac adress " do
         get "api/clients/", :mac => "identifyme!"
         last_response.status.must_equal 200
-        JSON.parse(last_response.body)['client']['id'].must_equal 2
+        JSON.parse(last_response.body)['client']['id'].must_equal @client2.id
       end
     end
 

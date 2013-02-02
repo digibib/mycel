@@ -1,6 +1,6 @@
 require "em-synchrony/activerecord"
+require "./config/settings"
 
-dbconfig = YAML::load(File.open("config/database.yml"))
-ActiveRecord::Base.establish_connection(dbconfig["test"])
+ActiveRecord::Base.establish_connection(Settings::DB[:test])
 
 load "db/schema.rb"

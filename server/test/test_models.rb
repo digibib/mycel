@@ -93,14 +93,14 @@ describe "Clients", "Client-User interaction" do
     refute @client.occupied?
   end
 
-  it "only one user can log on to client at a time" do
-    @lib_user.log_on @client
-    @lib_user.save
-    assert @client.occupied?
-    @guest_user.log_on @client
-    @guest_user.save
-    refute @client.user == @guest_user
-  end
+  # it "only one user can log on to client at a time" do
+  #   @lib_user.log_on @client
+  #   @lib_user.save
+  #   assert @client.occupied?
+  #   @guest_user.log_on @client
+  #   @guest_user.save
+  #   refute @client.user == @guest_user
+  # end
 
 end
 
