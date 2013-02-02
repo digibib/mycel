@@ -176,45 +176,45 @@ describe API do
       end
     end
 
-    # describe 'POST /api/users/authenticate' do
-    #   before do
-    #     @user = GuestUser.create(:username => "rob", :password => "roy",
-    #                      :minutes => any_int, :age => any_int)
-    #     #NB THIS USER IS TEMPORARY AND LOCAL TO DEICHMANSKE BIBLIOTEK:
-    #     #In order to test SIP2-authentication, a local library user with a valid nr and pin must exist
-    #     @libuser = LibraryUser.create(:username => "N001965750", :minutes => any_int)
-    #   end
+    describe 'POST /api/users/authenticate' do
+      before do
+        @user = GuestUser.create(:username => "rob", :password => "roy",
+                         :minutes => any_int, :age => any_int)
+        #NB THIS USER IS TEMPORARY AND LOCAL TO DEICHMANSKE BIBLIOTEK:
+        #In order to test SIP2-authentication, a local library user with a valid nr and pin must exist
+        @libuser = LibraryUser.create(:username => "N001965750", :minutes => any_int)
+      end
 
-    #   after do
-    #     @user.destroy
-    #     @libuser.destroy
-    #   end
+      after do
+        @user.destroy
+        @libuser.destroy
+      end
 
-    #   it "authenticates a guest user given the correct password" do
-    #     post "/api/users/authenticate", :username => "rob", :password => "roy"
-    #     last_response.status.must_equal 200
-    #     JSON.parse(last_response.body)['authenticated'].must_equal true
-    #   end
+      it "authenticates a guest user given the correct password" do
+        post "/api/users/authenticate", :username => "rob", :password => "roy"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['authenticated'].must_equal true
+      end
 
-    #   it "authenticates a libary user given the correct password(PIN)" do
-    #     post "/api/users/authenticate", :username => "N001965750", :password => "9999"
-    #     last_response.status.must_equal 200
-    #     JSON.parse(last_response.body)['authenticated'].must_equal true
-    #   end
+      it "authenticates a libary user given the correct password(PIN)" do
+        post "/api/users/authenticate", :username => "N001965750", :password => "9999"
+        last_response.status.must_equal 200
+        JSON.parse(last_response.body)['authenticated'].must_equal true
+      end
 
-    #   it "doesn't authenticate libary user given wrong password(PIN)" do
-    #     post "/api/users/authenticate", :username => "N001965750", :password => "1234"
-    #     last_response.status.must_equal 200
-    #     JSON.parse(last_response.body)['authenticated'].must_equal false
-    #   end
+      it "doesn't authenticate libary user given wrong password(PIN)" do
+        post "/api/users/authenticate", :username => "N001965750", :password => "1234"
+        last_response.status.must_equal 401
+        JSON.parse(last_response.body)['authenticated'].must_equal false
+      end
 
-    #   it "doesn't authenticate guest user given wrong password" do
-    #     post "/api/users/authenticate", :username => "rob", :password => "xxy"
-    #     last_response.status.must_equal 200
-    #     JSON.parse(last_response.body)['authenticated'].must_equal false
-    #   end
+      it "doesn't authenticate guest user given wrong password" do
+        post "/api/users/authenticate", :username => "rob", :password => "xxy"
+        last_response.status.must_equal 401
+        JSON.parse(last_response.body)['authenticated'].must_equal false
+      end
 
-    # end
+    end
 
 
 
