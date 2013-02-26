@@ -4,8 +4,6 @@ require 'goliath/websocket'
 require 'goliath/rack/templates'
 require "em-synchrony/activerecord"
 require "mysql2"
-require "slim"
-require "cgi"
 require "./models"
 require "./api"
 require "./config/settings"
