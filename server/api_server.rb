@@ -47,15 +47,15 @@ class Server < Goliath::API
       API.call(env)
     else
       # check if cookie present
-      if env.respond_to?(:HTTP_COOKIE)
-        cookie = env.HTTP_COOKIE
+      if env['HTTP_COOKIE']
+        cookie = env['HTTP_COOKIE']
       else
         cookie = "mycellogin=none"
       end
 
       # find current admin from cookie
       if cookie.match(/mycellogin/)
-        env['admin'] = cookie.scan(/mycellogin=(\w+)/)[0][0]
+        env['admin'] = cookie.scan(/mycellogin=(\w+)/).last[0]
       else
         env['admin'] = "none"
       end
