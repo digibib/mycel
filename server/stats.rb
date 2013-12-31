@@ -3,6 +3,9 @@ require "sqlite3"
 require "em-synchrony/activerecord"
 require "./models"
 require "./config/settings"
+require "date"
+
+THIS_YEAR = "'#{Date.today.year}'"
 
 def template(nums, hours, days, length, length_total, age)
 table = <<HERE
@@ -57,7 +60,7 @@ end
 
 db = SQLite3::Database.open "logs/stats/stats.db"
 
-stm = db.prepare "select usertype, count(*) from sessions group by usertype"
+stm = db.prepare "select usertype, count(*) from sessions where strftime('%Y', start)=#{THIS_YEAR} group by usertype"
 res = stm.execute
 
 nums = {'LibraryUser'=>nil, 'GuestUser'=>nil, 'AnonymousUser'=>nil}
@@ -66,7 +69,7 @@ res.each do |row|
 end
 stm.close if stm
 
-stm = db.prepare "select usertype, sum((strftime('%s', stop)-strftime('%s', start)))/3600  from sessions group by usertype"
+stm = db.prepare "select usertype, sum((strftime('%s', stop)-strftime('%s', start)))/3600  from sessions where strftime('%Y', start)=#{THIS_YEAR} group by usertype"
 res = stm.execute
 
 hours = {'LibraryUser'=>nil, 'GuestUser'=>nil, 'AnonymousUser'=>nil}
@@ -85,7 +88,7 @@ end
 stm.close if stm
 
 length = {'LibraryUser'=>nil, 'GuestUser'=>nil, 'AnonymousUser'=>nil}
-stm = db.prepare "select usertype, avg((strftime('%s', stop)-strftime('%s', start)))/60.0 from sessions group by usertype"
+stm = db.prepare "select usertype, avg((strftime('%s', stop)-strftime('%s', start)))/60.0 from sessions where strftime('%Y', start)=#{THIS_YEAR} group by usertype"
 res = stm.execute
 res.each do |row|
   length[row[0]] = row[1].round(2)
@@ -93,7 +96,7 @@ end
 stm.close if stm
 
 
-stm = db.prepare "select avg((strftime('%s', stop)-strftime('%s', start)))/60.0 from sessions"
+stm = db.prepare "select avg((strftime('%s', stop)-strftime('%s', start)))/60.0 from sessions where strftime('%Y', start)=#{THIS_YEAR}"
 res = stm.execute
 length_total=0
 res.each do |row|
@@ -101,7 +104,7 @@ res.each do |row|
 end
 stm.close if stm
 
-stm = db.prepare "select avg(age) from sessions where usertype='LibraryUser'"
+stm = db.prepare "select avg(age) from sessions where usertype='LibraryUser' and strftime('%Y', start)=#{THIS_YEAR} "
 res = stm.execute
 age = 0
 res.each do |row|
@@ -119,7 +122,7 @@ ActiveRecord::Base.establish_connection(Settings::DB[:production])
 
 for b in Branch.all
   puts "Generating stats for: #{b.name}"
-  constraint = "where branch='#{b.name}'"
+  constraint = "where branch='#{b.name}' and strftime('%Y', start)=#{THIS_YEAR}"
 
   stm = db.prepare "select usertype, count(*) from sessions #{constraint} group by usertype"
   res = stm.execute
