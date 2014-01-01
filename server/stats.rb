@@ -100,7 +100,7 @@ stm = db.prepare "select avg((strftime('%s', stop)-strftime('%s', start)))/60.0 
 res = stm.execute
 length_total=0
 res.each do |row|
-  length_total = row[0].round(2)
+  length_total = row[0].to_f.round(2)
 end
 stm.close if stm
 
@@ -108,7 +108,7 @@ stm = db.prepare "select avg(age) from sessions where usertype='LibraryUser' and
 res = stm.execute
 age = 0
 res.each do |row|
-  age = row[0].round(2)
+  age = row[0].to_f.round(2)
 end
 
 stm.close if stm
