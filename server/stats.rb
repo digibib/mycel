@@ -184,7 +184,7 @@ for b in Branch.all
 
   b.departments.each do |d|
     puts "Generating stats for: #{b.name} - #{d.name}"
-    constraint = "where branch='#{b.name}' and department='#{d.name}'"
+    constraint = "where branch='#{b.name}' and department='#{d.name}' and strftime('%Y', start)=#{THIS_YEAR}"
 
     stm = db.prepare "select usertype, count(*) from sessions #{constraint} group by usertype"
     res = stm.execute
