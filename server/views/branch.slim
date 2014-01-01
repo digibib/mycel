@@ -17,7 +17,7 @@ div class="main"
   p Gjelder for alle klienter på denne filialen.
 
   div.divdot
-    p: strong Noen tall for 2013 </strong> (oppdateres daglig)
+    p: strong Noen tall for i år</strong> (oppdateres daglig)
     - filename = 'stats_b_'+branch.id.to_s
     == render :slim, filename.to_sym, :layout => false
     p.statscomment: em * gjennomsnitt er beregnet ut i fra alle dager, og ikke bare virkedager når biblioteket er åpent
