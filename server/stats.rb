@@ -79,7 +79,7 @@ end
 stm.close if stm
 
 
-stm = db.prepare "select count (distinct date(start)) from sessions"
+stm = db.prepare "select count (distinct date(start)) from sessions where strftime('%Y', start)=#{THIS_YEAR}"
 res = stm.execute
 days = 1
 res.each do |row|
