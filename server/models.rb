@@ -366,7 +366,7 @@ class LibraryUser < User
     else
       now = Time.now.utc.to_date
       begin
-        dob = Time.strptime(bdate[0], "%Y-%m-%d")
+        dob = Time.strptime(bdate[0], "%Y%m%d")
       rescue ArgumentError
         # When user is stored with invalid date,
         # set arbitrary date as not to get an invalid user
