@@ -46,6 +46,28 @@ class API < Grape::API
   format :json
   default_format :json
 
+  resource :pxe do
+    desc "Verifies mac address and returns boot parameters for client machines"
+    get "/v1/boot/:mac" do
+        
+      mac = params['mac']
+      client = Client.find_by_hwaddr(mac)
+        
+      if client.nil?
+        foo = 42
+        bootparams = Settings::PXE_UNREGISTERED_CLIENT.clone
+        bootparams[:message] %= {referenceID: foo}         
+        bootparams.to_json
+      elsif client.shorttime
+        Settings::PXE_SEARCHSTATION.to_json
+      else
+        Settings::PXE_WORKSTATION.to_json
+      end
+    end
+  end
+    
+    
+    
   resource :admins do
     desc "authenticates admin"
     post "/login" do
