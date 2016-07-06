@@ -1,7 +1,110 @@
+script src="/js/admin_tasks.js"
+
 - org = Organization.first
 div class="main"
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
     h2 Organisasjon
+    ul class="tabs"
+      li[class="active"] Redigere klient
+      li Legg til klient
+      li Legg til filial
+      li Legg til admin
+    div class="panes"
+      div class="pane"
+        - for client in clients do
+          div[
+            id="#{client.id}" data-name="#{client.name}" data-hwaddr="#{client.hwaddr}" data-ipaddr="#{client.ipaddr}"
+            data-shorttime="#{client.shorttime}" data-testclient="#{client.testclient}" data-department_id="#{client.department_id}"
+            data-branch_id="#{client.department.branch_id}" data-screen_resolution_id="#{client.screen_resolution_id}"]
+
+        select[id="branch_selector"]
+          - for branch in branches do
+            |<option value="#{branch.id}">#{branch.name}</option>
+
+        select[id="client_selector"]
+          - for client in clients do
+            |<option class="clients dept-#{client.department_id} branch-#{client.department.branch_id}" value="#{client.id}">#{client.name}</option>
+
+        br
+
+        form id="edit_client_form" action="/api/foo" method="POST"
+          label for="name" Navn:
+          input[id="name" class="name" type="text" style="width:140px" name="name" value="navn"]
+          br
+          label for="hwaddr" Mac:
+          input[id="hwaddr" type="text" name="hwaddr" style="width:140px"]
+          br
+          label for="ipaddr" ip:
+          input[id="ipaddr" type="text" name="ipaddr"]
+          br
+          label for="shorttime" Korttids:
+          input[id="shorttime" name="shorttype" type="checkbox"]
+
+          label for="test" Test:
+          input[id="test" name="test" type="checkbox"]
+
+          select[id="client_screen_res"]
+            - for res in screen_res do
+              |<option id="res" name="res" value="#{res.id}">#{res.resolution}</option>
+          br
+          select[id="client_branch_selector"]
+            - for branch in branches do
+              |<option value="#{branch.id}">#{branch.name}</option>
+
+          select[id="client_dept_selector"]
+            - for dept in departments do
+              |<option class="depts branch-#{dept.branch_id}" value="#{dept.id}">#{dept.name}</option>
+
+          br
+          button[type='button' id="save_client"]  = "Lagre"
+          button[type='button' id="delete_client"]  = "Slette"
+
+      div class="pane"
+        - for req in requests do
+          div[id="request-#{req.id}" class="requests" data-hwaddr="#{req.hwaddr}" data-ipaddr="#{req.ipaddr}"]
+
+        select[id="request_selector"]
+          - for request in requests do
+            |<option value="#{request.id}">id: #{request.id} dato: #{request.ts.strftime("%d-%m-%Y")}</option>
+
+        br
+
+        form [id="add_client_form" action="/api/clients" method="POST"]
+          input[type="hidden" id="request_id" name="request_id" value=""]
+
+          label for="name" Navn:
+          input[id="name" class="name" type="text" style="width:140px" name="name" value=""]
+          br
+          label for="hwaddr" Mac:
+          input[id="hwaddr" type="text" name="hwaddr" style="width:140px"]
+          br
+          label for="ipaddr" ip:
+          input[id="ipaddr" type="text" name="ipaddr"]
+          br
+          label for="shorttime" Korttids:
+          input[id="shorttime" name="shorttime" value="true" type="checkbox"]
+
+          label for="test" Test:
+          input[id="test" name="testclient" value="true" type="checkbox"]
+
+          select[id="client_screen_res" name="screen_resolution_id"]
+            - for res in screen_res do
+              |<option id="res" value="#{res.id}">#{res.resolution}</option>
+          br
+          select[id="client_branch_selector"]
+            - for branch in branches do
+              |<option value="#{branch.id}">#{branch.name}</option>
+
+          select[id="client_dept_selector" name="department_id"]
+            - for dept in departments do
+              |<option class="depts branch-#{dept.branch_id}" value="#{dept.id}">#{dept.name}</option>
+
+          br
+          input type="submit" value="Lagre"
+
+
+
+
     p <strong>kommer her:</strong>
     ol
       li legg til filial
