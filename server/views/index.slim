@@ -11,23 +11,14 @@ div class="main"
       li Legg til admin
     div class="panes"
       div class="pane"
-        - for client in clients do
-          div[
-            id="#{client.id}" data-name="#{client.name}" data-hwaddr="#{client.hwaddr}" data-ipaddr="#{client.ipaddr}"
-            data-shorttime="#{client.shorttime}" data-testclient="#{client.testclient}" data-department_id="#{client.department_id}"
-            data-branch_id="#{client.department.branch_id}" data-screen_resolution_id="#{client.screen_resolution_id}"]
+        select[class="branch_selector edit"]
 
-        select[id="branch_selector"]
-          - for branch in branches do
-            |<option value="#{branch.id}">#{branch.name}</option>
-
-        select[id="client_selector"]
-          - for client in clients do
-            |<option class="clients dept-#{client.department_id} branch-#{client.department.branch_id}" value="#{client.id}">#{client.name}</option>
+        select[class="client_selector"]
 
         br
 
         form id="edit_client_form" action="/api/foo" method="POST"
+          input[type="hidden" name="id" value=""]
           label for="name" Navn:
           input[id="name" class="name" type="text" style="width:140px" name="name" value="navn"]
           br
@@ -38,25 +29,23 @@ div class="main"
           input[id="ipaddr" type="text" name="ipaddr"]
           br
           label for="shorttime" Korttids:
-          input[id="shorttime" name="shorttype" type="checkbox"]
+          input[id="shorttime" name="shorttime" type="checkbox"]
 
           label for="test" Test:
-          input[id="test" name="test" type="checkbox"]
+          input[id="test" name="testclient" type="checkbox"]
 
-          select[id="client_screen_res"]
+          select[id="client_screen_res" name="screen_resolution_id"]
             - for res in screen_res do
-              |<option id="res" name="res" value="#{res.id}">#{res.resolution}</option>
+              |<option value="#{res.id}">#{res.resolution}</option>
           br
-          select[id="client_branch_selector"]
-            - for branch in branches do
-              |<option value="#{branch.id}">#{branch.name}</option>
+          select[class="branch_selector"]
 
-          select[id="client_dept_selector"]
-            - for dept in departments do
-              |<option class="depts branch-#{dept.branch_id}" value="#{dept.id}">#{dept.name}</option>
+
+          select[class="department_selector" name="department_id"]
+
 
           br
-          button[type='button' id="save_client"]  = "Lagre"
+          button[type='button' id="save_client_changes"]  = "Lagre"
           button[type='button' id="delete_client"]  = "Slette"
 
       div class="pane"
@@ -69,7 +58,7 @@ div class="main"
 
         br
 
-        form [id="add_client_form" action="/api/clients" method="POST"]
+        form[id="add_client_form" action="/api/clients" method="POST"]
           input[type="hidden" id="request_id" name="request_id" value=""]
 
           label for="name" Navn:
@@ -91,18 +80,16 @@ div class="main"
             - for res in screen_res do
               |<option id="res" value="#{res.id}">#{res.resolution}</option>
           br
-          select[id="client_branch_selector"]
+          select[class="branch_selector"]
             - for branch in branches do
               |<option value="#{branch.id}">#{branch.name}</option>
 
-          select[id="client_dept_selector" name="department_id"]
+          select[class="department_selector" name="department_id"]
             - for dept in departments do
               |<option class="depts branch-#{dept.branch_id}" value="#{dept.id}">#{dept.name}</option>
 
           br
           input type="submit" value="Lagre"
-
-
 
 
     p <strong>kommer her:</strong>

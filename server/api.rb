@@ -79,6 +79,16 @@ class API < Grape::API
   end
 
 
+  resource :requests do
+    desc "returns all requests"
+    get "/" do
+      {:requests => Request.all }
+    end
+
+  end
+
+
+
   resource :admins do
     desc "authenticates admin"
     post "/login" do
@@ -92,7 +102,7 @@ class API < Grape::API
 
 
   resource :clients do
-    desc "returns all clients, or identifies a client given a MACadress"
+    desc "returns all clients, or identifies a client given a MACadress, or registers new clients by MAC address"
     get "/" do
       if params[:mac]
         mac = params[:mac]
@@ -118,8 +128,13 @@ class API < Grape::API
           {:client => client.as_json}
         end
       else
+        clients = []
+        Client.all.each do |client|
+          branch_id = {"branch_id" => client.branch.id}
+          clients << client.attributes.merge(branch_id)
+        end
         status 200
-        {:clients => Client.all }
+        {:clients => clients }
       end
     end
 
@@ -146,6 +161,32 @@ class API < Grape::API
 
       {:client => new_client}
     end
+
+
+    desc "updates an existing client and returns operation status"
+    put "/" do
+      payload = params[:payload].to_hash
+
+      client = Client.find(payload["id"])
+      client.attributes = client.attributes.merge(payload){|key, oldval, newval| key == "id" ? oldval : newval }
+
+      # missing keys typically represent unchecked checkboxes. these are set to false.
+      missing_keys = client.attributes.keys.select {|key| !payload.key?(key) }
+      missing_keys.each do |key|
+        client.attributes = {key.to_sym => false}
+      end
+
+      if client.save
+        success = true
+      else
+        success = false
+      end
+
+      {success: success}
+    end
+
+
+
 
     desc "updates an existing client and returns the updated version"
     put "/:id" do
