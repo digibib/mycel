@@ -138,6 +138,7 @@ class Department < ActiveRecord::Base
 end
 
 class Client < ActiveRecord::Base
+
   belongs_to :department
 
   validates_presence_of :name, :hwaddr
@@ -151,6 +152,10 @@ class Client < ActiveRecord::Base
 
   after_initialize :init
 
+  @@cut_off = 15*60
+  scope :connected, -> { where("ts > ?", Time.now - @@cut_off) }
+  scope :disconnected, -> { where("ts <= ?", Time.now - @@cut_off) }
+
   def init
     self.options ||= Options.new()
     self.screen_resolution ||= ScreenResolution.find_or_create_by_resolution "auto"
@@ -162,6 +167,10 @@ class Client < ActiveRecord::Base
 
   def occupied?
     self.user
+  end
+
+  def connected?
+    self.ts.nil? ? false : self.ts > Time.now - @@cut_off
   end
 
   def log_friendly
@@ -450,6 +459,7 @@ class ScreenResolution < ActiveRecord::Base
   has_one :client
 end
 
-class Request < ActiveRecord::Base
 
+class Request < ActiveRecord::Base
+  default_scope order('ts desc')
 end

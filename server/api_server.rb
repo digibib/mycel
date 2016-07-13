@@ -69,8 +69,8 @@ class Server < Goliath::API
       else
         case path.length
         when 0    # matches /
-          [200, {}, slim(:index, :locals => {:requests => Request.all, :clients => Client.all,
-                :screen_res => ScreenResolution.all, :branches => Branch.all, :departments => Department.all, :admin => Admin.find_by_username(env['admin'])})]
+          [200, {}, slim(:index, :locals => {:screen_res => ScreenResolution.all,
+             :admin => Admin.find_by_username(env['admin'])})]
         when 2    # matches {branches}|users|statistics
           if @@org.branches.find_by_name(path[1])
             branch = Branch.find_by_name(path[1])

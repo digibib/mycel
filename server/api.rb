@@ -41,11 +41,14 @@ def prepare_params (params)
   ret
 end
 
+
+
 class API < Grape::API
   prefix 'api'
   format :json
   default_format :json
 
+  # stub implementation of pixiecore support for possible future use. unfinished.
   resource :pxe do
     desc "Verifies mac address and returns boot parameters for client machines"
     get "/v1/boot/:mac" do
@@ -66,6 +69,7 @@ class API < Grape::API
     end
   end
 
+
   resource :keep_alive do
     desc "receives live signal from clients"
     get "/" do
@@ -82,11 +86,23 @@ class API < Grape::API
   resource :requests do
     desc "returns all requests"
     get "/" do
-      {:requests => Request.all }
+      {:requests => Request.all}
+    end
+
+    desc "deletes an existing request and returns status"
+    delete "/:id" do
+      request = Request.find(params[:id])
+
+      if request.destroy
+        status 200
+        {message: "OK. Slettet."}
+      else
+        throw :error, :status => 400,
+        :message => "Kunne ikke slette"
+      end
     end
 
   end
-
 
 
   resource :admins do
@@ -102,7 +118,7 @@ class API < Grape::API
 
 
   resource :clients do
-    desc "returns all clients, or identifies a client given a MACadress, or registers new clients by MAC address"
+    desc "returns all clients, or identifies a client given a MACadress, or registers new request by MAC address"
     get "/" do
       if params[:mac]
         mac = params[:mac]
@@ -118,7 +134,7 @@ class API < Grape::API
             status 404
             {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}.to_json
           else
-            Request.update(request.id, :ipaddr => ip)
+            request.touch(:ts)
             status 404
             {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}.to_json
           end
@@ -130,7 +146,7 @@ class API < Grape::API
       else
         clients = []
         Client.all.each do |client|
-          branch_id = {"branch_id" => client.branch.id}
+          branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
           clients << client.attributes.merge(branch_id)
         end
         status 200
@@ -151,41 +167,55 @@ class API < Grape::API
 
     desc "creates a new client and returns it"
     post "/" do
-      new_client = Client.create(:name => params['name'],
-      :hwaddr => params['hwaddr'],
-      :ipaddr => params['ipaddr'],
-      :department_id => params['department_id'])
+      form_data = params[:form_data].to_hash
+      is_request = form_data["id"] == "0" ? false : true
 
-      throw :error, :status => 400,
-      :message => "Manglende og/eller ugyldige parametere" unless new_client.valid?
-
-      {:client => new_client}
-    end
-
-
-    desc "updates an existing client and returns operation status"
-    put "/" do
-      payload = params[:payload].to_hash
-
-      client = Client.find(payload["id"])
-      client.attributes = client.attributes.merge(payload){|key, oldval, newval| key == "id" ? oldval : newval }
+      client = Client.new
+      client.attributes = client.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
 
       # missing keys typically represent unchecked checkboxes. these are set to false.
-      missing_keys = client.attributes.keys.select {|key| !payload.key?(key) }
+      missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
       missing_keys.each do |key|
         client.attributes = {key.to_sym => false}
       end
 
       if client.save
-        success = true
+        Request.find(form_data["id"]).destroy if is_request
+        status 200
+        {message: "OK. Lagret."}
       else
-        success = false
+        message = client.errors.empty? ? "Ukjent feil" : client.errors.full_messages.to_sentence
+        throw :error, :status => 400,
+        :message => message
       end
 
-      {success: success}
+
     end
 
 
+    desc "updates all attributes of existing client and returns operation status"
+    put "/" do
+      form_data = params[:form_data].to_hash
+
+      client = Client.find(form_data["id"])
+      client.attributes = client.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
+
+      # missing keys typically represent unchecked checkboxes. these are set to false.
+      missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
+      missing_keys.each do |key|
+        client.attributes = {key.to_sym => false}
+      end
+
+      if client.save
+        status 200
+        {message: "OK. Lagret."}
+      else
+        message = client.errors.empty? ? "Ukjent feil" : client.errors.full_messages.to_sentence
+        throw :error, :status => 400,
+        :message => message
+      end
+
+    end
 
 
     desc "updates an existing client and returns the updated version"
@@ -207,6 +237,19 @@ class API < Grape::API
 
       client.save
       {:client => client}
+    end
+
+    desc "deletes an existing client and returns status"
+    delete "/:id" do
+      client = Client.find(params[:id])
+      puts "go team!"
+      if true #client.destroy
+        success = true
+      else
+        success = false
+      end
+
+      {success: success}
     end
 
   end

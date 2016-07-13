@@ -11,85 +11,84 @@ div class="main"
       li Legg til admin
     div class="panes"
       div class="pane"
-        select[class="branch_selector edit"]
+        p
+          select[class="branch_selector edit"]
+          select[class="client_selector"]
 
-        select[class="client_selector"]
+          input[type='radio' name='client_view' value='all' style='width:30px'] Alle
+          input[type='radio' name='client_view' value='.on' style='width:30px'] Tilkoblet
+          input[type='radio' name='client_view' value='.off' style='width:30px'] Frakoblet
+        hr
+        form id="edit_client_form"
+          input[type="hidden" id="client_id" name="id" value=""]
+          p
+            label for="name" Navn:
+            input[id="name" class="name" type="text" style="width:140px" name="name" value="navn"]
+          p
+            label for="hwaddr" Mac:
+            input[id="hwaddr" type="text" name="hwaddr" style="width:140px"]
 
-        br
+            label for="ipaddr" ip:
+            input[id="ipaddr" type="text" name="ipaddr"]
+          p
+            label for="shorttime" Korttids:
+            input[id="shorttime" name="shorttime" type="checkbox" style='width:30px']
 
-        form id="edit_client_form" action="/api/foo" method="POST"
-          input[type="hidden" name="id" value=""]
-          label for="name" Navn:
-          input[id="name" class="name" type="text" style="width:140px" name="name" value="navn"]
-          br
-          label for="hwaddr" Mac:
-          input[id="hwaddr" type="text" name="hwaddr" style="width:140px"]
-          br
-          label for="ipaddr" ip:
-          input[id="ipaddr" type="text" name="ipaddr"]
-          br
-          label for="shorttime" Korttids:
-          input[id="shorttime" name="shorttime" type="checkbox"]
+            label for="testclient" Test:
+            input[id="testclient" name="testclient" type="checkbox" style='width:30px']
 
-          label for="test" Test:
-          input[id="test" name="testclient" type="checkbox"]
-
-          select[id="client_screen_res" name="screen_resolution_id"]
-            - for res in screen_res do
-              |<option value="#{res.id}">#{res.resolution}</option>
-          br
-          select[class="branch_selector"]
-
-
-          select[class="department_selector" name="department_id"]
-
-
-          br
+            label for="client_screen_res" Oppløsning:
+            select[id="client_screen_res" name="screen_resolution_id"]
+              - for res in screen_res do
+                |<option value="#{res.id}">#{res.resolution}</option>
+          p
+            select[class="branch_selector in_form"]
+            select[class="department_selector" name="department_id"]
+          hr
           button[type='button' id="save_client_changes"]  = "Lagre"
           button[type='button' id="delete_client"]  = "Slette"
 
+          span[id="client_info" class="info" style="margin-left:48px"]
+          span[id="client_error" class="error" style="margin-left:48px"]
+
+
+
       div class="pane"
-        - for req in requests do
-          div[id="request-#{req.id}" class="requests" data-hwaddr="#{req.hwaddr}" data-ipaddr="#{req.ipaddr}"]
+        p
+          select[id="request_selector"]
+        hr
 
-        select[id="request_selector"]
-          - for request in requests do
-            |<option value="#{request.id}">id: #{request.id} dato: #{request.ts.strftime("%d-%m-%Y")}</option>
+        form[id="add_client_form"]
+          input[type="hidden" id="request_id" name="id" value=""]
+          p
+            label[for="name"] Navn:
+            input[id="name" class="name" type="text" style="width:140px" name="name" value=""]
+          p
+            label for="hwaddr" Mac:
+            input[id="hwaddr" type="text" name="hwaddr" style="width:140px"]
 
-        br
+            label for="ipaddr" ip:
+            input[id="ipaddr" type="text" name="ipaddr"]
+            button[type='button' id="suggest_ip"]  = "Foreslå"
+          p
+            label for="shorttime" Korttids:
+            input[id="shorttime" name="shorttime" type="checkbox"]
 
-        form[id="add_client_form" action="/api/clients" method="POST"]
-          input[type="hidden" id="request_id" name="request_id" value=""]
+            label for="testclient" Test:
+            input[id="testclient" name="testclient" type="checkbox"]
 
-          label for="name" Navn:
-          input[id="name" class="name" type="text" style="width:140px" name="name" value=""]
-          br
-          label for="hwaddr" Mac:
-          input[id="hwaddr" type="text" name="hwaddr" style="width:140px"]
-          br
-          label for="ipaddr" ip:
-          input[id="ipaddr" type="text" name="ipaddr"]
-          br
-          label for="shorttime" Korttids:
-          input[id="shorttime" name="shorttime" value="true" type="checkbox"]
+            select[id="client_screen_res" name="screen_resolution_id"]
+              - for res in screen_res do
+                |<option id="res" value="#{res.id}">#{res.resolution}</option>
+          p
+            select[class="branch_selector in_form"]
+            select[class="department_selector" name="department_id"]
+          hr
+          button[type='button' id="save_new_client"]  = "Lagre"
+          button[type='button' id="delete_request"]  = "Slette"
 
-          label for="test" Test:
-          input[id="test" name="testclient" value="true" type="checkbox"]
-
-          select[id="client_screen_res" name="screen_resolution_id"]
-            - for res in screen_res do
-              |<option id="res" value="#{res.id}">#{res.resolution}</option>
-          br
-          select[class="branch_selector"]
-            - for branch in branches do
-              |<option value="#{branch.id}">#{branch.name}</option>
-
-          select[class="department_selector" name="department_id"]
-            - for dept in departments do
-              |<option class="depts branch-#{dept.branch_id}" value="#{dept.id}">#{dept.name}</option>
-
-          br
-          input type="submit" value="Lagre"
+          span[id="request_info" class="info" style="margin-left:48px"]
+          span[id="request_error" class="error" style="margin-left:48px"]
 
 
     p <strong>kommer her:</strong>
