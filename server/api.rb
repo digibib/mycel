@@ -42,6 +42,14 @@ def prepare_params (params)
 end
 
 
+def requires_superadmin
+  admin = Admin.find_by_username(env['admin'])
+  if !(admin && admin.superadmin?)
+    redirect '/'
+  end
+end
+
+
 
 class API < Grape::API
   prefix 'api'
@@ -91,8 +99,9 @@ class API < Grape::API
 
     desc "deletes an existing request and returns status"
     delete "/:id" do
-      request = Request.find(params[:id])
+      requires_superadmin
 
+      request = Request.find(params[:id])
       if request.destroy
         status 200
         {message: "OK. Slettet."}
@@ -132,11 +141,11 @@ class API < Grape::API
             :message => "Manglende og/eller ugyldige parametere" unless request.valid?
             request.save
             status 404
-            {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}.to_json
+            {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
           else
             request.touch(:ts)
             status 404
-            {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}.to_json
+            {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
           end
 
         else
@@ -165,8 +174,10 @@ class API < Grape::API
       end
     end
 
-    desc "creates a new client and returns it"
+    desc "creates a new client and returns operation status"
     post "/" do
+      requires_superadmin
+
       form_data = params[:form_data].to_hash
       is_request = form_data["id"] == "0" ? false : true
 
@@ -195,6 +206,8 @@ class API < Grape::API
 
     desc "updates all attributes of existing client and returns operation status"
     put "/" do
+      requires_superadmin
+
       form_data = params[:form_data].to_hash
 
       client = Client.find(form_data["id"])
@@ -241,15 +254,17 @@ class API < Grape::API
 
     desc "deletes an existing client and returns status"
     delete "/:id" do
-      client = Client.find(params[:id])
-      puts "go team!"
-      if true #client.destroy
-        success = true
-      else
-        success = false
-      end
+      requires_superadmin
 
-      {success: success}
+      client = Client.find(params[:id])
+      if client.destroy
+        status 200
+        {message: "OK. Klienten er slettet."}
+      else
+        message = client.errors.empty? ? "Ukjent feil" : client.errors.full_messages.to_sentence
+        throw :error, :status => 400,
+        :message => message
+      end
     end
 
   end

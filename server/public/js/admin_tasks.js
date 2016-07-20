@@ -3,8 +3,6 @@
 $(function() {
 
   var clients, requests;
-  var clientFilter = '';
-  var preferredClient = null;
 
   //
   // form helper functions
@@ -71,15 +69,19 @@ $(function() {
     request.done(function(data) {
       clients = data.clients;
 
-      var selector = $('.client_selector');
+      var selector = $('#client_chooser');
       selector.children().remove();
       data.clients.forEach(client => {
-        var connected = client.is_connected ? ' on' : ' off';
-        selector.append("<option class='clients branch-" + client.branch_id + connected +
+        var classes = 'branch-' + client.branch_id
+        classes += ' department-' + client.department_id
+        classes += client.is_connected ? ' connected' : '';
+        classes += client.shorttime ? ' shorttime' : '';
+        classes += client.testclient ? ' testclient' : '';
+        selector.append("<option class='clients " + classes +
         "' value='" + client.id + "'>" + client.name + "</option>");
       });
 
-      $('.branch_selector.edit').change();
+      viewHandler.update();
     }
   );
 };
@@ -109,9 +111,14 @@ var getBranches = function() {
   var request = get('/api/branches/');
 
   request.done(function(data) {
+    var $branchSelector = $('.branch_selector');
+
+    $('#branch_chooser').append('<option value=0>Alle</option>');
     data.branches.forEach(branch => {
-      $('.branch_selector').append('<option value=' + branch.id + '>' + branch.name + '</option>');
+      $branchSelector.append('<option value=' + branch.id + '>' + branch.name + '</option>');
     });
+
+    viewHandler.setBranchFilter();
   });
 };
 
@@ -120,96 +127,175 @@ var getDepartments = function() {
   var request = get('/api/departments/');
 
   request.done(function(data) {
+    var $departmentSelector = $('.department_selector');
+    $('#department_chooser').append('<option value=0>Alle</option>');
     data.departments.forEach(department => {
-      $(".department_selector").append('<option class="departments branch-' +
+      $departmentSelector.append('<option class="departments branch-' +
       department.branch_id + '" value=' + department.id + '>' + department.name + '</option>');
     });
   });
 };
 
+
+//
+// Handler object to juggle the various views for the client editor form.
+//
+var viewHandler = {
+  clientFilter: '',
+  branchFilter: '',
+  departmentFilter: '',
+  preferredClientID: null,
+
+  setClientFilter: function() {
+    var category = $('#filter_selector').val();
+    var chosenValue = $("input[name='client_filter']:radio:checked").val();
+    var includeCategory = chosenValue === 'on' ? true : false;
+
+    if (category === '') {
+      this.clientFilter = '';
+    } else {
+      this.clientFilter = includeCategory ? category : ':not(' + category + ')';
+    }
+
+    this.preferredClientID = $('#client_chooser').val();
+  },
+
+  setDepartmentFilter: function() {
+    var departmentID = $('#department_chooser').val();
+    this.departmentFilter = departmentID === '0' ? '' : '.department-' + departmentID;
+  },
+
+  setBranchFilter: function() {
+    var branchID = $('#branch_chooser').val();
+    this.branchFilter = branchID === '0' ? '' : '.branch-' + branchID;
+  },
+
+  update: function() {
+    // determine visible departments
+    var $departmentChooser = $('#department_chooser');
+    $departmentChooser.find('.departments').not(':first').hide();
+    $departmentChooser.find('.departments' + this.branchFilter).show();
+
+    // determine visible clients
+    var $clientChooser = $('#client_chooser');
+    $clientChooser.find('.clients').hide();
+    $clientChooser.find('.clients' + this.clientFilter + this.departmentFilter + this.branchFilter).show();
+
+    var clientID = $clientChooser.find(':visible').first().val();
+
+    // retain the previously selected client if visible
+    if (this.preferredClientID) {
+      var $preferredClient = $clientChooser.find('option[value="' + this.preferredClientID + '"]');
+      if ($preferredClient.is(':visible')) {
+        clientID = $preferredClient.val();
+      }
+
+      this.preferredClientID = null;
+    }
+
+    $('#client_chooser').val(clientID);
+    $clientChooser.change();
+  },
+
+  reloadClients: function() {
+    this.preferredClientID = $('#client_chooser').val();
+    getClients();
+  },
+
+  init: function() {
+    getClients();
+    getBranches();
+    getDepartments();
+    getRequests();
+    $('.branch_selector.in_form').change();
+    $('#filter_selector').val(1);
+    $("input[name='client_view']:radio").first().prop('checked', true);
+    //$('#save_new_client').prop('disabled', false);
+  }
+};
+
+
 //
 // event handlers
 //
-$(".branch_selector.edit").change(function() {
-  var branchID = $(this).val();
-  var clientSelector = $('.client_selector');
 
-  if (preferredClient) {
-    clientSelector.find('option[value="' + preferredClient + '"]').addClass('preferred');
-    preferredClient = null;
-  }
+$("#branch_chooser").change(function() {
+  viewHandler.setBranchFilter();
+  viewHandler.update();
+});
 
-  clientSelector.find('.clients').hide();
-  clientSelector.find(clientFilter + '.branch-' + branchID).show();
+$("#department_chooser").change(function() {
+  viewHandler.setDepartmentFilter();
+  viewHandler.update();
+});
 
-  // on reload, prefer the currently selected client if visible
-  if (clientSelector.find('.preferred:visible').size() === 1) {
-    clientSelector.find('.preferred').removeClass('preferred').prop('selected', true);
-  } else {
-    clientSelector.find(':visible').first().prop('selected', true);
-    clientSelector.find('.preferred').removeClass('preferred');
-  }
 
-  clientSelector.change();
+$("#client_chooser").change(function() {
+  var clientID = $(this).val();
+  var $form = $("#edit_client_form");
+
+  clients.forEach(client => {
+    if (client.id === parseInt(clientID)) {
+      var date = new Date(client.ts);
+      var dateString = date.getHours() + ':' + date.getMinutes() + ' ' + date.getDate() +
+       "-" + (date.getMonth() +1 )+ "-" + date.getFullYear();
+      $form.find('#ts').val(dateString);
+
+      $form.find('.branch_selector').val(client.branch_id).change();
+
+      populate($form, client);
+    }
+  });
 });
 
 
 $('.branch_selector.in_form').change(function() {
   var branchID = $(this).val();
-  var form = $(this).parent();
+  var $form = $(this).parent();
 
-  form.find('.departments').hide();
-  form.find('.branch-' + branchID).show();
-  form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
+  $form.find('.departments').hide();
+  $form.find('.branch-' + branchID).show();
+  $form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
 });
 
-
-$(".client_selector").change(function() {
-  var clientID = $(this).val();
-  var form = $("#edit_client_form");
-
-  clients.forEach(client => {
-    if (client.id === parseInt(clientID)) {
-      form.find('.branch_selector').val(client.branch_id).change();
-      populate(form, client);
-    }
-  });
-});
 
 
 $("#request_selector").change(function() {
   var requestID = $(this).val();
-  var form = $("#add_client_form");
+  var $form = $("#add_client_form");
 
-  clear(form);
+  clear($form);
   $('#delete_request').prop('disabled', (requestID === '0'));
 
   requests.forEach(request => {
     if (request.id === parseInt(requestID)) {
-      populate(form, request);
+      populate($form, request);
     }
   });
 });
 
 
-$("input[name='client_view']:radio").change(function () {
-  var type = $(this).val();
-  clientFilter = type === 'all' ? '' : type;
-
-  preferredClient = $('.client_selector').val();
-  $(".branch_selector.edit").change();
+$("input[name='client_filter']:radio").change(function () {
+  viewHandler.setClientFilter();
+  viewHandler.update();
 });
 
 
-// minor convenience function to quickly add ip for new clients
-// not terribly robust
+$('#filter_selector').change(function() {
+  viewHandler.setClientFilter();
+  viewHandler.update();
+});
+
+
+// minor convenience functions to quickly suggest ip and name for new clients
+// (not terribly robust)
 $('#suggest_ip').click(function() {
-  var selectedBranchID = $('#add_client_form').find('.branch_selector').val();
+  var selectedBranchID = parseInt($('#add_client_form').find('.branch_selector.in_form').val());
   var highest = 0;
   var network = '';
 
   clients.forEach(client => {
-    if (client.branch_id === parseInt(selectedBranchID)) {
+    if (client.branch_id === selectedBranchID) {
       var ip = client.ipaddr;
       var index = ip.lastIndexOf('.') + 1;
 
@@ -226,10 +312,42 @@ $('#suggest_ip').click(function() {
 });
 
 
+$('#show_password').mousedown(function() {
+  $('#password').replaceWith($('#password').clone().prop('type', 'text'));
+});
+
+$('#show_password').mouseup(function() {
+  $('#password').replaceWith($('#password').clone().prop('type', 'password'));
+});
+
+
+
+
+
+
+
+
+
+// ** options tabs handling **
+$('.taskpane').hide();
+$('.taskpane:first').addClass('active').show();
+
+$('.tasktabs li').click(function() {
+  $('.tasktabs li.active').removeClass('active');
+  $(this).addClass('active');
+  $('.taskpane').hide();
+  $('.taskpane:eq(' + $(this).index() + ')').show();
+});
+
+
+
+
+
 
 //
 // CRUD functions
 //
+
 $('#save_client_changes').click(function() {
   var form = $('#edit_client_form');
   var request = save(form, 'PUT');
@@ -239,28 +357,11 @@ $('#save_client_changes').click(function() {
     var msg = "OK. Endringene ble lagret.";
     $('span#client_info').html(msg).show().fadeOut(5000);
 
-    preferredClient = $('.client_selector').val();
-    getClients();
+    viewHandler.reloadClients();
   });
 
   request.fail(function(jqXHR, textStatus, errorThrown) {
     $('span#client_error').html(jqXHR.responseText).show().fadeOut(5000);
-  });
-});
-
-
-$('#save_new_client').click(function() {
-  var form = $('#add_client_form');
-  var request = save(form, 'POST');
-
-  request.done(function(message) {
-    var msg = "OK. Endringene ble lagret.";
-    $('span#request_info').html(msg).show().fadeOut(5000);
-    getRequests();
-  });
-
-  request.fail(function(jqXHR, textStatus, errorThrown) {
-    $('span#request_error').html(jqXHR.responseText).show().fadeOut(5000);
   });
 });
 
@@ -278,13 +379,30 @@ $('#delete_client').click(function() {
     request.done(function(message) {
       var msg = "OK. Slettet.";
       $('span#client_info').html(msg).show().fadeOut(5000);
-      getClients();
+      viewHandler.reloadClients();
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
       $('span#client_error').html(jqXHR.responseText).show().fadeOut(5000);
     });
   }
+});
+
+
+
+$('#save_new_client').click(function() {
+  var form = $('#add_client_form');
+  var request = save(form, 'POST');
+
+  request.done(function(message) {
+    var msg = "OK. Endringene ble lagret.";
+    $('span#request_info').html(msg).show().fadeOut(5000);
+    getRequests();
+  });
+
+  request.fail(function(jqXHR, textStatus, errorThrown) {
+    $('span#request_error').html(jqXHR.responseText).show().fadeOut(5000);
+  });
 });
 
 
@@ -310,10 +428,6 @@ $('#delete_request').click(function() {
 //
 // Initialize page
 //
-getClients();
-getBranches();
-getDepartments();
-getRequests();
-$("input[name='client_view']:radio").first().prop('checked', true);
+viewHandler.init();
 
 });
