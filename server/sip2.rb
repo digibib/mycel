@@ -5,11 +5,14 @@ require "./config/settings"
 class DGClient
   def initialize()
     @host, @port = Settings::SIP2[:host], Settings::SIP2[:port]
+    @user, @pass = Settings::SIP2[:username], Settings::SIP2[:password]
   end
 
   def send_message(msg)
     connection do |socket|
-      socket.puts(msg)
+      socket.print("9300CN#{@user}|CO#{@pass}|CP|\r")
+      tmp = socket.gets("\r")
+      socket.print(msg)
       result = socket.gets("\r")
       return result
     end
@@ -24,21 +27,11 @@ class DGClient
   end
 end
 
-def appendChecksum(msg)
-  check = 0
-  msg.each_char { |m| check += m.ord }
-  check += "\0".ord
-  check = (check ^ 0xFFFF) + 1
-
-  checksum = "%4.4X" % check
-  return msg + checksum
-end
-
 def formMessage(cardnr, pin)
   code = "63"
   language = "012"
   timestamp = Time.now.strftime("%Y%m%d    %H%M%S")
   summary = " " * 10
-  msg = code + language + timestamp + summary + "AO|AA" + cardnr + "|AC|AD" + pin + "|AY1AZ"
+  msg = code + language + timestamp + summary + "AO|AA" + cardnr + "|AC|AD" + pin + "|\r"
   return msg
 end
