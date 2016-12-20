@@ -146,6 +146,7 @@ div class="taskpanes"
     hr
 
     form[id="admin_form"]
+      input[type="text" name="id"]
       p
         label for="username" class="fw" Brukernavn:
         input[id="username" type="text" name="username"]
@@ -154,8 +155,18 @@ div class="taskpanes"
         input[id="password" type="password" name="password"]
         button[type='button' id="show_password"]...
       p
+        label for="email" class="fw" Epost:
+        input[id="email" type="text" name="email"]
+      p
         input[type='radio' name='owner_admins_type' value='Branch']Filial
         input[type='radio' name='owner_admins_type' value='Department']Avdeling
         input[type='radio' name='owner_admins_type' value='Organization']Organisasjon (superadmin)
       p
         select[class="branch_selector" name="owner_admins_id"]
+      p
+      hr
+      button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
+      button[type='button' id="save_admin" class="action_button"]  = "Lagre admin"
+
+      span[id="admin_info" class="info" style="margin-left:48px"]
+      span[id="admin_error" class="error" style="margin-left:48px"]

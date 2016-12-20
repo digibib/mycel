@@ -115,6 +115,35 @@ class API < Grape::API
 
 
   resource :admins do
+    desc "returns all admins"
+    get "/" do
+      requires_superadmin
+      {:admins => Admin.all}
+    end
+
+    desc "creates a new admin account and returns operation status"
+    post "/" do
+      requires_superadmin
+
+      form_data = params[:form_data].to_hash
+      is_new = form_data["id"].nil? || form_data["id"].empty?
+
+      admin = is_new ? Admin.new : Admin.find(form_data["id"])
+      admin.attributes = admin.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
+
+      if admin.save
+        status 200
+        {message: "OK. Lagret."}
+      else
+        message = admin.errors.empty? ? "Ukjent feil" : admin.errors.full_messages.to_sentence
+        throw :error, :status => 400,
+        :message => message
+      end
+
+    end
+
+
+
     desc "authenticates admin"
     post "/login" do
       admin = Admin.where(:username=>params[:username]).first

@@ -2,7 +2,7 @@
 
 $(function() {
 
-  var clients, requests;
+  var clients, requests, admins;
 
   //
   // form helper functions
@@ -30,7 +30,7 @@ $(function() {
     });
   };
 
-  var save = function(form, type) {
+  var save = function(form, url, type) {
     var json = {};
     var formElements = form.serializeArray();
 
@@ -40,7 +40,7 @@ $(function() {
 
     var formData = {form_data: json};
     return $.ajax({
-      url: '/api/clients/',
+      url: url,
       type: type,
       data: JSON.stringify(formData),
       dataType: "json",
@@ -60,6 +60,24 @@ $(function() {
       contentType: 'application/json; charset=UTF-8',
       cache: false
     });
+  };
+
+
+  var getAdmins = function() {
+    var request = get('/api/admins/');
+
+    request.done(function(data) {
+      admins = data.admins;
+
+      var selector = $('.admin_selector');
+      selector.children().not(':first').remove();
+      data.admins.forEach(admin => {
+        selector.append("<option value=" + admin.id + ">" + admin.username + "</option");
+      });
+
+    });
+
+    // viewHandler.update() ??
   };
 
 
@@ -212,6 +230,7 @@ var viewHandler = {
     getBranches();
     getDepartments();
     getRequests();
+    getAdmins();
     $('.branch_selector.in_form').change();
     $('#filter_selector').val(1);
     $("input[name='client_view']:radio").first().prop('checked', true);
@@ -282,6 +301,27 @@ $("#request_selector").change(function() {
 });
 
 
+var foo = function(data, itemID, $form) {
+  clear($form);
+  //$('#delete_request').prop('disabled', (requestID === '0'));
+
+  data.forEach(item => {
+    if (item.id === parseInt(itemID)) {
+      populate($form, item);
+    }
+  });
+}
+
+
+$(".admin_selector").change(function() {
+  var adminID = $(this).val();
+  var $form = $("#admin_form");
+  foo(admins, adminID, $form);
+});
+
+
+
+
 $("input[name='client_filter']:radio").change(function () {
   viewHandler.setClientFilter();
   viewHandler.update();
@@ -347,7 +387,7 @@ $('.tasktabs li').click(function() {
 
 $('#save_client_changes').click(function() {
   var form = $('#edit_client_form');
-  var request = save(form, 'PUT');
+  var request = save(form, '/api/clients/', 'PUT');
 
 
   request.done(function(message) {
@@ -389,7 +429,7 @@ $('#delete_client').click(function() {
 
 $('#save_new_client').click(function() {
   var form = $('#add_client_form');
-  var request = save(form, 'POST');
+  var request = save(form, '/api/clients/', 'POST');
 
   request.done(function(message) {
     var msg = "OK. Endringene ble lagret.";
@@ -402,6 +442,54 @@ $('#save_new_client').click(function() {
   });
 });
 
+
+// admins
+
+$('#save_admin').click(function() {
+  var form = $('#admin_form');
+  var request = save(form, '/api/admins/', 'POST');
+
+  request.done(function(message) {
+    var msg = "OK. Endringene ble lagret.";
+    $('span#admin_info').html(msg).show().fadeOut(5000);
+    getAdmins();
+  });
+
+  request.fail(function(jqXHR, textStatus, errorThrown) {
+    $('span#admin_error').html(jqXHR.responseText).show().fadeOut(5000);
+  });
+});
+
+
+$('#delete_admin').click(function() {
+  var adminID = $('#admin_form').find("input[name='id']").val();
+  var adminName = $('#admin_form').find("input[name='username']").val();
+
+  if (window.confirm('Sikker på at du vil slette ' + adminName + '?')) {
+    var request = $.ajax({
+      url: '/api/admins/' + adminID,
+      type: 'DELETE',
+    });
+
+    request.done(function(message) {
+      var msg = "OK. Slettet.";
+      $('span#admin_info').html(msg).show().fadeOut(5000);
+      viewHandler.reloadClients();
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $('span#admin_error').html(jqXHR.responseText).show().fadeOut(5000);
+    });
+  }
+  return false;
+});
+
+
+
+
+
+
+// requests
 
 $('#delete_request').click(function() {
   var requestID = $('#request_id').val();
