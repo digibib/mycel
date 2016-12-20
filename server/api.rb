@@ -141,11 +141,11 @@ class API < Grape::API
             :message => "Manglende og/eller ugyldige parametere" unless request.valid?
             request.save
             status 404
-            {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
+            # {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
           else
             request.touch(:ts)
             status 404
-            {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
+            # {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
           end
 
         else

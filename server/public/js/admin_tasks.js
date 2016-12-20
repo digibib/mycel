@@ -50,7 +50,7 @@ $(function() {
 
 
   //
-  // loader unctions
+  // loader functions
   //
   var get = function(url) {
     return $.ajax({
@@ -120,6 +120,11 @@ var getBranches = function() {
 
     viewHandler.setBranchFilter();
   });
+};
+
+
+var branchSelectors = function() {
+
 };
 
 
@@ -224,6 +229,18 @@ $("#branch_chooser").change(function() {
   viewHandler.update();
 });
 
+
+$('.branch_selector.in_form').change(function() {
+  var branchID = $(this).val();
+  var $form = $(this).parent();
+
+  $form.find('.departments').hide();
+  $form.find('.branch-' + branchID).show();
+  $form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
+});
+
+
+
 $("#department_chooser").change(function() {
   viewHandler.setDepartmentFilter();
   viewHandler.update();
@@ -246,16 +263,6 @@ $("#client_chooser").change(function() {
       populate($form, client);
     }
   });
-});
-
-
-$('.branch_selector.in_form').change(function() {
-  var branchID = $(this).val();
-  var $form = $(this).parent();
-
-  $form.find('.departments').hide();
-  $form.find('.branch-' + branchID).show();
-  $form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
 });
 
 
@@ -287,8 +294,7 @@ $('#filter_selector').change(function() {
 });
 
 
-// minor convenience functions to quickly suggest ip and name for new clients
-// (not terribly robust)
+// minor convenience function to quickly suggest ip for new clients (not terribly robust)
 $('#suggest_ip').click(function() {
   var selectedBranchID = parseInt($('#add_client_form').find('.branch_selector.in_form').val());
   var highest = 0;
@@ -321,13 +327,6 @@ $('#show_password').mouseup(function() {
 });
 
 
-
-
-
-
-
-
-
 // ** options tabs handling **
 $('.taskpane').hide();
 $('.taskpane:first').addClass('active').show();
@@ -338,8 +337,6 @@ $('.tasktabs li').click(function() {
   $('.taskpane').hide();
   $('.taskpane:eq(' + $(this).index() + ')').show();
 });
-
-
 
 
 
