@@ -63,21 +63,21 @@ $(function() {
   };
 
 
-  var getAdmins = function() {
-    var request = get('/api/admins/');
+  var getAdmins = function(selectedID) {
+    var selector = $('.admin_selector');
 
-    request.done(function(data) {
+    get('/api/admins/').done(function(data) {
       admins = data.admins;
-
-      var selector = $('.admin_selector');
       selector.children().not(':first').remove();
+
       data.admins.forEach(admin => {
         selector.append("<option value=" + admin.id + ">" + admin.username + "</option");
       });
 
+      if (selectedID) {
+        selector.val(selectedID).change();
+      }
     });
-
-    // viewHandler.update() ??
   };
 
 
@@ -161,13 +161,14 @@ var getDepartments = function() {
 
 
 //
-// Handler object to juggle the various views for the client editor form.
+// Handler object to juggle the various views for the editor form.
 //
 var viewHandler = {
   clientFilter: '',
   branchFilter: '',
   departmentFilter: '',
   preferredClientID: null,
+  preferredAdminID: null,
 
   setClientFilter: function() {
     var category = $('#filter_selector').val();
@@ -223,6 +224,11 @@ var viewHandler = {
   reloadClients: function() {
     this.preferredClientID = $('#client_chooser').val();
     getClients();
+  },
+
+  reloadAdmins: function() {
+    this.preferredAdminID = $('.admin_selector').val();
+    getAdmins();
   },
 
   init: function() {
@@ -450,9 +456,8 @@ $('#save_admin').click(function() {
   var request = save(form, '/api/admins/', 'POST');
 
   request.done(function(message) {
-    var msg = "OK. Endringene ble lagret.";
-    $('span#admin_info').html(msg).show().fadeOut(5000);
-    getAdmins();
+    $('span#admin_info').html(message.message).show().fadeOut(5000);
+    getAdmins(message.id);
   });
 
   request.fail(function(jqXHR, textStatus, errorThrown) {
@@ -472,21 +477,15 @@ $('#delete_admin').click(function() {
     });
 
     request.done(function(message) {
-      var msg = "OK. Slettet.";
-      $('span#admin_info').html(msg).show().fadeOut(5000);
-      viewHandler.reloadClients();
+      $('span#admin_info').html(message.message).show().fadeOut(5000);
+      getAdmins(false);
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
       $('span#admin_error').html(jqXHR.responseText).show().fadeOut(5000);
     });
   }
-  return false;
 });
-
-
-
-
 
 
 // requests

@@ -50,6 +50,42 @@ def requires_superadmin
 end
 
 
+def delete(class_name, id)
+  klazz = class_name.constantize
+
+  item = klazz.find(id)
+  if item.destroy
+    status 200
+    {message: "OK. Slettet."}
+  else
+    throw :error, :status => 400,
+    :message => item.errors.empty? ? "Ukjent feil" : item.errors.full_messages.to_sentence
+  end
+end
+
+
+def create(class_name, params)
+  klazz = class_name.constantize
+
+  form_data = params[:form_data].to_hash
+  is_new = form_data["id"].nil? || form_data["id"].empty?
+
+  item = is_new ? klazz.new : klazz.find(form_data["id"])
+  item.attributes = item.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
+
+  if item.save
+    status 200
+    {message: "OK. Lagret.", id: item.id}
+  else
+    message = item.errors.empty? ? "Ukjent feil" : item.errors.full_messages.to_sentence
+    throw :error, :status => 400,
+    :message => message
+  end
+
+end
+
+
+
 
 class API < Grape::API
   prefix 'api'
@@ -91,6 +127,8 @@ class API < Grape::API
   end
 
 
+
+
   resource :requests do
     desc "returns all requests"
     get "/" do
@@ -100,17 +138,8 @@ class API < Grape::API
     desc "deletes an existing request and returns status"
     delete "/:id" do
       requires_superadmin
-
-      request = Request.find(params[:id])
-      if request.destroy
-        status 200
-        {message: "OK. Slettet."}
-      else
-        throw :error, :status => 400,
-        :message => "Kunne ikke slette"
-      end
+      delete("Request", params[:id])
     end
-
   end
 
 
@@ -121,27 +150,17 @@ class API < Grape::API
       {:admins => Admin.all}
     end
 
-    desc "creates a new admin account and returns operation status"
+    desc "creates or updates administrator account and returns status"
     post "/" do
       requires_superadmin
-
-      form_data = params[:form_data].to_hash
-      is_new = form_data["id"].nil? || form_data["id"].empty?
-
-      admin = is_new ? Admin.new : Admin.find(form_data["id"])
-      admin.attributes = admin.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
-
-      if admin.save
-        status 200
-        {message: "OK. Lagret."}
-      else
-        message = admin.errors.empty? ? "Ukjent feil" : admin.errors.full_messages.to_sentence
-        throw :error, :status => 400,
-        :message => message
-      end
-
+      create("Admin", params)
     end
 
+    desc "deletes an existing administrator and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Admin", params[:id])
+    end
 
 
     desc "authenticates admin"
@@ -228,8 +247,6 @@ class API < Grape::API
         throw :error, :status => 400,
         :message => message
       end
-
-
     end
 
 
@@ -256,7 +273,6 @@ class API < Grape::API
         throw :error, :status => 400,
         :message => message
       end
-
     end
 
 
@@ -281,21 +297,12 @@ class API < Grape::API
       {:client => client}
     end
 
+
     desc "deletes an existing client and returns status"
     delete "/:id" do
       requires_superadmin
-
-      client = Client.find(params[:id])
-      if client.destroy
-        status 200
-        {message: "OK. Klienten er slettet."}
-      else
-        message = client.errors.empty? ? "Ukjent feil" : client.errors.full_messages.to_sentence
-        throw :error, :status => 400,
-        :message => message
-      end
+      delete("Client", params[:id])
     end
-
   end
 
   resource :users do
