@@ -80,6 +80,7 @@ $(function() {
     });
   };
 
+  var clientOptions = [];
 
   var getClients = function() {
     var request = get('/api/clients/');
@@ -89,14 +90,27 @@ $(function() {
 
       var selector = $('#client_chooser');
       selector.children().remove();
+      clientOptions = [];
       data.clients.forEach(client => {
-        var classes = 'branch-' + client.branch_id
-        classes += ' department-' + client.department_id
-        classes += client.is_connected ? ' connected' : '';
-        classes += client.shorttime ? ' shorttime' : '';
-        classes += client.testclient ? ' testclient' : '';
-        selector.append("<option class='clients " + classes +
-        "' value='" + client.id + "'>" + client.name + "</option>");
+        var classString = 'client';
+        classString += ' branch-' + client.branch_id;
+        classString += ' department-' + client.department_id;
+        classString += client.is_connected ? ' connected' : '';
+        classString += client.shorttime ? ' shorttime' : '';
+        classString += client.testclient ? ' testclient' : '';
+
+        clientOptions.push($('<option />', {
+          'text': client.name,
+          'value': client.id,
+          'class': classString
+        }));
+
+
+
+        //clientOptions.push("<option class='clients " + classes +
+        //"' value='" + client.id + "'>" + client.name + "</option>")
+        //selector.append("<option class='clients " + classes +
+        //"' value='" + client.id + "'>" + client.name + "</option>");
       });
 
       viewHandler.update();
@@ -116,7 +130,7 @@ var getRequests = function() {
     selector.append('<option value="0">Ny klient</option>');
     data.requests.forEach(request => {
       var date = new Date(request.ts);
-      var dateString = '(' + date.getDate() + "-" + (date.getMonth() +1 )+ "-" + date.getFullYear() + ')';
+      var dateString = '(' + date.getDate() + "-" + (date.getMonth() +1) + "-" + date.getFullYear() + ')';
       selector.append('<option value=' + request.id + '>id: ' + request.id + dateString + '</option>');
     });
 
@@ -141,10 +155,6 @@ var getBranches = function() {
 };
 
 
-var branchSelectors = function() {
-
-};
-
 
 var getDepartments = function() {
   var request = get('/api/departments/');
@@ -161,7 +171,7 @@ var getDepartments = function() {
 
 
 //
-// Handler object to juggle the various views for the editor form.
+// Handler object to juggle the various views for the client editor form.
 //
 var viewHandler = {
   clientFilter: '',
@@ -194,6 +204,12 @@ var viewHandler = {
     this.branchFilter = branchID === '0' ? '' : '.branch-' + branchID;
   },
 
+  // $selector.find('option').not('.invalid_option').detach();
+  // visibleValues.forEach(function(id) {
+  //    $selector.append(allOptions.filter("option[value=" + id + "]"));
+  //  });
+
+
   update: function() {
     // determine visible departments
     var $departmentChooser = $('#department_chooser');
@@ -201,20 +217,22 @@ var viewHandler = {
     $departmentChooser.find('.departments' + this.branchFilter).show();
 
     // determine visible clients
+    var classFilter = '.client' + this.clientFilter + this.departmentFilter + this.branchFilter;
     var $clientChooser = $('#client_chooser');
-    $clientChooser.find('.clients').hide();
-    $clientChooser.find('.clients' + this.clientFilter + this.departmentFilter + this.branchFilter).show();
+    $clientChooser.children().remove();
+    $clientChooser.append(clientOptions.filter(option => option.filter(classFilter).length > 0));
 
     var clientID = $clientChooser.find(':visible').first().val();
 
     // retain the previously selected client if visible
     if (this.preferredClientID) {
       var $preferredClient = $clientChooser.find('option[value="' + this.preferredClientID + '"]');
-      if ($preferredClient.is(':visible')) {
+      //if ($preferredClient.is(':visible')) {
+      if ($preferredClient) {
         clientID = $preferredClient.val();
       }
 
-      this.preferredClientID = null;
+      this.preferredClientID = null; // why?
     }
 
     $('#client_chooser').val(clientID);
@@ -226,6 +244,7 @@ var viewHandler = {
     getClients();
   },
 
+  // move this
   reloadAdmins: function() {
     this.preferredAdminID = $('.admin_selector').val();
     getAdmins();
@@ -236,7 +255,7 @@ var viewHandler = {
     getBranches();
     getDepartments();
     getRequests();
-    getAdmins();
+    //getAdmins();
     $('.branch_selector.in_form').change();
     $('#filter_selector').val(1);
     $("input[name='client_view']:radio").first().prop('checked', true);
