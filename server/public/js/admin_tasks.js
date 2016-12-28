@@ -2,7 +2,8 @@
 
 $(function() {
 
-  var clients, requests, admins;
+  var clients, branches, departments, requests, admins;
+  var clientOptions, branchOptions, departmentOptions, requestOptions, adminOptions;
 
   //
   // form helper functions
@@ -28,6 +29,31 @@ $(function() {
         formElement.val(val);
       }
     });
+  };
+
+
+
+  var foo = function(data, itemID, $form) {
+    clear($form);
+    //$('#delete_request').prop('disabled', (requestID === '0'));
+
+    data.forEach(item => {
+      if (item.id === parseInt(itemID)) {
+        populate($form, item);
+      }
+    });
+  }
+
+
+
+  // populates dropdown box according to filter
+  var filterSelector = function($selector, $options, filterString, retainFirst) {
+    var preferredID = $selector.val();
+
+    retainFirst ? $selector.children().not(':first').remove() : $selector.children().remove();
+    $selector.append($options.filter(option => option.filter(filterString).length > 0));
+
+    $selector.val(preferredID);
   };
 
   var save = function(form, url, type) {
@@ -66,7 +92,7 @@ $(function() {
   var getAdmins = function(selectedID) {
     var selector = $('.admin_selector');
 
-    get('/api/admins/').done(function(data) {
+    return get('/api/admins/').done(function(data) {
       admins = data.admins;
       selector.children().not(':first').remove();
 
@@ -80,40 +106,38 @@ $(function() {
     });
   };
 
-  var clientOptions = [];
 
   var getClients = function() {
     var request = get('/api/clients/');
 
-    request.done(function(data) {
+    return request.done(function(data) {
       clients = data.clients;
 
       var selector = $('#client_chooser');
-      selector.children().remove();
+      var preferredID = selector.val();
+
       clientOptions = [];
       data.clients.forEach(client => {
-        var classString = 'client';
-        classString += ' branch-' + client.branch_id;
-        classString += ' department-' + client.department_id;
-        classString += client.is_connected ? ' connected' : '';
-        classString += client.shorttime ? ' shorttime' : '';
-        classString += client.testclient ? ' testclient' : '';
+        var classString = 'clients'
+          + ' branch-' + client.branch_id
+          + ' department-' + client.department_id
+          + (client.is_connected ? ' connected' : '')
+          + (client.shorttime ? ' shorttime' : '')
+          + (client.testclient ? ' testclient' : '');
 
         clientOptions.push($('<option />', {
           'text': client.name,
           'value': client.id,
           'class': classString
         }));
-
-
-
-        //clientOptions.push("<option class='clients " + classes +
-        //"' value='" + client.id + "'>" + client.name + "</option>")
-        //selector.append("<option class='clients " + classes +
-        //"' value='" + client.id + "'>" + client.name + "</option>");
       });
 
-      viewHandler.update();
+      selector.children().remove();
+      selector.append(clientOptions);
+
+      if (preferredID) {
+        selector.val(preferredID);
+      }
     }
   );
 };
@@ -122,19 +146,26 @@ $(function() {
 var getRequests = function() {
   var request = get('/api/requests/');
 
-  request.done(function(data) {
+  return request.done(function(data) {
     requests = data.requests;
 
     var selector = $('#request_selector');
     selector.children().remove();
     selector.append('<option value="0">Ny klient</option>');
+    requestOptions = [];
     data.requests.forEach(request => {
       var date = new Date(request.ts);
       var dateString = '(' + date.getDate() + "-" + (date.getMonth() +1) + "-" + date.getFullYear() + ')';
-      selector.append('<option value=' + request.id + '>id: ' + request.id + dateString + '</option>');
+
+      requestOptions.push($('<option />', {
+        'text': request.name + ' (' + dateString + ')',
+        'value': request.id
+      }));
     });
 
-    selector.change();
+    selector.append(requestOptions);
+
+    selector.change(); // hmmm
   });
 };
 
@@ -142,7 +173,7 @@ var getRequests = function() {
 var getBranches = function() {
   var request = get('/api/branches/');
 
-  request.done(function(data) {
+  return request.done(function(data) {
     var $branchSelector = $('.branch_selector');
 
     $('#branch_chooser').append('<option value=0>Alle</option>');
@@ -159,15 +190,26 @@ var getBranches = function() {
 var getDepartments = function() {
   var request = get('/api/departments/');
 
-  request.done(function(data) {
+  return request.done(function(data) {
+    departmentOptions = [];
+
     var $departmentSelector = $('.department_selector');
+    $departmentSelector.children().remove();
+
     $('#department_chooser').append('<option value=0>Alle</option>');
+
     data.departments.forEach(department => {
-      $departmentSelector.append('<option class="departments branch-' +
-      department.branch_id + '" value=' + department.id + '>' + department.name + '</option>');
+      departmentOptions.push($('<option />', {
+        'text': department.name,
+        'value': department.id,
+        'class': 'departments branch-' + department.branch_id
+      }));
     });
+
+    $departmentSelector.append(departmentOptions);
   });
 };
+
 
 
 //
@@ -178,20 +220,18 @@ var viewHandler = {
   branchFilter: '',
   departmentFilter: '',
   preferredClientID: null,
-  preferredAdminID: null,
+  preferredAdminID: null, // remove
 
   setClientFilter: function() {
     var category = $('#filter_selector').val();
     var chosenValue = $("input[name='client_filter']:radio:checked").val();
-    var includeCategory = chosenValue === 'on' ? true : false;
+    var includeCategory = chosenValue === 'on';
 
     if (category === '') {
       this.clientFilter = '';
     } else {
       this.clientFilter = includeCategory ? category : ':not(' + category + ')';
     }
-
-    this.preferredClientID = $('#client_chooser').val();
   },
 
   setDepartmentFilter: function() {
@@ -204,43 +244,29 @@ var viewHandler = {
     this.branchFilter = branchID === '0' ? '' : '.branch-' + branchID;
   },
 
-  // $selector.find('option').not('.invalid_option').detach();
-  // visibleValues.forEach(function(id) {
-  //    $selector.append(allOptions.filter("option[value=" + id + "]"));
-  //  });
-
-
   update: function() {
     // determine visible departments
     var $departmentChooser = $('#department_chooser');
-    $departmentChooser.find('.departments').not(':first').hide();
-    $departmentChooser.find('.departments' + this.branchFilter).show();
+    var preferredDepartmentID = $departmentChooser.val();
+    filterSelector($departmentChooser, departmentOptions, '.departments' + this.branchFilter, true);
 
     // determine visible clients
-    var classFilter = '.client' + this.clientFilter + this.departmentFilter + this.branchFilter;
     var $clientChooser = $('#client_chooser');
+    var preferredClientID = $clientChooser.val();
+    var classFilter = '.clients' + this.clientFilter + this.departmentFilter + this.branchFilter;
+
     $clientChooser.children().remove();
     $clientChooser.append(clientOptions.filter(option => option.filter(classFilter).length > 0));
+    $clientChooser.val(preferredClientID);
 
-    var clientID = $clientChooser.find(':visible').first().val();
-
-    // retain the previously selected client if visible
-    if (this.preferredClientID) {
-      var $preferredClient = $clientChooser.find('option[value="' + this.preferredClientID + '"]');
-      //if ($preferredClient.is(':visible')) {
-      if ($preferredClient) {
-        clientID = $preferredClient.val();
-      }
-
-      this.preferredClientID = null; // why?
-    }
-
-    $('#client_chooser').val(clientID);
-    $clientChooser.change();
+    // populate client info
+    var foo = clients.filter(client => client.id === parseInt($clientChooser.val()))[0];
+    var $form = $("#edit_client_form");
+    populate($form, foo);
   },
 
   reloadClients: function() {
-    this.preferredClientID = $('#client_chooser').val();
+    //this.preferredClientID = $('#client_chooser').val();
     getClients();
   },
 
@@ -251,15 +277,15 @@ var viewHandler = {
   },
 
   init: function() {
-    getClients();
-    getBranches();
-    getDepartments();
-    getRequests();
-    //getAdmins();
-    $('.branch_selector.in_form').change();
-    $('#filter_selector').val(1);
-    $("input[name='client_view']:radio").first().prop('checked', true);
-    //$('#save_new_client').prop('disabled', false);
+    $.when(
+      getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
+    ).then(function() {
+      console.log("all done!");
+      $('.branch_selector.in_form').change();
+      $('#filter_selector').val(1);
+      $("input[name='client_view']:radio").first().prop('checked', true);
+      //$('#save_new_client').prop('disabled', false);
+    });
   }
 };
 
@@ -276,11 +302,20 @@ $("#branch_chooser").change(function() {
 
 $('.branch_selector.in_form').change(function() {
   var branchID = $(this).val();
-  var $form = $(this).parent();
+  var $form = $(this).parent(); // hmmm
 
-  $form.find('.departments').hide();
-  $form.find('.branch-' + branchID).show();
-  $form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
+  //$form.find('.departments').hide();
+  //$form.find('.branch-' + branchID).show();
+  //$form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
+
+  var filter = '.departments.branch-' + branchID;
+  var selector = $form.find('.department_selector');
+  filterSelector(selector, departmentOptions, filter, false);
+
+    //var preferredDepartmentID = foo.val();
+    //foo.children().not(':first').remove();
+    //foo.append(departmentOptions.filter(option => option.filter('.departments .branch-' + branchID).length > 0));
+    //foo.val(preferredDepartmentID);
 });
 
 
@@ -293,6 +328,7 @@ $("#department_chooser").change(function() {
 
 $("#client_chooser").change(function() {
   var clientID = $(this).val();
+
   var $form = $("#edit_client_form");
 
   clients.forEach(client => {
@@ -301,8 +337,7 @@ $("#client_chooser").change(function() {
       var dateString = date.getHours() + ':' + date.getMinutes() + ' ' + date.getDate() +
        "-" + (date.getMonth() +1 )+ "-" + date.getFullYear();
       $form.find('#ts').val(dateString);
-
-      $form.find('.branch_selector').val(client.branch_id).change();
+      $form.find('.branch_selector').val(client.branch_id).change(); // hmmmm
 
       populate($form, client);
     }
@@ -326,16 +361,7 @@ $("#request_selector").change(function() {
 });
 
 
-var foo = function(data, itemID, $form) {
-  clear($form);
-  //$('#delete_request').prop('disabled', (requestID === '0'));
 
-  data.forEach(item => {
-    if (item.id === parseInt(itemID)) {
-      populate($form, item);
-    }
-  });
-}
 
 
 $(".admin_selector").change(function() {
