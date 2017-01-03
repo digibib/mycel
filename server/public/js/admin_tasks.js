@@ -23,7 +23,7 @@ $(function() {
         formElement.prop('checked', val);
         break;
         case 'radio':
-        formElement.filter('[value="'+val+'"]').prop('checked', 'checked');
+        formElement.filter('[value="' + val + '"]').prop('checked', 'checked');
         break;
         default:
         formElement.val(val);
@@ -51,7 +51,8 @@ $(function() {
     var preferredID = $selector.val();
 
     retainFirst ? $selector.children().not(':first').remove() : $selector.children().remove();
-    $selector.append($options.filter(option => option.filter(filterString).length > 0));
+    var clonedOptions = $options.map(option => option.clone());
+    $selector.append(clonedOptions.filter(option => option.filter(filterString).length > 0));
 
     $selector.val(preferredID);
   };
@@ -101,7 +102,7 @@ $(function() {
       });
 
       if (selectedID) {
-        selector.val(selectedID).change();
+        selector.val(selectedID); //.change();
       }
     });
   };
@@ -113,7 +114,7 @@ $(function() {
     return request.done(function(data) {
       clients = data.clients;
 
-      var selector = $('#client_chooser');
+      var selector = $('#client_selector');
       var preferredID = selector.val();
 
       clientOptions = [];
@@ -176,7 +177,7 @@ var getBranches = function() {
   return request.done(function(data) {
     var $branchSelector = $('.branch_selector');
 
-    $('#branch_chooser').append('<option value=0>Alle</option>');
+    $('#branch_selector').append('<option value=0>Alle</option>');
     data.branches.forEach(branch => {
       $branchSelector.append('<option value=' + branch.id + '>' + branch.name + '</option>');
     });
@@ -196,7 +197,7 @@ var getDepartments = function() {
     var $departmentSelector = $('.department_selector');
     $departmentSelector.children().remove();
 
-    $('#department_chooser').append('<option value=0>Alle</option>');
+    $('#department_selector').append('<option value=0>Alle</option>');
 
     data.departments.forEach(department => {
       departmentOptions.push($('<option />', {
@@ -219,7 +220,7 @@ var viewHandler = {
   clientFilter: '',
   branchFilter: '',
   departmentFilter: '',
-  preferredClientID: null,
+  preferredClientID: null, // remove?
   preferredAdminID: null, // remove
 
   setClientFilter: function() {
@@ -235,34 +236,43 @@ var viewHandler = {
   },
 
   setDepartmentFilter: function() {
-    var departmentID = $('#department_chooser').val();
+    var departmentID = $('#department_selector').val();
     this.departmentFilter = departmentID === '0' ? '' : '.department-' + departmentID;
   },
 
   setBranchFilter: function() {
-    var branchID = $('#branch_chooser').val();
+    var branchID = $('#branch_selector').val();
     this.branchFilter = branchID === '0' ? '' : '.branch-' + branchID;
   },
 
   update: function() {
     // determine visible departments
-    var $departmentChooser = $('#department_chooser');
-    var preferredDepartmentID = $departmentChooser.val();
-    filterSelector($departmentChooser, departmentOptions, '.departments' + this.branchFilter, true);
+    var $departmentSelector = $('#department_selector');
+    filterSelector($departmentSelector, departmentOptions, '.departments' + this.branchFilter, true);
 
     // determine visible clients
-    var $clientChooser = $('#client_chooser');
-    var preferredClientID = $clientChooser.val();
-    var classFilter = '.clients' + this.clientFilter + this.departmentFilter + this.branchFilter;
+    var $clientSelector = $('#client_selector');
+    var clientFilter = '.clients' + this.clientFilter + this.departmentFilter + this.branchFilter;
+    filterSelector($clientSelector, clientOptions, clientFilter, false);
 
-    $clientChooser.children().remove();
-    $clientChooser.append(clientOptions.filter(option => option.filter(classFilter).length > 0));
-    $clientChooser.val(preferredClientID);
-
-    // populate client info
-    var foo = clients.filter(client => client.id === parseInt($clientChooser.val()))[0];
+    // populate client info...
+    var client = clients.filter(client => client.id === parseInt($clientSelector.val()))[0];
     var $form = $("#edit_client_form");
-    populate($form, foo);
+
+    // adjust department selector...
+    var branchID = client.branch_id;
+    var filter = '.departments.branch-' + branchID;
+    var selector = $form.find('.department_selector.in_form');
+    //filterSelector(selector, departmentOptions, filter, false);
+    filterSelector(selector, departmentOptions, filter, false);
+
+    // and timestamp field...
+    var date = new Date(client.ts);
+    var dateString = date.getHours() + ':' + date.getMinutes() + ' ' + date.getDate() +
+     "-" + (date.getMonth() +1 )+ "-" + date.getFullYear();
+    $form.find('#ts').val(dateString);
+
+    populate($form, client);
   },
 
   reloadClients: function() {
@@ -280,12 +290,12 @@ var viewHandler = {
     $.when(
       getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
     ).then(function() {
-      console.log("all done!");
-      $('.branch_selector.in_form').change();
+      //$('.branch_selector.in_form').change();
       $('#filter_selector').val(1);
       $("input[name='client_view']:radio").first().prop('checked', true);
       //$('#save_new_client').prop('disabled', false);
-    });
+      this.update();
+    }.bind(this));
   }
 };
 
@@ -294,57 +304,29 @@ var viewHandler = {
 // event handlers
 //
 
-$("#branch_chooser").change(function() {
+$("#branch_selector").change(function() {
   viewHandler.setBranchFilter();
   viewHandler.update();
 });
 
-
-$('.branch_selector.in_form').change(function() {
-  var branchID = $(this).val();
-  var $form = $(this).parent(); // hmmm
-
-  //$form.find('.departments').hide();
-  //$form.find('.branch-' + branchID).show();
-  //$form.find('.department_selector .branch-' + branchID).first().prop('selected', true);
-
-  var filter = '.departments.branch-' + branchID;
-  var selector = $form.find('.department_selector');
-  filterSelector(selector, departmentOptions, filter, false);
-
-    //var preferredDepartmentID = foo.val();
-    //foo.children().not(':first').remove();
-    //foo.append(departmentOptions.filter(option => option.filter('.departments .branch-' + branchID).length > 0));
-    //foo.val(preferredDepartmentID);
-});
-
-
-
-$("#department_chooser").change(function() {
+$("#department_selector").change(function() {
   viewHandler.setDepartmentFilter();
   viewHandler.update();
 });
 
-
-$("#client_chooser").change(function() {
-  var clientID = $(this).val();
-
-  var $form = $("#edit_client_form");
-
-  clients.forEach(client => {
-    if (client.id === parseInt(clientID)) {
-      var date = new Date(client.ts);
-      var dateString = date.getHours() + ':' + date.getMinutes() + ' ' + date.getDate() +
-       "-" + (date.getMonth() +1 )+ "-" + date.getFullYear();
-      $form.find('#ts').val(dateString);
-      $form.find('.branch_selector').val(client.branch_id).change(); // hmmmm
-
-      populate($form, client);
-    }
-  });
+$("#client_selector").change(function() {
+  viewHandler.update();
 });
 
+// ok
+$('.branch_selector.in_form').change(function() {
+  var branchID = $(this).val();
+  var $form = $(this).parent(); // hmmm
 
+  var filter = '.departments.branch-' + branchID;
+  var selector = $form.find('.department_selector');
+  filterSelector(selector, departmentOptions, filter, false);
+});
 
 $("#request_selector").change(function() {
   var requestID = $(this).val();
@@ -372,7 +354,7 @@ $(".admin_selector").change(function() {
 
 
 
-
+// why two identical functions?!
 $("input[name='client_filter']:radio").change(function () {
   viewHandler.setClientFilter();
   viewHandler.update();
@@ -418,7 +400,7 @@ $('#show_password').mouseup(function() {
 });
 
 
-// ** options tabs handling **
+// admin tasks tabs handling
 $('.taskpane').hide();
 $('.taskpane:first').addClass('active').show();
 
