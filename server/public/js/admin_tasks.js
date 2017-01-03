@@ -14,6 +14,8 @@ $(function() {
   };
 
   var populate = function(form, data) {
+    clear(form);
+
     $.each(data, function(name, val){
       var formElement = form.find('[name="' + name + '"]');
       var type = formElement.prop('type');
@@ -32,7 +34,7 @@ $(function() {
   };
 
 
-
+  // find and populate
   var foo = function(data, itemID, $form) {
     clear($form);
     //$('#delete_request').prop('disabled', (requestID === '0'));
@@ -95,10 +97,16 @@ $(function() {
 
     return get('/api/admins/').done(function(data) {
       admins = data.admins;
-      selector.children().not(':first').remove();
+      selector.children().not(':first').remove(); // why not first??
 
       data.admins.forEach(admin => {
-        selector.append("<option value=" + admin.id + ">" + admin.username + "</option");
+        //selector.append("<option value=" + admin.id + ">" + admin.username + "</option");
+        selector.append($('<option />', {
+          'text': admin.username,
+          'value': admin.id,
+          'data-type': admin.owner_admins_type,
+          'data-id': admin.owner_admins_id
+        }));
       });
 
       if (selectedID) {
@@ -152,14 +160,14 @@ var getRequests = function() {
 
     var selector = $('#request_selector');
     selector.children().remove();
-    selector.append('<option value="0">Ny klient</option>');
+    selector.append('<option value="">Ny klient</option>');
     requestOptions = [];
     data.requests.forEach(request => {
       var date = new Date(request.ts);
       var dateString = '(' + date.getDate() + "-" + (date.getMonth() +1) + "-" + date.getFullYear() + ')';
 
       requestOptions.push($('<option />', {
-        'text': request.name + ' (' + dateString + ')',
+        'text': request.hostname + ' (' + dateString + ')',
         'value': request.id
       }));
     });
@@ -203,7 +211,8 @@ var getDepartments = function() {
       departmentOptions.push($('<option />', {
         'text': department.name,
         'value': department.id,
-        'class': 'departments branch-' + department.branch_id
+        'class': 'departments branch-' + department.branch_id,
+        'data-branch_id': department.branch_id
       }));
     });
 
@@ -249,6 +258,7 @@ var viewHandler = {
     // determine visible departments
     var $departmentSelector = $('#department_selector');
     filterSelector($departmentSelector, departmentOptions, '.departments' + this.branchFilter, true);
+    this.setDepartmentFilter();
 
     // determine visible clients
     var $clientSelector = $('#client_selector');
@@ -259,25 +269,21 @@ var viewHandler = {
     var client = clients.filter(client => client.id === parseInt($clientSelector.val()))[0];
     var $form = $("#edit_client_form");
 
-    // adjust department selector...
+    // adjust in-form department selector...
     var branchID = client.branch_id;
     var filter = '.departments.branch-' + branchID;
     var selector = $form.find('.department_selector.in_form');
-    //filterSelector(selector, departmentOptions, filter, false);
     filterSelector(selector, departmentOptions, filter, false);
-
-    // and timestamp field...
-    var date = new Date(client.ts);
-    var dateString = date.getHours() + ':' + date.getMinutes() + ' ' + date.getDate() +
-     "-" + (date.getMonth() +1 )+ "-" + date.getFullYear();
-    $form.find('#ts').val(dateString);
 
     populate($form, client);
   },
 
   reloadClients: function() {
-    //this.preferredClientID = $('#client_chooser').val();
-    getClients();
+    var self = this;
+
+    $.when(getClients())
+    .then(function() {
+      self.update()});
   },
 
   // move this
@@ -287,15 +293,16 @@ var viewHandler = {
   },
 
   init: function() {
+    var self = this;
     $.when(
       getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
     ).then(function() {
-      //$('.branch_selector.in_form').change();
       $('#filter_selector').val(1);
       $("input[name='client_view']:radio").first().prop('checked', true);
       //$('#save_new_client').prop('disabled', false);
-      this.update();
-    }.bind(this));
+      self.update();
+      //$("#request_selector").change();
+    });
   }
 };
 
@@ -318,43 +325,70 @@ $("#client_selector").change(function() {
   viewHandler.update();
 });
 
-// ok
 $('.branch_selector.in_form').change(function() {
   var branchID = $(this).val();
-  var $form = $(this).parent(); // hmmm
+  var $form = $(this).parent();
 
   var filter = '.departments.branch-' + branchID;
   var selector = $form.find('.department_selector');
   filterSelector(selector, departmentOptions, filter, false);
 });
 
+// rewrite foreach to filter
 $("#request_selector").change(function() {
   var requestID = $(this).val();
   var $form = $("#add_client_form");
 
-  clear($form);
-  $('#delete_request').prop('disabled', (requestID === '0'));
+  $('#delete_request').prop('disabled', (requestID === ''));
 
-  requests.forEach(request => {
-    if (request.id === parseInt(requestID)) {
-      populate($form, request);
-    }
-  });
+  if (requestID === '') {
+    clear($form);
+  } else {
+    requests.forEach(request => {
+      if (request.id === parseInt(requestID)) {
+        populate($form, request);
+      }
+    });
+  }
 });
 
+var toggle_admins_type = function() {
+  var $adminDepts = $('#admin_departments');
+  var type = $("input[name='owner_admins_type']:checked").val();
 
+  if (type === 'Department') {
+    var did = $(this).find(':selected').val();
+    var admins_id = $(this).find(':selected').data('id');
 
+    //var branchID = $('#admin_branches').val();
+    var filter = '.departments.branch-' + $('#admin_branches').val();
+    filterSelector($adminDepts, departmentOptions, filter, false);
+    $adminDepts.show();
+  } else {
+    $adminDepts.hide();
+  }
+};
 
 
 $(".admin_selector").change(function() {
   var adminID = $(this).val();
+  var type = $(this).find(':selected').data('type');
+  var adminsID = $(this).find(':selected').data('id');
+
   var $form = $("#admin_form");
   foo(admins, adminID, $form);
+
+  if (type === 'Department') {
+    var dept = departmentOptions.find(option => option.val() == adminsID);
+    $('#admin_branches').val(dept.data('branch_id'));
+  }
+
+
+  //toggle_admins_type();
+
 });
 
 
-
-// why two identical functions?!
 $("input[name='client_filter']:radio").change(function () {
   viewHandler.setClientFilter();
   viewHandler.update();
@@ -364,6 +398,12 @@ $("input[name='client_filter']:radio").change(function () {
 $('#filter_selector').change(function() {
   viewHandler.setClientFilter();
   viewHandler.update();
+});
+
+
+
+$("input[name='owner_admins_type']:radio").change(function () {
+    toggle_admins_type();
 });
 
 
@@ -419,26 +459,24 @@ $('.tasktabs li').click(function() {
 //
 
 $('#save_client_changes').click(function() {
-  var form = $('#edit_client_form');
-  var request = save(form, '/api/clients/', 'PUT');
+  var $form = $('#edit_client_form');
+  var request = save($form, '/api/clients/', 'POST');
 
-
-  request.done(function(message) {
-    var msg = "OK. Endringene ble lagret.";
-    $('span#client_info').html(msg).show().fadeOut(5000);
-
+  request.done(function(data) {
+    $form.find('span.info').html(data.message).show().fadeOut(5000);
     viewHandler.reloadClients();
   });
 
   request.fail(function(jqXHR, textStatus, errorThrown) {
-    $('span#client_error').html(jqXHR.responseText).show().fadeOut(5000);
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
   });
 });
 
 
 $('#delete_client').click(function() {
+  var $form = $('#edit_client_form');
   var clientID = $('#client_id').val();
-  var clientName = $('#edit_client_form').find('name').val();
+  var clientName = $form.find('#edit_client_name').val();
 
   if (window.confirm('Sikker på at du vil slette ' + clientName + '?')) {
     var request = $.ajax({
@@ -446,32 +484,35 @@ $('#delete_client').click(function() {
       type: 'DELETE',
     });
 
-    request.done(function(message) {
-      var msg = "OK. Slettet.";
-      $('span#client_info').html(msg).show().fadeOut(5000);
+    request.done(function(data) {
+      $form.find('span.info').html(data.message).show().fadeOut(5000);
       viewHandler.reloadClients();
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
-      $('span#client_error').html(jqXHR.responseText).show().fadeOut(5000);
+      $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
     });
   }
 });
 
 
-
 $('#save_new_client').click(function() {
-  var form = $('#add_client_form');
-  var request = save(form, '/api/clients/', 'POST');
+  var $form = $('#add_client_form');
 
-  request.done(function(message) {
-    var msg = "OK. Endringene ble lagret.";
-    $('span#request_info').html(msg).show().fadeOut(5000);
+  // set request id
+  $form.find('[name=request_id]').val($('#request_id').val());
+  $('#request_id').val('');
+  var request = save($form, '/api/clients/', 'POST');
+
+  request.done(function(data) {
+    $form.find('span.info').html(data.message).show().fadeOut(5000);
+    clear($form);
     getRequests();
+    viewHandler.reloadClients();
   });
 
   request.fail(function(jqXHR, textStatus, errorThrown) {
-    $('span#request_error').html(jqXHR.responseText).show().fadeOut(5000);
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
   });
 });
 
@@ -479,23 +520,24 @@ $('#save_new_client').click(function() {
 // admins
 
 $('#save_admin').click(function() {
-  var form = $('#admin_form');
-  var request = save(form, '/api/admins/', 'POST');
+  var $form = $('#admin_form');
+  var request = save($form, '/api/admins/', 'POST');
 
-  request.done(function(message) {
-    $('span#admin_info').html(message.message).show().fadeOut(5000);
-    getAdmins(message.id);
+  request.done(function(data) {
+    $form.find('span.info').html(data.message).show().fadeOut(5000);
+    getAdmins(data.id);
   });
 
   request.fail(function(jqXHR, textStatus, errorThrown) {
-    $('span#admin_error').html(jqXHR.responseText).show().fadeOut(5000);
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
   });
 });
 
 
 $('#delete_admin').click(function() {
-  var adminID = $('#admin_form').find("input[name='id']").val();
-  var adminName = $('#admin_form').find("input[name='username']").val();
+  var $form = $('#admin_form');
+  var adminID = $form.find("input[name='id']").val();
+  var adminName = $form.find("input[name='username']").val();
 
   if (window.confirm('Sikker på at du vil slette ' + adminName + '?')) {
     var request = $.ajax({
@@ -503,13 +545,14 @@ $('#delete_admin').click(function() {
       type: 'DELETE',
     });
 
-    request.done(function(message) {
-      $('span#admin_info').html(message.message).show().fadeOut(5000);
+    request.done(function(data) {
+      clear($form);
+      $form.find('span.info').html(data.message).show().fadeOut(5000);
       getAdmins(false);
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
-      $('span#admin_error').html(jqXHR.responseText).show().fadeOut(5000);
+      $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
     });
   }
 });
@@ -518,6 +561,7 @@ $('#delete_admin').click(function() {
 // requests
 
 $('#delete_request').click(function() {
+  var $form = $('#admin_form');
   var requestID = $('#request_id').val();
 
   var request = $.ajax({
@@ -525,20 +569,34 @@ $('#delete_request').click(function() {
     type: 'DELETE'
   });
 
-  request.done(function() {
-    var msg = "OK. Slettet.";
-    $('span#request_info').html(msg).show().fadeOut(5000);
+  request.done(function(data) {
+    $form.find('span.info').html(data.message).show().fadeOut(5000);
     getRequests();
   });
 
   request.fail(function(jqXHR, textStatus, errorThrown) {
-    $('span#request_error').html(jqXHR.responseText).show().fadeOut(5000);
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
   });
+});
+
+
+// profiles
+$('#delete_profile').click(function() {
+  var $form = $('#profile_form');
+  var msg = "Implementeres på forespørsel";
+  $form.find('span.info').html(msg).show().fadeOut(5000);
+});
+
+$('#save_profile').click(function() {
+  var $form = $('#profile_form');
+  var msg = "Implementeres på forespørsel";
+  $form.find('span.info').html(msg).show().fadeOut(5000);
 });
 
 //
 // Initialize page
 //
 viewHandler.init();
+//$("#request_selector").change();
 
 });

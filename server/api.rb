@@ -222,15 +222,16 @@ class API < Grape::API
       end
     end
 
-    desc "creates a new client and returns operation status"
+    desc "creates or updates client and returns operation status"
     post "/" do
       requires_superadmin
 
       form_data = params[:form_data].to_hash
-      is_request = form_data["id"] == "0" ? false : true
+      client = form_data["id"].present? ? Client.find(form_data["id"]) : Client.new
 
-      client = Client.new
-      client.attributes = client.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
+      # select only the keys from params present in client.attributes
+      updates = form_data.select {|key| client.attributes.keys.include?(key) }
+      client.attributes = client.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
 
       # missing keys typically represent unchecked checkboxes. these are set to false.
       missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
@@ -239,7 +240,7 @@ class API < Grape::API
       end
 
       if client.save
-        Request.find(form_data["id"]).destroy if is_request
+        Request.find(form_data["request_id"]).destroy if form_data["request_id"].present?
         status 200
         {message: "OK. Lagret."}
       else
@@ -249,31 +250,6 @@ class API < Grape::API
       end
     end
 
-
-    desc "updates all attributes of existing client and returns operation status"
-    put "/" do
-      requires_superadmin
-
-      form_data = params[:form_data].to_hash
-
-      client = Client.find(form_data["id"])
-      client.attributes = client.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
-
-      # missing keys typically represent unchecked checkboxes. these are set to false.
-      missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
-      missing_keys.each do |key|
-        client.attributes = {key.to_sym => false}
-      end
-
-      if client.save
-        status 200
-        {message: "OK. Lagret."}
-      else
-        message = client.errors.empty? ? "Ukjent feil" : client.errors.full_messages.to_sentence
-        throw :error, :status => 400,
-        :message => message
-      end
-    end
 
 
     desc "updates an existing client and returns the updated version"
