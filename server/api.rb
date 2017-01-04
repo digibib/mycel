@@ -71,7 +71,10 @@ def create(class_name, params)
   is_new = form_data["id"].nil? || form_data["id"].empty?
 
   item = is_new ? klazz.new : klazz.find(form_data["id"])
-  item.attributes = item.attributes.merge(form_data){|key, oldval, newval| key == "id" ? oldval : newval }
+
+  # select only the keys from params present in attributes
+  updates = form_data.select {|key| item.attributes.keys.include?(key) }
+  item.attributes = item.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
 
   if item.save
     status 200
@@ -125,8 +128,6 @@ class API < Grape::API
     end
 
   end
-
-
 
 
   resource :requests do
@@ -371,6 +372,20 @@ class API < Grape::API
         {:department => Department.find(params[:id]).as_json}
       end
 
+      desc "create or update department (without options) and returns status"
+      post '/' do
+        requires_superadmin
+        create("Department", params)
+      end
+
+      desc "delete department (without options) and returns status"
+      delete '/:id' do
+        requires_superadmin
+        delete("Department", params[:id])
+      end
+
+
+
       desc "update department options"
       put "/:id" do
         dept = Department.find(params[:id])
@@ -412,7 +427,7 @@ class API < Grape::API
     end
 
     resource :branches do
-      desc "return all branchess with attributes and options"
+      desc "return all branches with attributes and options"
       get "/" do
         {:branches => Branch.all}
       end
@@ -420,6 +435,18 @@ class API < Grape::API
       desc "get specific branch"
       get "/:id" do
         {:branch => Branch.find(params[:id]).as_json}
+      end
+
+      desc "create or update branch (without options) and returns status"
+      post '/' do
+        requires_superadmin
+        create("Branch", params)
+      end
+
+      desc "delete branch (without options) and returns status"
+      delete '/:id' do
+        requires_superadmin
+        delete("Branch", params[:id])
       end
 
       desc "update branch options"

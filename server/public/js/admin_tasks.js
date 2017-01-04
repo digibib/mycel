@@ -8,45 +8,35 @@ $(function() {
   //
   // form helper functions
   //
-  var clear = function(form) {
-    form.find(':input').not(':button, :submit, :reset, :checkbox, :radio').val('');
-    form.find(':checkbox, :radio').prop('checked', false);
+  var clear = function($form) {
+    $form.find(':input').not(':button, :submit, :reset, :checkbox, :radio').val('');
+    $form.find(':checkbox, :radio').prop('checked', false);
   };
 
-  var populate = function(form, data) {
-    clear(form);
+  var populate = function($form, data) {
+    clear($form);
 
     $.each(data, function(name, val){
-      var formElement = form.find('[name="' + name + '"]');
-      var type = formElement.prop('type');
+      var $formElement = $form.find('[name="' + name + '"]');
+      var type = $formElement.prop('type');
 
       switch(type){
         case 'checkbox':
-        formElement.prop('checked', val);
+        $formElement.prop('checked', val);
         break;
         case 'radio':
-        formElement.filter('[value="' + val + '"]').prop('checked', 'checked');
+        $formElement.filter('[value="' + val + '"]').prop('checked', 'checked');
         break;
         default:
-        formElement.val(val);
+        $formElement.val(val);
       }
     });
   };
 
-
-  // find and populate
-  var foo = function(data, itemID, $form) {
-    clear($form);
-    //$('#delete_request').prop('disabled', (requestID === '0'));
-
-    data.forEach(item => {
-      if (item.id === parseInt(itemID)) {
-        populate($form, item);
-      }
-    });
-  }
-
-
+  var findAndPopulate = function($form, data, itemID) {
+    var item = data.find(item => item.id == itemID);
+    populate($form, item);
+  };
 
   // populates dropdown box according to filter
   var filterSelector = function($selector, $options, filterString, retainFirst) {
@@ -68,6 +58,7 @@ $(function() {
     });
 
     var formData = {form_data: json};
+    console.log(formData);
     return $.ajax({
       url: url,
       type: type,
@@ -97,10 +88,9 @@ $(function() {
 
     return get('/api/admins/').done(function(data) {
       admins = data.admins;
-      selector.children().not(':first').remove(); // why not first??
+      selector.children().not(':first').remove();
 
       data.admins.forEach(admin => {
-        //selector.append("<option value=" + admin.id + ">" + admin.username + "</option");
         selector.append($('<option />', {
           'text': admin.username,
           'value': admin.id,
@@ -110,13 +100,13 @@ $(function() {
       });
 
       if (selectedID) {
-        selector.val(selectedID); //.change();
+        selector.val(selectedID);
       }
     });
   };
 
 
-  var getClients = function() {
+  var getClients = function(selectedID) {
     var request = get('/api/clients/');
 
     return request.done(function(data) {
@@ -152,7 +142,7 @@ $(function() {
 };
 
 
-var getRequests = function() {
+var getRequests = function(selectedID) {
   var request = get('/api/requests/');
 
   return request.done(function(data) {
@@ -173,33 +163,43 @@ var getRequests = function() {
     });
 
     selector.append(requestOptions);
+    if (selectedID) {
+      selector.val(selectedID);
+    }
 
     selector.change(); // hmmm
   });
 };
 
 
-var getBranches = function() {
+var getBranches = function(selectedID) {
   var request = get('/api/branches/');
 
   return request.done(function(data) {
+    branches = data.branches;
     var $branchSelector = $('.branch_selector');
+    $branchSelector.children().remove();
 
     $('#branch_selector').append('<option value=0>Alle</option>');
     data.branches.forEach(branch => {
-      $branchSelector.append('<option value=' + branch.id + '>' + branch.name + '</option>');
+      $branchSelector.append($('<option />', {'text': branch.name, 'value': branch.id}));
     });
 
-    viewHandler.setBranchFilter();
+    if (selectedID) {
+      $branchSelector.val(selectedID);
+    }
+
+    viewHandler.setBranchFilter(); // why?
   });
 };
 
 
 
-var getDepartments = function() {
+var getDepartments = function(selectedID) {
   var request = get('/api/departments/');
 
   return request.done(function(data) {
+    departments = data.departments;
     departmentOptions = [];
 
     var $departmentSelector = $('.department_selector');
@@ -217,9 +217,11 @@ var getDepartments = function() {
     });
 
     $departmentSelector.append(departmentOptions);
+    if (selectedID) {
+      $departmentSelector.val(selectedID);
+    }
   });
 };
-
 
 
 //
@@ -294,7 +296,7 @@ var viewHandler = {
 
   init: function() {
     var self = this;
-    $.when(
+    return $.when(
       getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
     ).then(function() {
       $('#filter_selector').val(1);
@@ -372,20 +374,22 @@ var toggle_admins_type = function() {
 
 $(".admin_selector").change(function() {
   var adminID = $(this).val();
-  var type = $(this).find(':selected').data('type');
-  var adminsID = $(this).find(':selected').data('id');
 
   var $form = $("#admin_form");
-  foo(admins, adminID, $form);
+  findAndPopulate($form, admins, adminID);
+
+  var aid = $('#owner_admins_id').val();
+  var type = $form.find("input[name='owner_admins_type']:checked").val();
 
   if (type === 'Department') {
-    var dept = departmentOptions.find(option => option.val() == adminsID);
+    var dept = departmentOptions.find(option => option.val() == aid);
+    $('#admin_departments').val(aid).show();
     $('#admin_branches').val(dept.data('branch_id'));
+  } else {
+    $('#admin_departments').hide();
+    $('#admin_branches').val(aid);
   }
-
-
   //toggle_admins_type();
-
 });
 
 
@@ -401,6 +405,74 @@ $('#filter_selector').change(function() {
 });
 
 
+var affiliateHandler = {
+  $newOption: $('<option />', {
+    'text': 'Ny',
+    'value': '0'
+  }),
+  type: 'Branch',
+  $branchSelector: $('#affiliate_branches'),
+  $departmentSelector: $('#affiliate_departments'),
+  $form: $('#affiliate_form'),
+  setType: function(type) {
+    this.type = type;
+    if (type === 'Department') {
+      this.filterDepartments(this.$branchSelector.val());
+      this.$departmentSelector.prepend(this.$newOption).show();
+      this.setDepartment(this.$departmentSelector.val());
+    } else {
+      this.setBranch(this.$branchSelector.val());
+      this.$branchSelector.prepend(this.$newOption);
+      this.$departmentSelector.hide();
+    }
+  },
+  filterDepartments: function(branchID) {
+    var filter = '.departments' + (branchID === '0' ? '' : '.branch-' + branchID);
+    filterSelector(this.$departmentSelector, departmentOptions, filter, false);
+    this.$departmentSelector.prepend(this.$newOption);
+  },
+  setDepartment: function(departmentID) {
+    if (departmentID === '0') {
+      clear(this.$form);
+    } else {
+      findAndPopulate(this.$form, departments, departmentID);
+    }
+  },
+  setBranch: function(branchID) {
+    if (this.type === 'Branch') {
+      branchID == '0' ? clear(this.$form) : findAndPopulate(this.$form, branches, branchID);
+    } else {
+      this.filterDepartments(branchID);
+      var deptID = this.$departmentSelector.val();
+      if (deptID == '0') {
+        clear(this.$form);
+      } else {
+        this.setDepartment(deptID);
+      }
+    }
+  },
+  refresh: function() {
+    if (this.type === 'Branch') {
+      this.setBranch(this.$branchSelector.val());
+    } else {
+      this.filterDepartments(this.$branchSelector.val());
+      this.setDepartment(this.$departmentSelector.val());
+    }
+  }
+};
+
+
+$("input[name='affiliate_type']:radio").change(function () {
+  affiliateHandler.setType($(this).val());
+});
+
+$('#affiliate_branches').change(function() {
+  affiliateHandler.setBranch($(this).val());
+});
+
+$('#affiliate_departments').change(function() {
+  affiliateHandler.setDepartment($(this).val());
+});
 
 $("input[name='owner_admins_type']:radio").change(function () {
     toggle_admins_type();
@@ -496,6 +568,7 @@ $('#delete_client').click(function() {
 });
 
 
+
 $('#save_new_client').click(function() {
   var $form = $('#add_client_form');
 
@@ -580,6 +653,75 @@ $('#delete_request').click(function() {
 });
 
 
+// affiliates
+
+$('#save_affiliate').click(function() {
+  var $form = affiliateHandler.$form;
+
+  if (affiliateHandler.type === 'Branch') {
+    $('#organization_id').val('1');
+    var func = getBranches;
+    var apiString = '/api/branches/';
+  } else {
+    $('#affiliate_branch_id').val($('#affiliate_branches').val());
+    var func = getDepartments;
+    var apiString = '/api/departments/';
+  }
+
+  var request = save($form, apiString, 'POST');
+
+  request.done(function(data) {
+    $form.find('span.info').html(data.message).show().fadeOut(5000);
+    $.when(func(data.id)).then(function() {
+      affiliateHandler.refresh();
+    });
+  });
+
+  request.fail(function(jqXHR, textStatus, errorThrown) {
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+  });
+});
+
+
+$('#delete_affiliate').click(function() {
+  var $form = affiliateHandler.$form;
+
+  // prepare parameters
+  if (affiliateHandler.type === 'Branch') {
+    var func = getBranches;
+    var id = $('#affiliate_branches').val();
+    var apiString = '/api/branches/' + id;
+  } else {
+    var func = getDepartments;
+    var id = $('#affiliate_departments').val();
+    apiString = '/api/departments/' + id;
+  }
+
+  // ignore command for undefined affiliate
+  if (id == '0') {
+    return;
+  }
+
+  // all set
+  var request = $.ajax({
+    url: apiString,
+    type: 'DELETE'
+  });
+
+  request.done(function(data) {
+    $form.find('span.info').html(data.message).show().fadeOut(5000);
+    $.when(func()).then(function() {
+        affiliateHandler.refresh();
+    }
+  );
+  });
+
+  request.fail(function(jqXHR, textStatus, errorThrown) {
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+  });
+});
+
+
 // profiles
 $('#delete_profile').click(function() {
   var $form = $('#profile_form');
@@ -596,7 +738,13 @@ $('#save_profile').click(function() {
 //
 // Initialize page
 //
-viewHandler.init();
+$.when(viewHandler.init()).then(function() {
+  console.log("all done!!");
+  $('input:radio[name="affiliate_type"][value="Branch"]').prop('checked', true).change();
+  //affiliateHandler.setType('Branch');
+});
+//viewHandler.init();
+
 //$("#request_selector").change();
 
 });

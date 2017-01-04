@@ -6,9 +6,9 @@ h2 Organisasjon
 ul class="tasktabs"
   li[class="active"] Redigere klient
   li Legg til klient
-  li Legg til admin
-  li Legg til filial
-  li Redigere bootprofiler
+  li Admin
+  li Filial/avdeling
+  li Bootprofiler
 
 div class="taskpanes"
   div class="taskpane"
@@ -126,12 +126,39 @@ div class="taskpanes"
         input[type='radio' name='owner_admins_type' value='Department']Avdeling
         input[type='radio' name='owner_admins_type' value='Organization']Organisasjon (superadmin)
       p
-        select[id="admin_branches" class="branch_selector" name="owner_admins_id"]
-        select[id="admin_departments" class="department_selector" name="owner_admins_id"]
+        input[type="text" id="owner_admins_id" name="owner_admins_id" hidden]
+        select[id="admin_branches" class="branch_selector"]
+        select[id="admin_departments" class="department_selector"]
       p
       hr
       button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
       button[type='button' id="save_admin" class="action_button"]  = "Lagre admin"
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+
+  div[class="taskpane"]
+    p Ved innlegging av filialer og avdelinger, bemerk at noen UI-funksjoner ikke vil være
+      tilgjengelig før midnattsscriptet har kjørt.
+    hr
+    p
+      input[type='radio' name='affiliate_type' value='Branch']Filial
+      input[type='radio' name='affiliate_type' value='Department']Avdeling
+      select[id="affiliate_branches" class="branch_selector"]
+      select[id="affiliate_departments" class="department_selector"]
+
+    form[id="affiliate_form"]
+      input[type="text" name="id" hidden]
+      input[type="text" id="affiliate_branch_id" name="branch_id" hidden]
+      input[type="text" id="organization_id" name="organization_id" hidden]
+      p
+        label for="affiliate_name" class="fw" Navn:
+        input[id="affiliate_name" type="text" name="name"]
+      p
+      hr
+      button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
+      button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
 
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
