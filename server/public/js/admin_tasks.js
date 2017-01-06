@@ -1,7 +1,6 @@
 "use strict";
 
 $(function() {
-
   var clients, branches, departments, requests, admins;
   var clientOptions, branchOptions, departmentOptions, requestOptions, adminOptions;
 
@@ -58,7 +57,6 @@ $(function() {
     });
 
     var formData = {form_data: json};
-    console.log(formData);
     return $.ajax({
       url: url,
       type: type,
@@ -82,7 +80,6 @@ $(function() {
     });
   };
 
-
   var getAdmins = function(selectedID) {
     var selector = $('.admin_selector');
 
@@ -90,15 +87,17 @@ $(function() {
       admins = data.admins;
       selector.children().not(':first').remove();
 
+      adminOptions = [];
       data.admins.forEach(admin => {
-        selector.append($('<option />', {
+        adminOptions.push($('<option />', {
           'text': admin.username,
           'value': admin.id,
-          'data-type': admin.owner_admins_type,
-          'data-id': admin.owner_admins_id
+          'data-type': admin.owner_admins_type, // needed?
+          'data-id': admin.owner_admins_id // needed?
         }));
       });
 
+      selector.append(adminOptions);
       if (selectedID) {
         selector.val(selectedID);
       }
@@ -118,11 +117,11 @@ $(function() {
       clientOptions = [];
       data.clients.forEach(client => {
         var classString = 'clients'
-          + ' branch-' + client.branch_id
-          + ' department-' + client.department_id
-          + (client.is_connected ? ' connected' : '')
-          + (client.shorttime ? ' shorttime' : '')
-          + (client.testclient ? ' testclient' : '');
+        + ' branch-' + client.branch_id
+        + ' department-' + client.department_id
+        + (client.is_connected ? ' connected' : '')
+        + (client.shorttime ? ' shorttime' : '')
+        + (client.testclient ? ' testclient' : '');
 
         clientOptions.push($('<option />', {
           'text': client.name,
@@ -131,9 +130,7 @@ $(function() {
         }));
       });
 
-      selector.children().remove();
-      selector.append(clientOptions);
-
+      selector.children(clientOptions);
       if (preferredID) {
         selector.val(preferredID);
       }
@@ -189,7 +186,7 @@ var getBranches = function(selectedID) {
       $branchSelector.val(selectedID);
     }
 
-    viewHandler.setBranchFilter(); // why?
+    viewHandler.setBranchFilter(); // why? -----------------
   });
 };
 
@@ -234,6 +231,39 @@ var viewHandler = {
   preferredClientID: null, // remove?
   preferredAdminID: null, // remove
 
+  init: function() {
+    this.bindUIActions();
+    $('#filter_selector').val(1);
+    $("input[name='client_view']:radio").first().prop('checked', true);
+    //$('#save_new_client').prop('disabled', false);
+    this.refresh();
+    //$("#request_selector").change();
+  },
+
+  bindUIActions: function() {
+    var self = this;
+
+    $("#branch_selector").change(function() {
+      self.setBranchFilter().refresh();
+    });
+
+    $("#department_selector").change(function() {
+      self.setDepartmentFilter().refresh();
+    });
+
+    $("#client_selector").change(function() {
+      self.refresh();
+    });
+
+    $("input[name='client_filter']:radio").change(function () {
+      self.setClientFilter().refresh();
+    });
+
+    $('#filter_selector').change(function() {
+      self.setClientFilter().refresh();
+    });
+  },
+
   setClientFilter: function() {
     var category = $('#filter_selector').val();
     var chosenValue = $("input[name='client_filter']:radio:checked").val();
@@ -244,19 +274,22 @@ var viewHandler = {
     } else {
       this.clientFilter = includeCategory ? category : ':not(' + category + ')';
     }
+    return this;
   },
 
   setDepartmentFilter: function() {
     var departmentID = $('#department_selector').val();
     this.departmentFilter = departmentID === '0' ? '' : '.department-' + departmentID;
+    return this;
   },
 
   setBranchFilter: function() {
     var branchID = $('#branch_selector').val();
     this.branchFilter = branchID === '0' ? '' : '.branch-' + branchID;
+    return this;
   },
 
-  update: function() {
+  refresh: function() {
     // determine visible departments
     var $departmentSelector = $('#department_selector');
     filterSelector($departmentSelector, departmentOptions, '.departments' + this.branchFilter, true);
@@ -282,201 +315,328 @@ var viewHandler = {
 
   reloadClients: function() {
     var self = this;
-
     $.when(getClients())
     .then(function() {
       self.update()});
-  },
+    },
 
-  // move this
-  reloadAdmins: function() {
-    this.preferredAdminID = $('.admin_selector').val();
-    getAdmins();
-  },
+    // move this
+    reloadAdmins: function() {
+      this.preferredAdminID = $('.admin_selector').val();
+      getAdmins();
+    }
+  };
 
-  init: function() {
-    var self = this;
-    return $.when(
-      getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
-    ).then(function() {
-      $('#filter_selector').val(1);
-      $("input[name='client_view']:radio").first().prop('checked', true);
-      //$('#save_new_client').prop('disabled', false);
-      self.update();
-      //$("#request_selector").change();
-    });
-  }
-};
+  // rewrite foreach to filter
+  $("#request_selector").change(function() {
+    var requestID = $(this).val();
+    var $form = $("#add_client_form");
+
+    $('#delete_request').prop('disabled', (requestID === '0'));
+
+    if (requestID === '0') {
+      clear($form);
+    } else {
+      requests.forEach(request => {
+        if (request.id === parseInt(requestID)) {
+          populate($form, request);
+        }
+      });
+    }
+  });
 
 
-//
-// event handlers
-//
 
-$("#branch_selector").change(function() {
-  viewHandler.setBranchFilter();
-  viewHandler.update();
-});
 
-$("#department_selector").change(function() {
-  viewHandler.setDepartmentFilter();
-  viewHandler.update();
-});
+  //
+  // event handlers
+  //
+  // who uses this??
+  $('.branch_selector.in_form').change(function() {
+    var branchID = $(this).val();
+    var $form = $(this).parent();
 
-$("#client_selector").change(function() {
-  viewHandler.update();
-});
+    var filter = '.departments.branch-' + branchID;
+    var selector = $form.find('.department_selector');
+    filterSelector(selector, departmentOptions, filter, false);
+  });
 
-$('.branch_selector.in_form').change(function() {
-  var branchID = $(this).val();
-  var $form = $(this).parent();
+  //
+  // ADMINS
+  //
+  var AdminHandler = {
+    type: '',
+    $form: $('#admin_form'),
+    $adminDepartments: $('#admin_departments'),
+    $adminBranches: $('#admin_branches'),
+    $ownerAdminsType: $("input[name='owner_admins_type']:radio"),
 
-  var filter = '.departments.branch-' + branchID;
-  var selector = $form.find('.department_selector');
-  filterSelector(selector, departmentOptions, filter, false);
-});
 
-// rewrite foreach to filter
-$("#request_selector").change(function() {
-  var requestID = $(this).val();
-  var $form = $("#add_client_form");
+    init: function() {
+      this.bindUIActions();
+      this.resetForm();
+    },
+    bindUIActions: function() {
+      var self = this;
 
-  $('#delete_request').prop('disabled', (requestID === ''));
+      $("#admin_selector").change(function() {
+        var adminID = $(this).val();
 
-  if (requestID === '') {
-    clear($form);
-  } else {
-    requests.forEach(request => {
-      if (request.id === parseInt(requestID)) {
-        populate($form, request);
+        if (adminID === '0') {
+          self.resetForm();
+
+          return;
+        }
+
+        findAndPopulate(self.$form, admins, adminID);
+
+        var aid = $('#owner_admins_id').val(); // admins owner id
+        self.set_admins_type(self.$form.find("input[name='owner_admins_type']:checked").val());
+
+        if (self.type === 'Department') {
+          var dept = departmentOptions.find(option => option.val() == aid);
+          self.$adminDepartments.val(aid);
+          self.$adminBranches.val(dept.data('branch_id'));
+        } else {
+          //self.$adminDepartments.hide();
+          self.$adminBranches.show().val(aid);
+        }
+      });
+
+      $("input[name='owner_admins_type']:radio").change(function () {
+        self.set_admins_type($(this).val());
+      });
+    },
+
+    set_admins_type: function(type) {
+      this.type = type;
+
+      if (type === 'Department') {
+        var did = this.$adminDepartments.val();
+        var filter = '.departments.branch-' + this.$adminBranches.val();
+        filterSelector(this.$adminDepartments, departmentOptions, filter, false);
+        this.$adminDepartments.show();
+        this.$adminBranches.show();
+      } else if (type === 'Branch') {
+        this.$adminDepartments.hide();
+        this.$adminBranches.show();
+      } else {
+        this.$adminDepartments.hide();
+        this.$adminBranches.hide();
       }
-    });
-  }
-});
+    },
 
-var toggle_admins_type = function() {
-  var $adminDepts = $('#admin_departments');
-  var type = $("input[name='owner_admins_type']:checked").val();
-
-  if (type === 'Department') {
-    var did = $(this).find(':selected').val();
-    var admins_id = $(this).find(':selected').data('id');
-
-    //var branchID = $('#admin_branches').val();
-    var filter = '.departments.branch-' + $('#admin_branches').val();
-    filterSelector($adminDepts, departmentOptions, filter, false);
-    $adminDepts.show();
-  } else {
-    $adminDepts.hide();
-  }
-};
-
-
-$(".admin_selector").change(function() {
-  var adminID = $(this).val();
-
-  var $form = $("#admin_form");
-  findAndPopulate($form, admins, adminID);
-
-  var aid = $('#owner_admins_id').val();
-  var type = $form.find("input[name='owner_admins_type']:checked").val();
-
-  if (type === 'Department') {
-    var dept = departmentOptions.find(option => option.val() == aid);
-    $('#admin_departments').val(aid).show();
-    $('#admin_branches').val(dept.data('branch_id'));
-  } else {
-    $('#admin_departments').hide();
-    $('#admin_branches').val(aid);
-  }
-  //toggle_admins_type();
-});
-
-
-$("input[name='client_filter']:radio").change(function () {
-  viewHandler.setClientFilter();
-  viewHandler.update();
-});
-
-
-$('#filter_selector').change(function() {
-  viewHandler.setClientFilter();
-  viewHandler.update();
-});
-
-
-var affiliateHandler = {
-  $newOption: $('<option />', {
-    'text': 'Ny',
-    'value': '0'
-  }),
-  type: 'Branch',
-  $branchSelector: $('#affiliate_branches'),
-  $departmentSelector: $('#affiliate_departments'),
-  $form: $('#affiliate_form'),
-  setType: function(type) {
-    this.type = type;
-    if (type === 'Department') {
-      this.filterDepartments(this.$branchSelector.val());
-      this.$departmentSelector.prepend(this.$newOption).show();
-      this.setDepartment(this.$departmentSelector.val());
-    } else {
-      this.setBranch(this.$branchSelector.val());
-      this.$branchSelector.prepend(this.$newOption);
-      this.$departmentSelector.hide();
-    }
-  },
-  filterDepartments: function(branchID) {
-    var filter = '.departments' + (branchID === '0' ? '' : '.branch-' + branchID);
-    filterSelector(this.$departmentSelector, departmentOptions, filter, false);
-    this.$departmentSelector.prepend(this.$newOption);
-  },
-  setDepartment: function(departmentID) {
-    if (departmentID === '0') {
+    resetForm: function() {
       clear(this.$form);
-    } else {
-      findAndPopulate(this.$form, departments, departmentID);
+      this.$ownerAdminsType.val(['Branch']);
+      this.set_admins_type('Branch');
     }
-  },
-  setBranch: function(branchID) {
-    if (this.type === 'Branch') {
-      branchID == '0' ? clear(this.$form) : findAndPopulate(this.$form, branches, branchID);
+
+  };
+
+
+  var toggle_admins_type = function() {
+    var $adminDepts = $('#admin_departments');
+    var type = $("input[name='owner_admins_type']:checked").val();
+
+    if (type === 'Department') {
+      var did = $(this).find(':selected').val();
+      var admins_id = $(this).find(':selected').data('id');
+
+      //var branchID = $('#admin_branches').val();
+      var filter = '.departments.branch-' + $('#admin_branches').val();
+      filterSelector($adminDepts, departmentOptions, filter, false);
+      $adminDepts.show();
     } else {
-      this.filterDepartments(branchID);
-      var deptID = this.$departmentSelector.val();
-      if (deptID == '0') {
+      $adminDepts.hide();
+    }
+  };
+
+  // admins
+
+  $('#save_admin').click(function() {
+    var $form = $('#admin_form');
+    var request = save($form, '/api/admins/', 'POST');
+
+    request.done(function(data) {
+      $form.find('span.info').html(data.message).show().fadeOut(5000);
+      getAdmins(data.id);
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+    });
+  });
+
+
+  $('#delete_admin').click(function() {
+    var $form = $('#admin_form');
+    var adminID = $form.find("input[name='id']").val();
+    var adminName = $form.find("input[name='username']").val();
+
+    if (window.confirm('Sikker på at du vil slette ' + adminName + '?')) {
+      var request = $.ajax({
+        url: '/api/admins/' + adminID,
+        type: 'DELETE',
+      });
+
+      request.done(function(data) {
+        clear($form);
+        $form.find('span.info').html(data.message).show().fadeOut(5000);
+        getAdmins(false);
+      });
+
+      request.fail(function(jqXHR, textStatus, errorThrown) {
+        $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+      });
+    }
+  });
+
+
+  //
+  // Affiliates
+  //
+  var affiliateHandler = {
+    init: function() {
+      this.bindUIActions();
+      $('input:radio[name="affiliate_type"][value="Branch"]').prop('checked', true).change();
+    },
+    bindUIActions: function() {
+      $("input[name='affiliate_type']:radio").change(function () {
+        affiliateHandler.setType($(this).val());
+      });
+
+      this.$branchSelector.change(function() {
+        this.setBranch($(this).val());
+      });
+
+      this.$departmentSelector.change(function() {
+        this.setDepartment($(this).val());
+      });
+    },
+    $newOption: $('<option />', {
+      'text': 'Ny',
+      'value': '0'
+    }),
+    type: 'Branch',
+    $branchSelector: $('#affiliate_branches'),
+    $departmentSelector: $('#affiliate_departments'),
+    $form: $('#affiliate_form'),
+    setType: function(type) {
+      this.type = type;
+      if (type === 'Department') {
+        this.filterDepartments(this.$branchSelector.val());
+        this.$departmentSelector.prepend(this.$newOption).show();
+        this.setDepartment(this.$departmentSelector.val());
+      } else {
+        this.setBranch(this.$branchSelector.val());
+        this.$branchSelector.prepend(this.$newOption);
+        this.$departmentSelector.hide();
+      }
+    },
+    filterDepartments: function(branchID) {
+      var filter = '.departments' + (branchID === '0' ? '' : '.branch-' + branchID);
+      filterSelector(this.$departmentSelector, departmentOptions, filter, false);
+      this.$departmentSelector.prepend(this.$newOption);
+    },
+    setDepartment: function(departmentID) {
+      if (departmentID === '0') {
         clear(this.$form);
       } else {
-        this.setDepartment(deptID);
+        findAndPopulate(this.$form, departments, departmentID);
+      }
+    },
+    setBranch: function(branchID) {
+      if (this.type === 'Branch') {
+        branchID == '0' ? clear(this.$form) : findAndPopulate(this.$form, branches, branchID);
+      } else {
+        this.filterDepartments(branchID);
+        var deptID = this.$departmentSelector.val();
+        if (deptID == '0') {
+          clear(this.$form);
+        } else {
+          this.setDepartment(deptID);
+        }
+      }
+    },
+    refresh: function() {
+      if (this.type === 'Branch') {
+        this.setBranch(this.$branchSelector.val());
+      } else {
+        this.filterDepartments(this.$branchSelector.val());
+        this.setDepartment(this.$departmentSelector.val());
       }
     }
-  },
-  refresh: function() {
-    if (this.type === 'Branch') {
-      this.setBranch(this.$branchSelector.val());
+  };
+
+  $('#save_affiliate').click(function() {
+    var $form = affiliateHandler.$form;
+
+    if (affiliateHandler.type === 'Branch') {
+      $('#organization_id').val('1'); // iffy thing
+      var func = getBranches;
+      var apiString = '/api/branches/';
     } else {
-      this.filterDepartments(this.$branchSelector.val());
-      this.setDepartment(this.$departmentSelector.val());
+      $('#affiliate_branch_id').val($('#affiliate_branches').val());
+      var func = getDepartments;
+      var apiString = '/api/departments/';
     }
-  }
-};
+
+    var request = save($form, apiString, 'POST');
+
+    request.done(function(data) {
+      $form.find('span.info').html(data.message).show().fadeOut(5000);
+      $.when(func(data.id)).then(function() {
+        affiliateHandler.refresh();
+      });
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+    });
+  });
 
 
-$("input[name='affiliate_type']:radio").change(function () {
-  affiliateHandler.setType($(this).val());
+  $('#delete_affiliate').click(function() {
+    var $form = affiliateHandler.$form;
+
+    // prepare parameters
+    if (affiliateHandler.type === 'Branch') {
+      var func = getBranches;
+      var id = $('#affiliate_branches').val();
+      var apiString = '/api/branches/' + id;
+    } else {
+      var func = getDepartments;
+      var id = $('#affiliate_departments').val();
+      apiString = '/api/departments/' + id;
+    }
+
+    // if no affiliate is set, we return
+    if (id == '0') {
+      return;
+    }
+
+    // all set
+    var request = $.ajax({
+      url: apiString,
+      type: 'DELETE'
+    });
+
+    request.done(function(data) {
+      $form.find('span.info').html(data.message).show().fadeOut(5000);
+      $.when(func()).then(function() {
+        affiliateHandler.refresh();
+      }
+    );
+  });
+
+  request.fail(function(jqXHR, textStatus, errorThrown) {
+    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+  });
 });
 
-$('#affiliate_branches').change(function() {
-  affiliateHandler.setBranch($(this).val());
-});
 
-$('#affiliate_departments').change(function() {
-  affiliateHandler.setDepartment($(this).val());
-});
 
-$("input[name='owner_admins_type']:radio").change(function () {
-    toggle_admins_type();
-});
 
 
 // minor convenience function to quickly suggest ip for new clients (not terribly robust)
@@ -503,6 +663,7 @@ $('#suggest_ip').click(function() {
 });
 
 
+// change to class!? ------------------------------------
 $('#show_password').mousedown(function() {
   $('#password').replaceWith($('#password').clone().prop('type', 'text'));
 });
@@ -512,16 +673,7 @@ $('#show_password').mouseup(function() {
 });
 
 
-// admin tasks tabs handling
-$('.taskpane').hide();
-$('.taskpane:first').addClass('active').show();
 
-$('.tasktabs li').click(function() {
-  $('.tasktabs li.active').removeClass('active');
-  $(this).addClass('active');
-  $('.taskpane').hide();
-  $('.taskpane:eq(' + $(this).index() + ')').show();
-});
 
 
 
@@ -568,7 +720,6 @@ $('#delete_client').click(function() {
 });
 
 
-
 $('#save_new_client').click(function() {
   var $form = $('#add_client_form');
 
@@ -588,48 +739,6 @@ $('#save_new_client').click(function() {
     $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
   });
 });
-
-
-// admins
-
-$('#save_admin').click(function() {
-  var $form = $('#admin_form');
-  var request = save($form, '/api/admins/', 'POST');
-
-  request.done(function(data) {
-    $form.find('span.info').html(data.message).show().fadeOut(5000);
-    getAdmins(data.id);
-  });
-
-  request.fail(function(jqXHR, textStatus, errorThrown) {
-    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-  });
-});
-
-
-$('#delete_admin').click(function() {
-  var $form = $('#admin_form');
-  var adminID = $form.find("input[name='id']").val();
-  var adminName = $form.find("input[name='username']").val();
-
-  if (window.confirm('Sikker på at du vil slette ' + adminName + '?')) {
-    var request = $.ajax({
-      url: '/api/admins/' + adminID,
-      type: 'DELETE',
-    });
-
-    request.done(function(data) {
-      clear($form);
-      $form.find('span.info').html(data.message).show().fadeOut(5000);
-      getAdmins(false);
-    });
-
-    request.fail(function(jqXHR, textStatus, errorThrown) {
-      $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-    });
-  }
-});
-
 
 // requests
 
@@ -652,76 +761,6 @@ $('#delete_request').click(function() {
   });
 });
 
-
-// affiliates
-
-$('#save_affiliate').click(function() {
-  var $form = affiliateHandler.$form;
-
-  if (affiliateHandler.type === 'Branch') {
-    $('#organization_id').val('1');
-    var func = getBranches;
-    var apiString = '/api/branches/';
-  } else {
-    $('#affiliate_branch_id').val($('#affiliate_branches').val());
-    var func = getDepartments;
-    var apiString = '/api/departments/';
-  }
-
-  var request = save($form, apiString, 'POST');
-
-  request.done(function(data) {
-    $form.find('span.info').html(data.message).show().fadeOut(5000);
-    $.when(func(data.id)).then(function() {
-      affiliateHandler.refresh();
-    });
-  });
-
-  request.fail(function(jqXHR, textStatus, errorThrown) {
-    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-  });
-});
-
-
-$('#delete_affiliate').click(function() {
-  var $form = affiliateHandler.$form;
-
-  // prepare parameters
-  if (affiliateHandler.type === 'Branch') {
-    var func = getBranches;
-    var id = $('#affiliate_branches').val();
-    var apiString = '/api/branches/' + id;
-  } else {
-    var func = getDepartments;
-    var id = $('#affiliate_departments').val();
-    apiString = '/api/departments/' + id;
-  }
-
-  // ignore command for undefined affiliate
-  if (id == '0') {
-    return;
-  }
-
-  // all set
-  var request = $.ajax({
-    url: apiString,
-    type: 'DELETE'
-  });
-
-  request.done(function(data) {
-    $form.find('span.info').html(data.message).show().fadeOut(5000);
-    $.when(func()).then(function() {
-        affiliateHandler.refresh();
-    }
-  );
-  });
-
-  request.fail(function(jqXHR, textStatus, errorThrown) {
-    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-  });
-});
-
-
 // profiles
 $('#delete_profile').click(function() {
   var $form = $('#profile_form');
@@ -738,13 +777,26 @@ $('#save_profile').click(function() {
 //
 // Initialize page
 //
-$.when(viewHandler.init()).then(function() {
-  console.log("all done!!");
-  $('input:radio[name="affiliate_type"][value="Branch"]').prop('checked', true).change();
-  //affiliateHandler.setType('Branch');
-});
-//viewHandler.init();
 
-//$("#request_selector").change();
+// admin tasks tabs handling
+$('.taskpane').hide();
+$('.taskpane:first').addClass('active').show();
+
+$('.tasktabs li').click(function() {
+  $('.tasktabs li.active').removeClass('active');
+  $(this).addClass('active');
+  $('.taskpane').hide();
+  $('.taskpane:eq(' + $(this).index() + ')').show();
+});
+
+// load and initialize
+$.when(
+  getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
+).then(function() {
+  console.log("all done!!");
+  viewHandler.init();
+  affiliateHandler.init();
+  AdminHandler.init();
+});
 
 });
