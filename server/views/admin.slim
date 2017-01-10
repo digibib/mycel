@@ -17,14 +17,14 @@ div class="taskpanes"
       select[id="department_selector" class="department_selector"]
       select[id="client_selector"]
     p
-      select[id="filter_selector"]
+      select[id="category_filter_selector"]
         option[value=""]Velg filter
         option[value=".connected"]Tilkoblede klienter
         option[value=".shorttime"]Kortidsklienter
         option[value=".testclient"]Testklienter
 
-      input[type='radio' name='client_filter' value='on'] Alle
-      input[type='radio' name='client_filter' value='off'] Ingen
+      input[type='radio' name='category_switch' value='on'] Alle
+      input[type='radio' name='category_switch' value='off'] Ingen
     hr
 
     form id="edit_client_form"
@@ -106,7 +106,6 @@ div class="taskpanes"
   div[class="taskpane"]
     p
       select[id="admin_selector" class="admin_selector"]
-        option[value=0]Ny admin
     hr
 
     form[id="admin_form"]
@@ -127,7 +126,7 @@ div class="taskpanes"
         input[type='radio' name='owner_admins_type' value='Organization']Organisasjon (superadmin)
       p
         input[type="text" id="owner_admins_id" name="owner_admins_id" hidden]
-        select[id="admin_branches" class="branch_selector"]
+        select[id="admin_branches" class="branch_selector in_form"]
         select[id="admin_departments" class="department_selector"]
       p
       hr
