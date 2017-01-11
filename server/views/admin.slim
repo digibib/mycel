@@ -1,5 +1,5 @@
-script src="/js/admin_tasks.js"
-link href='/css/tasks.css' rel='stylesheet' type='text/css'
+script src="/js/admin.js"
+link href='/css/admin.css' rel='stylesheet' type='text/css'
 
 
 h2 Organisasjon
@@ -56,10 +56,11 @@ div class="taskpanes"
         select[class="branch_selector in_form" name="branch_id"]
         select[class="department_selector in_form" name="department_id"]
       hr
-      button[type='button' id="delete_client" class="action_button"]  = "Slett klient"
       button[type='button' id="save_client_changes" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="delete_client" class="action_button"]  = "Slett klient"
 
-
+      span[class="progress" style="margin-left:48px"]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -130,8 +131,8 @@ div class="taskpanes"
         select[id="admin_departments" class="department_selector"]
       p
       hr
-      button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
       button[type='button' id="save_admin" class="action_button"]  = "Lagre admin"
+      button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
 
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
@@ -157,8 +158,8 @@ div class="taskpanes"
         input[id="affiliate_name" type="text" name="name"]
       p
       hr
-      button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
       button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
+      button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
 
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
@@ -194,8 +195,13 @@ div class="taskpanes"
       textarea[id="description" name="description" rows="2" placeholder="Lubuntu 16.04"]
       p
       hr
-      button[type='button' id="delete_profile" class="action_button"]  = "Slett profil"
       button[type='button' id="save_profile" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="clone_profile" class="action_button"]  = "Klon profil"
+      button[type='button' id="delete_profile" class="action_button"]  = "Slett profil"
+
 
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
+
+  div[class="taskpane"]
+    span[class="error" style="margin-left:48px"]

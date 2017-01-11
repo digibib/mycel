@@ -1,5 +1,8 @@
 #encoding: UTF-8
 require "grape"
+require 'resolv'
+
+require_relative 'config/pxe_settings.rb'
 
 # TODO put utility functions into module for mixin when API is finalized
 
@@ -104,14 +107,14 @@ class API < Grape::API
       client = Client.find_by_hwaddr(mac)
 
       if client.nil?
-        foo = 42
-        bootparams = Settings::PXE_UNREGISTERED_CLIENT.clone
-        bootparams[:message] %= {referenceID: foo}
+        mock_id = 42
+        bootparams = PXESettings::PXE_UNREGISTERED_CLIENT.clone
+        bootparams[:message] %= {referenceID: mock_id}
         bootparams.to_json
       elsif client.shorttime
-        Settings::PXE_SEARCHSTATION.to_json
+        PXESettings::PXE_SEARCHSTATION.to_json
       else
-        Settings::PXE_WORKSTATION.to_json
+        PXESettings::PXE_WORKSTATION.to_json
       end
     end
   end
@@ -207,18 +210,19 @@ class API < Grape::API
         client = Client.find_by_hwaddr(mac)
         if client.nil?
           ip = env['REMOTE_ADDR']
+          dns = Resolv.getname(ip)
           request = Request.find_by_hwaddr(mac)
           if request.nil?
-            request = Request.create(:hwaddr => mac, :ipaddr => ip)
+            request = Request.create(:hwaddr => mac, :ipaddr => ip, :hostname => dns)
             throw :error, :status => 400,
             :message => "Manglende og/eller ugyldige parametere" unless request.valid?
             request.save
             status 404
-            # {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
+            {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
           else
             request.touch(:ts)
             status 404
-            # {"Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
+            {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
           end
 
         else
@@ -226,6 +230,7 @@ class API < Grape::API
           {:client => client.as_json}
         end
       else
+        # merge in additional keys before return client list
         clients = []
         Client.all.each do |client|
           branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
