@@ -463,3 +463,7 @@ end
 class Request < ActiveRecord::Base
   default_scope order('ts desc')
 end
+
+class Profile < ActiveRecord::Base
+
+end

@@ -1,4 +1,5 @@
 "use strict";
+/* global $ */
 
 $(function() {
   let clients, branches, departments, requests, admins;
@@ -16,19 +17,19 @@ $(function() {
   const populate = function($form, data) {
     clear($form);
 
-    $.each(data, function(name, val){
+    $.each(data, function(name, val) {
       const $formElement = $form.find('[name="' + name + '"]');
       const type = $formElement.prop('type');
 
-      switch(type){
+      switch (type) {
         case 'checkbox':
-        $formElement.prop('checked', val);
-        break;
+          $formElement.prop('checked', val);
+          break;
         case 'radio':
-        $formElement.filter('[value="' + val + '"]').prop('checked', 'checked');
-        break;
+          $formElement.filter('[value="' + val + '"]').prop('checked', 'checked');
+          break;
         default:
-        $formElement.val(val);
+          $formElement.val(val);
       }
     });
   };
@@ -71,7 +72,6 @@ $(function() {
     });
   };
 
-
   //
   // loader functions
   //
@@ -91,14 +91,14 @@ $(function() {
       const $selector = $('.admin_selector').empty();
 
       adminOptions = [];
-      adminOptions.push($('<option />', {'text': 'Ny admin', 'value': '0'}));
+      adminOptions.push($('<option />', {text: 'Ny admin', value: '0'}));
 
       data.admins.forEach(admin => {
         adminOptions.push($('<option />', {
-          'text': admin.username,
-          'value': admin.id,
-          'data-type': admin.owner_admins_type, // needed?
-          'data-id': admin.owner_admins_id // needed?
+          text: admin.username,
+          value: admin.id
+          // 'data-type': admin.owner_admins_type, // needed?
+          // 'data-id': admin.owner_admins_id // needed?
         }));
       });
 
@@ -110,7 +110,6 @@ $(function() {
     });
   };
 
-
   const getClients = function(selectedID) {
     return get('/api/clients/').done(function(data) {
       clients = data.clients;
@@ -118,17 +117,17 @@ $(function() {
 
       clientOptions = [];
       data.clients.forEach(client => {
-        let classString = 'clients'
-        + ' branch-' + client.branch_id
-        + ' department-' + client.department_id
-        + (client.is_connected ? ' connected' : '')
-        + (client.shorttime ? ' shorttime' : '')
-        + (client.testclient ? ' testclient' : '');
+        let classString = 'clients' +
+        ' branch-' + client.branch_id +
+        ' department-' + client.department_id +
+        (client.is_connected ? ' connected' : '') +
+        (client.shorttime ? ' shorttime' : '') +
+        (client.testclient ? ' testclient' : '');
 
         clientOptions.push($('<option />', {
-          'text': client.name,
-          'value': client.id,
-          'class': classString
+          text: client.name,
+          value: client.id,
+          class: classString
         }));
       });
 
@@ -138,89 +137,106 @@ $(function() {
       }
     }
   );
-};
+  };
 
+  const getRequests = function(selectedID) {
+    return get('/api/requests/').done(function(data) {
+      requests = data.requests;
+      const $selector = $('#request_selector').empty();
 
-const getRequests = function(selectedID) {
-  return get('/api/requests/').done(function(data) {
-    requests = data.requests;
-    const $selector = $('#request_selector').empty();
+      requestOptions = [];
+      requestOptions.push($('<option />', {text: 'Ny klient', value: '0'}));
+      data.requests.forEach(request => {
+        const date = new Date(request.ts);
+        const dateString = '(' + date.getDate() + "-" + (date.getMonth() + 1) +
+        "-" + date.getFullYear() + ')';
 
-    requestOptions = [];
-    requestOptions.push($('<option />', {'text': 'Ny klient', 'value': '0'}));
-    data.requests.forEach(request => {
-      const date = new Date(request.ts);
-      const dateString = '(' + date.getDate() + "-" + (date.getMonth() +1) + "-" + date.getFullYear() + ')';
+        requestOptions.push($('<option />', {
+          text: request.hostname + ' (' + dateString + ')',
+          value: request.id
+        }));
+      });
 
-      requestOptions.push($('<option />', {
-        'text': request.hostname + ' (' + dateString + ')',
-        'value': request.id
-      }));
+      $selector.append(requestOptions);
+      if (selectedID) {
+        $selector.val(selectedID);
+      }
     });
+  };
 
-    $selector.append(requestOptions);
-    if (selectedID) {
-      $selector.val(selectedID);
-    }
-  });
-};
+  const getBranches = function(selectedID) {
+    return get('/api/branches/').done(function(data) {
+      branches = data.branches;
+      const $branchSelector = $('.branch_selector').empty();
+      $('#branch_selector').append($('<option />', {text: 'Alle', value: '0'}));
 
+      branchOptions = [];
+      data.branches.forEach(branch => {
+        branchOptions.push($('<option />', {text: branch.name, value: branch.id}));
+      });
 
-const getBranches = function(selectedID) {
-  return get('/api/branches/').done(function(data) {
-    branches = data.branches;
-    const $branchSelector = $('.branch_selector').empty();
-    $('#branch_selector').append($('<option />', {'text': 'Alle', 'value': '0'}));
-
-    branchOptions = [];
-    data.branches.forEach(branch => {
-      branchOptions.push($('<option />', {'text': branch.name, 'value': branch.id}));
+      $branchSelector.append(branchOptions);
+      if (selectedID) {
+        $branchSelector.val(selectedID);
+      }
     });
+  };
 
-    $branchSelector.append(branchOptions);
-    if (selectedID) {
-      $branchSelector.val(selectedID);
-    }
-  });
-};
+  const getDepartments = function(selectedID) {
+    return get('/api/departments/').done(function(data) {
+      departments = data.departments;
+      departmentOptions = [];
 
+      const $departmentSelector = $('.department_selector').empty();
+      $('#department_selector').append('<option value=0>Alle</option>');
 
+      data.departments.forEach(department => {
+        departmentOptions.push($('<option />', {
+          text: department.name,
+          value: department.id,
+          class: 'departments branch-' + department.branch_id
+        }));
+      });
 
-const getDepartments = function(selectedID) {
-  return get('/api/departments/').done(function(data) {
-    departments = data.departments;
-    departmentOptions = [];
-
-    const $departmentSelector = $('.department_selector').empty();
-    $('#department_selector').append('<option value=0>Alle</option>');
-
-    data.departments.forEach(department => {
-      departmentOptions.push($('<option />', {
-        'text': department.name,
-        'value': department.id,
-        'class': 'departments branch-' + department.branch_id,
-        'data-branch_id': department.branch_id // needed?
-      }));
+      $departmentSelector.append(departmentOptions);
+      if (selectedID) {
+        $departmentSelector.val(selectedID);
+      }
     });
+  };
 
-    $departmentSelector.append(departmentOptions);
-    if (selectedID) {
-      $departmentSelector.val(selectedID);
-    }
+  const getProfiles = function(selectedID) {
+    return get('/api/profiles/').done(function(data) {
+      const $profileSelector = $('#profile_selector').empty();
+      const options = [];
+      options.push($('<option />', {text: 'Ny profil', value: '0'}));
+
+      data.profiles.forEach(profile => {
+        options.push($('<option />', {
+          'text': profile.name,
+          'value': profile.id,
+          'data-profile': JSON.stringify(profile)
+        }));
+      });
+
+      $profileSelector.append(options);
+      if (selectedID) {
+        $profileSelector.val(selectedID);
+      }
+    });
+  };
+
+  //
+  // Universal event handlers
+  //
+  $('.branch_selector.in_form').change(function() {
+    const branchID = $(this).val();
+    const $form = $(this).parent();
+
+    const filter = '.departments.branch-' + branchID;
+    const $departmentSelector = $form.find('.department_selector');
+    populateSelector($departmentSelector, departmentOptions, filter, false);
   });
-};
-
-//
-// Universal event handlers
-//
-$('.branch_selector.in_form').change(function() {
-  const branchID = $(this).val();
-  const $form = $(this).parent();
-
-  const filter = '.departments.branch-' + branchID;
-  const $department_selector = $form.find('.department_selector');
-  populateSelector($department_selector, departmentOptions, filter, false);
-});
 
 //
 // Handler object to juggle the various views for the client editor forms.
@@ -264,7 +280,7 @@ const ViewHandler = {
       self.refresh();
     });
 
-    this.$categorySwitch.change(function () {
+    this.$categorySwitch.change(function() {
       self.setClientFilter().refresh();
     });
 
@@ -273,8 +289,7 @@ const ViewHandler = {
     });
 
     this.$requestSelector.change(function() {
-      const requestID = parseInt($(this).val());
-      // $('#delete_request').prop('disabled', (requestID === 0));
+      const requestID = parseInt($(this).val(), 10);
 
       if (requestID === 0) {
         clear(self.$addClientForm);
@@ -299,7 +314,6 @@ const ViewHandler = {
       }
     });
 
-
     this.$deleteClientButton.click(function() {
       const clientID = $('#client_id').val();
       const clientName = self.$editClientForm.find('#edit_client_name').val();
@@ -307,11 +321,11 @@ const ViewHandler = {
       if (clientName && window.confirm('Sikker på at du vil slette ' + clientName + '?')) {
         const request = $.ajax({
           url: '/api/clients/' + clientID,
-          type: 'DELETE',
+          type: 'DELETE'
         });
 
         request.done(function(data) {
-          $form.find('span.info').html(data.message).show().fadeOut(5000);
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
           self.reloadClients();
         });
 
@@ -327,7 +341,7 @@ const ViewHandler = {
       $('#request_id').val('');
 
       // post client
-      const request = save($form, '/api/clients/', 'POST');
+      const request = save(self.$form, '/api/clients/', 'POST');
 
       request.done(function(data) {
         self.$addClientForm.find('span.info').html(data.message).show().fadeOut(5000);
@@ -354,7 +368,7 @@ const ViewHandler = {
 
         request.done(function(data) {
           $form.find('span.info').html(data.message).show().fadeOut(5000);
-          getRequests();
+          getRequests(); // -----------> FIX ME?!  ------------------<
         });
 
         request.fail(function(jqXHR, textStatus, errorThrown) {
@@ -398,7 +412,7 @@ const ViewHandler = {
     populateSelector(this.$clientSelector, clientOptions, clientFilter, false);
 
     // adjust in-form department selector and populate form
-    const client = clients.find(client => client.id === parseInt(this.$clientSelector.val()));
+    const client = clients.find(client => client.id === parseInt(this.$clientSelector.val(), 10));
 
     if (client) {
       const branchID = client.branch_id;
@@ -418,7 +432,7 @@ const ViewHandler = {
 
     $.when(getClients(selectedID))
     .then(function() {
-      self.refresh()
+      self.refresh();
     });
   }
 };
@@ -429,10 +443,12 @@ const ViewHandler = {
 const AdminHandler = {
   type: '',
   $form: $('#admin_form'),
+  get $adminsTypeSwitch() {return this.$form.find("input[name='owner_admins_type']:radio");},
+  $adminSelector: $('#admin_selector'),
   $adminDepartments: $('#admin_departments'),
   $adminBranches: $('#admin_branches'),
-  $ownerAdminsType: $("input[name='owner_admins_type']:radio"),
-
+  $saveAdminButton: $('#save_admin'),
+  $deleteAdminButton: $('#delete_admin'),
   init: function() {
     this.bindUIActions();
     this.resetForm();
@@ -440,7 +456,11 @@ const AdminHandler = {
   bindUIActions: function() {
     const self = this;
 
-    $("#admin_selector").change(function() {
+    this.$adminsTypeSwitch.change(function() {
+      self.set_admins_type($(this).val()).refresh();
+    });
+
+    this.$adminSelector.change(function() {
       const adminID = $(this).val();
 
       if (adminID === '0') {
@@ -448,13 +468,12 @@ const AdminHandler = {
       } else {
         findAndPopulate(self.$form, admins, adminID);
         const ownerID = $('#owner_admins_id').val();
-        self.set_admins_type(self.$form.find("input[name='owner_admins_type']:checked").val());
-
+        self.set_admins_type(self.$adminsTypeSwitch.filter(':checked').val());
 
         if (self.type === 'Department') {
           // infer branch from department ID
-          const dept = departmentOptions.find(option => option.val() == aid);
-          const branchID = dept.data('branch_id');
+          const dept = departments.find(option => option.id == ownerID);
+          const branchID = dept.branch_id;
           self.$adminDepartments.val(ownerID);
           self.$adminBranches.val(branchID);
         } else {
@@ -466,32 +485,73 @@ const AdminHandler = {
       }
     });
 
-    $("input[name='owner_admins_type']:radio").change(function () {
-      self.set_admins_type($(this).val()).refresh();
+    this.$saveAdminButton.click(function() {
+      // SPECIAL: set correct owner_admins_id based on type
+      const adminTypes = {
+        Branch: self.$adminBranches.val(),
+        Department: self.$adminDepartments.val(),
+        Organization: '1'
+      };
+
+      const ownerAdminsID = adminTypes[self.type];
+      $('#owner_admins_id').val(ownerAdminsID);
+
+      // save form
+      const request = save(self.$form, '/api/admins/', 'POST');
+
+      request.done(function(data) {
+        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+        self.reloadAdmins(data.id); // hmm, blir ikke oppdatert skikkelig - alle feltene blir ikke fylt ut
+      });
+
+      request.fail(function(jqXHR, textStatus, errorThrown) {
+        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+      });
     });
 
+    this.$deleteAdminButton.click(function() {
+      const adminID = self.$form.find("input[name='id']").val();
+      const adminName = self.$form.find("input[name='username']").val();
+
+      if (adminID && window.confirm('Sikker på at du vil slette ' + adminName + '?')) {
+        const request = $.ajax({
+          url: '/api/admins/' + adminID,
+          type: 'DELETE'
+        });
+
+        request.done(function(data) {
+          clear(self.$form);
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          self.reloadAdmins(false); // hmm, admintypteswitch blir ikke resatt
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      }
+    });
   },
 
-  set_admins_type: function(type) {
+  setAdminsType: function(type) {
     this.type = type;
     return this;
   },
 
   resetForm: function() {
     clear(this.$form);
-    this.$ownerAdminsType.val(['Branch']);
-    this.set_admins_type('Branch');
-    this.refresh();
+    this.$adminsTypeSwitch.val(['Branch']);
+    this.setAdminsType('Branch').refresh();
     return this;
   },
-  // move this
-  reloadAdmins: function() {
-    //this.preferredAdminID = $('.admin_selector').val();
-    getAdmins(); // -------------------------------> fix me
+
+  reloadAdmins: function(id) {
+    $.when(getAdmins(id))
+    .then(function() {
+      this.$adminSelector.change();
+    }.bind(this));
   },
   refresh: function() {
     if (this.type === 'Department') {
-      const did = this.$adminDepartments.val();
       const filter = '.departments.branch-' + this.$adminBranches.val();
       populateSelector(this.$adminDepartments, departmentOptions, filter, false);
       this.$adminDepartments.show();
@@ -506,77 +566,27 @@ const AdminHandler = {
   }
 };
 
-
-const toggle_admins_typez = function() {
-  const $adminDepts = $('#admin_departments');
-  const type = $("input[name='owner_admins_type']:checked").val();
-
-  if (type === 'Department') {
-    const did = $(this).find(':selected').val();
-    const admins_id = $(this).find(':selected').data('id');
-
-    //var branchID = $('#admin_branches').val();
-    const filter = '.departments.branch-' + $('#admin_branches').val();
-    populateSelector($adminDepts, departmentOptions, filter, false);
-    $adminDepts.show();
-  } else {
-    $adminDepts.hide();
-  }
-};
-
-// admins
-
-$('#save_admin').click(function() {
-  const $form = $('#admin_form');
-  const request = save($form, '/api/admins/', 'POST');
-
-  request.done(function(data) {
-    $form.find('span.info').html(data.message).show().fadeOut(5000);
-    getAdmins(data.id);
-  });
-
-  request.fail(function(jqXHR, textStatus, errorThrown) {
-    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-  });
-});
-
-
-$('#delete_admin').click(function() {
-  const $form = $('#admin_form');
-  const adminID = $form.find("input[name='id']").val();
-  const adminName = $form.find("input[name='username']").val();
-
-  if (window.confirm('Sikker på at du vil slette ' + adminName + '?')) {
-    const request = $.ajax({
-      url: '/api/admins/' + adminID,
-      type: 'DELETE',
-    });
-
-    request.done(function(data) {
-      clear($form);
-      $form.find('span.info').html(data.message).show().fadeOut(5000);
-      getAdmins(false);
-    });
-
-    request.fail(function(jqXHR, textStatus, errorThrown) {
-      $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-    });
-  }
-});
-
-
 //
 // Affiliates
 //
-const affiliateHandler = {
+const AffiliateHandler = {
+  type: 'Branch',
+  $branchSelector: $('#affiliate_branches'),
+  $departmentSelector: $('#affiliate_departments'),
+  $form: $('#affiliate_form'),
+  $typeSwitch: $('input:radio[name="affiliate_type"]'),
+  $newOption: $('<option />', {
+    text: 'Ny',
+    value: '0'
+  }),
   init: function() {
     this.bindUIActions();
-    $('input:radio[name="affiliate_type"][value="Branch"]').prop('checked', true).change();
+    this.resetForm();
   },
   bindUIActions: function() {
     const self = this;
 
-    $("input[name='affiliate_type']:radio").change(function () {
+    this.$typeSwitch.change(function() {
       self.setType($(this).val());
     });
 
@@ -587,131 +597,122 @@ const affiliateHandler = {
     this.$departmentSelector.change(function() {
       self.setDepartment($(this).val());
     });
+
+    $('#save_affiliate').click(function() {
+      // prepare form parameters
+      let reloadFunc, apiString;
+
+      if (self.type === 'Branch') {
+        $('#organization_id').val('1'); // iffy thing
+        apiString = '/api/branches/';
+        reloadFunc = function(id) {
+          $.when(getBranches(id)).then(function() {
+            self.setBranch(id);
+          });
+        };
+      } else {
+        $('#affiliate_branch_id').val($('#affiliate_branches').val());
+        apiString = '/api/departments/';
+        reloadFunc = function(id) {
+          $.when(getDepartments(id)).then(function() {
+            self.setBranch($('#affiliate_branches').val());
+            self.setDepartment(id);
+          });
+        };
+      }
+
+      // save form
+      const request = save(self.$form, apiString, 'POST');
+
+      request.done(function(data) {
+        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+        reloadFunc(data.id);
+      });
+
+      request.fail(function(jqXHR, textStatus, errorThrown) {
+        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+      });
+    });
+
+    $('#delete_affiliate').click(function() {
+      let reloadFunc, id, apiString;
+
+      // prepare parameters
+      if (self.type === 'Branch') {
+        reloadFunc = getBranches;
+        id = $('#affiliate_branches').val();
+        apiString = '/api/branches/' + id;
+      } else {
+        reloadFunc = getDepartments;
+        id = $('#affiliate_departments').val();
+        apiString = '/api/departments/' + id;
+      }
+
+      if (id != '0' && window.confirm('Sikker på at du vil slette ' + $('#affiliate_name').val() + '?')) {
+        const request = $.ajax({
+          url: apiString,
+          type: 'DELETE'
+        });
+
+        request.done(function(data) {
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          $.when(reloadFunc()).then(function() {
+            self.resetForm();
+          });
+        });
+
+        request.fail(function(jqXHR, textStatus, errorThrown) {
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      }
+    });
   },
-  $newOption: $('<option />', {
-    'text': 'Ny',
-    'value': '0'
-  }),
-  type: 'Branch',
-  $branchSelector: $('#affiliate_branches'),
-  $departmentSelector: $('#affiliate_departments'),
-  $form: $('#affiliate_form'),
   setType: function(type) {
     this.type = type;
     if (type === 'Department') {
-      this.filterDepartments(this.$branchSelector.val());
       this.$departmentSelector.prepend(this.$newOption).show();
       this.setDepartment(this.$departmentSelector.val());
     } else {
-      this.setBranch(this.$branchSelector.val());
       this.$branchSelector.prepend(this.$newOption);
       this.$departmentSelector.hide();
+      this.setBranch(this.$branchSelector.val());
     }
+    return this;
   },
   filterDepartments: function(branchID) {
     const filter = '.departments' + (branchID === '0' ? '' : '.branch-' + branchID);
-    populateSelector(this.$departmentSelector, departmentOptions, filter, true);
-    //this.$departmentSelector.prepend(this.$newOption);
+    populateSelector(this.$departmentSelector, departmentOptions, filter, false);
+    return this;
   },
   setDepartment: function(departmentID) {
     if (departmentID === '0') {
       clear(this.$form);
     } else {
+      this.$departmentSelector.val(departmentID);
       findAndPopulate(this.$form, departments, departmentID);
     }
+    return this;
   },
   setBranch: function(branchID) {
+    this.filterDepartments(branchID);
+
     if (this.type === 'Branch') {
+      this.$branchSelector.prepend(this.$newOption);
+      this.$branchSelector.val(branchID);
       branchID == '0' ? clear(this.$form) : findAndPopulate(this.$form, branches, branchID);
     } else {
-      this.filterDepartments(branchID);
-      const deptID = this.$departmentSelector.val();
-      if (deptID == '0') {
-        clear(this.$form);
-      } else {
-        this.setDepartment(deptID);
-      }
+      this.$departmentSelector.prepend(this.$newOption);
+      this.$departmentSelector.children().first().prop('selected', true);
+      clear(this.$form);
     }
+
+    return this;
   },
-  refresh: function() {
-    if (this.type === 'Branch') {
-      this.setBranch(this.$branchSelector.val());
-    } else {
-      this.filterDepartments(this.$branchSelector.val());
-      this.setDepartment(this.$departmentSelector.val());
-    }
+  resetForm: function() {
+    clear(this.$form);
+    this.$typeSwitch.filter('[value="Branch"]').prop('checked', true).change();
   }
 };
-
-$('#save_affiliate').click(function() {
-  const $form = affiliateHandler.$form;
-
-  if (affiliateHandler.type === 'Branch') {
-    $('#organization_id').val('1'); // iffy thing
-    const func = getBranches;
-    const apiString = '/api/branches/';
-  } else {
-    $('#affiliate_branch_id').val($('#affiliate_branches').val());
-    const func = getDepartments;
-    const apiString = '/api/departments/';
-  }
-
-  const request = save($form, apiString, 'POST');
-
-  request.done(function(data) {
-    $form.find('span.info').html(data.message).show().fadeOut(5000);
-    $.when(func(data.id)).then(function() {
-      affiliateHandler.refresh();
-    });
-  });
-
-  request.fail(function(jqXHR, textStatus, errorThrown) {
-    $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-  });
-});
-
-
-$('#delete_affiliate').click(function() {
-  const $form = affiliateHandler.$form;
-
-  // prepare parameters
-  if (affiliateHandler.type === 'Branch') {
-    const func = getBranches;
-    const id = $('#affiliate_branches').val();
-    const apiString = '/api/branches/' + id;
-  } else {
-    const func = getDepartments;
-    const id = $('#affiliate_departments').val();
-    apiString = '/api/departments/' + id;
-  }
-
-  // if no affiliate is set, we return
-  if (id == '0') {
-    return;
-  }
-
-  // all set
-  const request = $.ajax({
-    url: apiString,
-    type: 'DELETE'
-  });
-
-  request.done(function(data) {
-    $form.find('span.info').html(data.message).show().fadeOut(5000);
-    $.when(func()).then(function() {
-      affiliateHandler.refresh();
-    }
-  );
-});
-
-request.fail(function(jqXHR, textStatus, errorThrown) {
-  $form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-});
-});
-
-
-
-
 
 // minor convenience function to quickly suggest ip for new clients (not terribly robust)
 $('#suggest_ip').click(function() {
@@ -727,12 +728,12 @@ $('#suggest_ip').click(function() {
       if (ip.split('.').length === 4) {
         network = ip.substring(0, index);
       }
-      const address = parseInt(ip.substring(index));
+      const address = parseInt(ip.substring(index), 10);
       highest = address > highest ? address : highest;
     }
   });
 
-  const suggestedIP = network + (highest +1);
+  const suggestedIP = network + (highest + 1);
   $('#add_client_form').find('#ipaddr').val(suggestedIP);
 });
 
@@ -746,30 +747,64 @@ $('#show_password').mouseup(function() {
   $('#password').replaceWith($('#password').clone().prop('type', 'password'));
 });
 
-
-
-
-
-
-
 //
-// CRUD functions
+// PROFILES
 //
+const ProfileHandler = {
+  $profileSelector: $('#profile_selector'),
+  $form: $('#profile_form'),
+  init: function() {
+    this.bindUIActions();
+    this.showProfile('0');
+  },
+  reloadProfiles: function(id) {
+    $.when(getProfiles(id))
+    .then(function() {
+      this.showProfile(id);
+    }.bind(this));
+  },
+  showProfile: function(profileID) {
+    if (profileID == '0') {
+      clear(this.$form);
+    } else {
+      populate(this.$form, this.$profileSelector.children().filter(':selected').data('profile'));
+    }
+  },
+  bindUIActions: function() {
+    const self = this;
 
+    this.$profileSelector.change(function() {
+      self.showProfile($(this).val());
+    });
 
+    $('#save_profile').click(function() {
+      save(self.$form, '/api/profiles/', 'POST')
+      .done(function(data) {
+        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+        self.reloadProfiles(data.id);
+      })
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+      });
+    });
 
-// profiles
-$('#delete_profile').click(function() {
-  const $form = $('#profile_form');
-  const msg = "Implementeres på forespørsel";
-  $form.find('span.info').html(msg).show().fadeOut(5000);
-});
+    $('#delete_profile').click(function() {
+      const profileID = self.$profileSelector.val();
+      const profileName = self.$form.find('[name="name"]').val();
 
-$('#save_profile').click(function() {
-  const $form = $('#profile_form');
-  const msg = "Implementeres på forespørsel";
-  $form.find('span.info').html(msg).show().fadeOut(5000);
-});
+      if (profileID != '0' && window.confirm('Sikker på at du vil slette ' + profileName + '?')) {
+        save(self.$form, '/api/profiles/' + profileID, 'DELETE')
+        .done(function(data) {
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          self.reloadProfiles(0);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      }
+    });
+  }
+};
 
 //
 // Initialize page
@@ -788,12 +823,12 @@ $('.tasktabs li').click(function() {
 
 // load and initialize
 $.when(
-  getClients(), getBranches(), getDepartments(), getRequests(), getAdmins()
+  getClients(), getBranches(), getDepartments(), getRequests(), getAdmins(), getProfiles()
 ).then(function() {
   console.log("all done!!");
   ViewHandler.init();
-  affiliateHandler.init();
+  AffiliateHandler.init();
   AdminHandler.init();
+  ProfileHandler.init();
 });
-
 });

@@ -68,7 +68,7 @@ def create(class_name, params)
   klazz = class_name.constantize
 
   form_data = params[:form_data].to_hash
-  is_new = form_data["id"].nil? || form_data["id"].empty?
+  is_new = form_data["id"].nil? || form_data["id"].empty? || form_data["id"] == '0'
 
   item = is_new ? klazz.new : klazz.find(form_data["id"])
 
@@ -126,7 +126,6 @@ class API < Grape::API
         client.touch(:ts) if client.present?
       end
     end
-
   end
 
 
@@ -136,13 +135,38 @@ class API < Grape::API
       {:requests => Request.all}
     end
 
-    desc "deletes an existing request and returns status"
+    desc "deletes a specific request and returns status"
     delete "/:id" do
       requires_superadmin
       delete("Request", params[:id])
     end
   end
 
+  resource :profiles do
+    desc "returns all profiles"
+    get "/" do
+      {:profiles => Profile.all}
+    end
+
+    desc "returns a specific profile"
+    get "/:id" do
+      {:profile => Profile.find(params[:id]).as_json}
+    end
+
+    desc "creates or updates profile and returns status"
+    post "/" do
+      requires_superadmin
+      create("Profile", params)
+    end
+
+    desc "deletes an existing profile and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Profile", params[:id])
+    end
+
+
+  end
 
   resource :admins do
     desc "returns all admins"

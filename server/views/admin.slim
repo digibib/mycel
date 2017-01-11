@@ -109,7 +109,7 @@ div class="taskpanes"
     hr
 
     form[id="admin_form"]
-      input[type="text" name="id"]
+      input[type="text" name="id" hidden]
       p
         label for="username" class="fw" Brukernavn:
         input[id="username" type="text" name="username"]
@@ -144,6 +144,7 @@ div class="taskpanes"
     p
       input[type='radio' name='affiliate_type' value='Branch']Filial
       input[type='radio' name='affiliate_type' value='Department']Avdeling
+    p
       select[id="affiliate_branches" class="branch_selector"]
       select[id="affiliate_departments" class="department_selector"]
 
@@ -165,16 +166,17 @@ div class="taskpanes"
 
   div[class="taskpane" id="profiles"]
     p
-      select[id="profile_chooser"]
+      select[id="profile_selector"]
         option[value=0]Ny profil
         option[value=1]Korttidsmaskin
         option[value=2]Lånemaskin
     hr
 
     form[id="profile_form"]
+      input[type="text" name="id" hidden]
       p
-        label[for="name"]Navn:
-        input[id="name" type="text" name="name" placeholder="standard publikumsmaskin"]
+        label[for="profile_name"]Navn:
+        input[id="profile_name" type="text" name="name" placeholder="standard publikumsmaskin"]
       p
         label[for="kernel"]Kjerne:
         input[id="kernel" type="text" name="kernel" placeholder="file:/srv/nfs/mycelimage/casper/vmlinuz"]
