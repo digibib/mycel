@@ -1,5 +1,8 @@
 #encoding: UTF-8
 require "grape"
+require 'resolv'
+
+require_relative 'config/pxe_settings.rb'
 
 # TODO put utility functions into module for mixin when API is finalized
 
@@ -41,37 +44,202 @@ def prepare_params (params)
   ret
 end
 
+
+def requires_superadmin
+  admin = Admin.find_by_username(env['admin'])
+  if !(admin && admin.superadmin?)
+    redirect '/'
+  end
+end
+
+
+def delete(class_name, id)
+  klazz = class_name.constantize
+
+  item = klazz.find(id)
+  if item.destroy
+    status 200
+    {message: "OK. Slettet."}
+  else
+    throw :error, :status => 400,
+    :message => item.errors.empty? ? "Ukjent feil" : item.errors.full_messages.to_sentence
+  end
+end
+
+
+def create(class_name, params)
+  klazz = class_name.constantize
+
+  form_data = params[:form_data].to_hash
+  is_new = form_data["id"].nil? || form_data["id"].empty? || form_data["id"] == '0'
+
+  item = is_new ? klazz.new : klazz.find(form_data["id"])
+
+  # select only the keys from params present in attributes
+  updates = form_data.select {|key| item.attributes.keys.include?(key) }
+  item.attributes = item.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
+
+  if item.save
+    status 200
+    {message: "OK. Lagret.", id: item.id}
+  else
+    message = item.errors.empty? ? "Ukjent feil" : item.errors.full_messages.to_sentence
+    throw :error, :status => 400,
+    :message => message
+  end
+
+end
+
+
+
+
 class API < Grape::API
   prefix 'api'
   format :json
   default_format :json
 
+  # stub implementation of pixiecore support for possible future use. unfinished.
+  resource :pxe do
+    desc "Verifies mac address and returns boot parameters for client machines"
+    get "/v1/boot/:mac" do
+
+      mac = params['mac']
+      client = Client.find_by_hwaddr(mac)
+
+      if client.nil?
+        mock_id = 42
+        bootparams = PXESettings::PXE_UNREGISTERED_CLIENT.clone
+        bootparams[:message] %= {referenceID: mock_id}
+        bootparams.to_json
+      elsif client.shorttime
+        PXESettings::PXE_SEARCHSTATION.to_json
+      else
+        PXESettings::PXE_WORKSTATION.to_json
+      end
+    end
+  end
+
+
+  resource :keep_alive do
+    desc "receives live signal from clients"
+    get "/" do
+      if params[:mac].present?
+        mac = params[:mac]
+        client = Client.find_by_hwaddr(mac)
+        client.touch(:ts) if client.present?
+      end
+    end
+  end
+
+
+  resource :requests do
+    desc "returns all requests"
+    get "/" do
+      {:requests => Request.all}
+    end
+
+    desc "deletes a specific request and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Request", params[:id])
+    end
+  end
+
+  resource :profiles do
+    desc "returns all profiles"
+    get "/" do
+      {:profiles => Profile.all}
+    end
+
+    desc "returns a specific profile"
+    get "/:id" do
+      {:profile => Profile.find(params[:id]).as_json}
+    end
+
+    desc "creates or updates profile and returns status"
+    post "/" do
+      requires_superadmin
+      create("Profile", params)
+    end
+
+    desc "deletes an existing profile and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Profile", params[:id])
+    end
+
+  end
+
   resource :admins do
+    desc "returns all admins"
+    get "/" do
+      requires_superadmin
+      {:admins => Admin.all}
+    end
+
+    desc "creates or updates administrator account and returns status"
+    post "/" do
+      requires_superadmin
+      create("Admin", params)
+    end
+
+    desc "deletes an existing administrator and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Admin", params[:id])
+    end
+
+
     desc "authenticates admin"
     post "/login" do
       admin = Admin.where(:username=>params[:username]).first
       throw :error, :status => 401,
-            :message => "Feil brukernavn eller passord" unless admin and admin.password == params[:password]
+      :message => "Feil brukernavn eller passord" unless admin and admin.password == params[:password]
       status 200
       {:login => true}
     end
-   end
+  end
 
 
   resource :clients do
-    desc "returns all clients, or identifies a client given a MACadress"
+    desc "returns all clients, or identifies a client given a MACadress, or registers new request by MAC address"
     get "/" do
       if params[:mac]
-        # identifies the client of a given mac-adress
-        client = Client.find_by_hwaddr(params['mac'])
-        throw :error, :status => 404,
-              :message => "Det finnes ingen klient med MAC-adresse " +
-                          "#{params[:mac]}" unless client
-        {:client => client.as_json}
+        mac = params[:mac]
+        client = Client.find_by_hwaddr(mac)
+        if client.nil?
+          ip = env['REMOTE_ADDR']
+          dns = Resolv.getname(ip)
+          request = Request.find_by_hwaddr(mac)
+          if request.nil?
+            request = Request.create(:hwaddr => mac, :ipaddr => ip, :hostname => dns)
+            throw :error, :status => 400,
+            :message => "Manglende og/eller ugyldige parametere" unless request.valid?
+            request.save
+            status 404
+            {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
+          else
+            request.touch(:ts)
+            status 404
+            {:message => "Klienten er ikke registrert i systemet. Kontakt admin med kode #{request.id}"}
+          end
+
+        else
+          status 200
+          {:client => client.as_json}
+        end
       else
-        {:clients => Client.all }
+        # merge in additional keys before return client list
+        clients = []
+        Client.all.each do |client|
+          branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
+          clients << client.attributes.merge(branch_id)
+        end
+        status 200
+        {:clients => clients }
       end
     end
+
 
     desc "returns individual client"
     get "/:id" do
@@ -79,21 +247,39 @@ class API < Grape::API
         {:client => Client.find(params[:id]).as_json}
       rescue ActiveRecord::RecordNotFound
         throw :error, :status => 404,
-              :message => "Det finnes ingen klient med id #{params[:id]}"
+        :message => "Det finnes ingen klient med id #{params[:id]}"
       end
     end
 
-    desc "creates a new client and returns it"
+    desc "creates or updates client and returns operation status"
     post "/" do
-      new_client = Client.create(:name => params['name'],
-                                 :hwaddr => params['hwaddr'],
-                                 :ipaddr => params['ipaddr'])
+      requires_superadmin
 
-      throw :error, :status => 400,
-            :message => "Manglender og/eller ugyldige parametere" unless new_client.valid?
+      form_data = params[:form_data].to_hash
+      client = form_data["id"].present? ? Client.find(form_data["id"]) : Client.new
 
-      {:client => new_client}
+      # select only the keys from params present in client.attributes
+      updates = form_data.select {|key| client.attributes.keys.include?(key) }
+      client.attributes = client.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
+
+      # missing keys typically represent unchecked checkboxes. these are set to false.
+      missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
+      missing_keys.each do |key|
+        client.attributes = {key.to_sym => false}
+      end
+
+      if client.save
+        Request.find(form_data["request_id"]).destroy if form_data["request_id"].present?
+        status 200
+        {message: "OK. Lagret."}
+      else
+        message = client.errors.empty? ? "Ukjent feil" : client.errors.full_messages.to_sentence
+        throw :error, :status => 400,
+        :message => message
+      end
     end
+
+
 
     desc "updates an existing client and returns the updated version"
     put "/:id" do
@@ -110,12 +296,18 @@ class API < Grape::API
       end
 
       throw :error, :status => 400,
-            :message => "Ingen endringer!" unless client.changed? || changes
+      :message => "Ingen endringer!" unless client.changed? || changes
 
       client.save
       {:client => client}
     end
 
+
+    desc "deletes an existing client and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Client", params[:id])
+    end
   end
 
   resource :users do
@@ -127,7 +319,7 @@ class API < Grape::API
     desc "authenticates a user"
     post "/authenticate" do
       throw :error, :status => 400,
-            :message => "Manglende parametere" unless params["username"] and params["password"]
+      :message => "Manglende parametere" unless params["username"] and params["password"]
 
       message = "Feil lånenummer/brukernavn eller PIN/passord"
       authenticated = false
@@ -144,205 +336,230 @@ class API < Grape::API
       status 401
       status 200 if authenticated
       {:authenticated => authenticated, :minutes => user.minutes || 0,
-       :age => user.age || 0, :message => message, :type => user.type_short || "N"}
-    end
+        :age => user.age || 0, :message => message, :type => user.type_short || "N"}
+      end
 
-    desc "returns a specific user"
-    get "/:id" do
-      {:user => User.find(params[:id]).as_json}
-    end
+      desc "returns a specific user"
+      get "/:id" do
+        {:user => User.find(params[:id]).as_json}
+      end
 
-    desc "creates a new guest user"
-    post "/" do
-      new_user = GuestUser.create(:username => params["username"],
+      desc "creates a new guest user"
+      post "/" do
+        new_user = GuestUser.create(:username => params["username"],
         :password => params["password"], :minutes => params["minutes"],
         :age => params["age"])
 
-      throw :error, :status => 400,
-            :message => "Manglende og/eller ugyldige parametere" unless new_user.valid?
-
-      {:user => new_user}
-    end
-
-    desc "deletes a user"
-    delete "/:id" do
-      begin
-        User.find(params[:id]).destroy
-        {:user => "deleted"}
-      rescue ActiveRecord::RecordNotFound
-        throw :error, :status => 404,
-              :message => "Det finnes ingen bruker med id #{params[:id]}"
-      end
-      status 204
-    end
-
-    desc "updates a user"
-    put "/:id" do
-      begin
-        user = User.find(params[:id])
-
-        # select only the keys from params present in user.attributes
-        updates = params.select { |k| user.attributes.keys.include?(k) }
-        user.attributes = user.attributes.merge(updates)
-
         throw :error, :status => 400,
-              :message => "Ingen endringer!" unless user.changed?
+        :message => "Manglende og/eller ugyldige parametere" unless new_user.valid?
 
-        user.save
-        {:user => user.as_json}
-      rescue ActiveRecord::RecordNotFound
-        throw :error, :status => 404,
-              :message => "Det finnes ingen bruker med id #{params[:id]}"
-      end
-    end
-  end
-
-  resource :departments do
-    desc "return all departments with attributes and options"
-    get "/" do
-      {:departments => Department.all}
-    end
-
-    desc "get specific department"
-    get "/:id" do
-      {:department => Department.find(params[:id]).as_json}
-    end
-
-    desc "update department options"
-    put "/:id" do
-      dept = Department.find(params[:id])
-      changes = false
-
-      updates = find_updates dept.options_self_or_inherited, params.except(:opening_hours)
-      if updates
-        dept.options.attributes = updates
-        changes = true if dept.options.changed?
+        {:user => new_user}
       end
 
-      if params[:opening_hours] == "inherit"
-        changes = true unless dept.options.opening_hours.nil?
-        dept.options.opening_hours = nil
-        params.delete :opening_hours
-      end
-
-      if params[:opening_hours]
-        # update current opening hours
-        if dept.options.opening_hours
-          dept.options.opening_hours.attributes = params[:opening_hours]
-          changes = true if dept.options.opening_hours.changed?
-        else # create new opening hours
-          dept.options.opening_hours = OpeningHours.create params[:opening_hours]
-          changes = true
+      desc "deletes a user"
+      delete "/:id" do
+        begin
+          User.find(params[:id]).destroy
+          {:user => "deleted"}
+        rescue ActiveRecord::RecordNotFound
+          throw :error, :status => 404,
+          :message => "Det finnes ingen bruker med id #{params[:id]}"
         end
-        throw :error, :status => 400,
+        status 204
+      end
+
+      desc "updates a user"
+      put "/:id" do
+        begin
+          user = User.find(params[:id])
+
+          # select only the keys from params present in user.attributes
+          updates = params.select { |k| user.attributes.keys.include?(k) }
+          user.attributes = user.attributes.merge(updates)
+
+          throw :error, :status => 400,
+          :message => "Ingen endringer!" unless user.changed?
+
+          user.save
+          {:user => user.as_json}
+        rescue ActiveRecord::RecordNotFound
+          throw :error, :status => 404,
+          :message => "Det finnes ingen bruker med id #{params[:id]}"
+        end
+      end
+    end
+
+    resource :departments do
+      desc "return all departments with attributes and options"
+      get "/" do
+        {:departments => Department.all}
+      end
+
+      desc "get specific department"
+      get "/:id" do
+        {:department => Department.find(params[:id]).as_json}
+      end
+
+      desc "create or update department (without options) and returns status"
+      post '/' do
+        requires_superadmin
+        create("Department", params)
+      end
+
+      desc "delete department (without options) and returns status"
+      delete '/:id' do
+        requires_superadmin
+        delete("Department", params[:id])
+      end
+
+
+
+      desc "update department options"
+      put "/:id" do
+        dept = Department.find(params[:id])
+        changes = false
+
+        updates = find_updates dept.options_self_or_inherited, params.except(:opening_hours)
+        if updates
+          dept.options.attributes = updates
+          changes = true if dept.options.changed?
+        end
+
+        if params[:opening_hours] == "inherit"
+          changes = true unless dept.options.opening_hours.nil?
+          dept.options.opening_hours = nil
+          params.delete :opening_hours
+        end
+
+        if params[:opening_hours]
+          # update current opening hours
+          if dept.options.opening_hours
+            dept.options.opening_hours.attributes = params[:opening_hours]
+            changes = true if dept.options.opening_hours.changed?
+          else # create new opening hours
+            dept.options.opening_hours = OpeningHours.create params[:opening_hours]
+            changes = true
+          end
+          throw :error, :status => 400,
           :message => "Du kan ikke stenge før du har åpnet!" unless dept.options.opening_hours.valid?
-      end
-
-      throw :error, :status => 400,
-            :message => "Ingen endringer!" unless changes
-
-      # persist the changes:
-      dept.options.opening_hours.save if dept.options.opening_hours
-      dept.options.save
-      {:department => dept.as_json}
-    end
-  end
-
-  resource :branches do
-    desc "return all branchess with attributes and options"
-    get "/" do
-      {:branches => Branch.all}
-    end
-
-    desc "get specific branch"
-    get "/:id" do
-      {:branch => Branch.find(params[:id]).as_json}
-    end
-
-    desc "update branch options"
-    put "/:id" do
-      branch = Branch.find(params[:id])
-      changes = false
-
-      updates = find_updates branch.options_self_or_inherited, params.except(:opening_hours)
-      if updates
-        branch.options.attributes = updates
-        changes = true if branch.options.changed?
-      end
-
-      if params[:opening_hours] == "inherit"
-        changes = true unless branch.options.opening_hours.nil?
-        branch.options.opening_hours = nil
-        params.delete :opening_hours
-      end
-
-      if params[:opening_hours]
-        # update current opening hours
-        if branch.options.opening_hours
-          branch.options.opening_hours.attributes = params[:opening_hours]
-          changes = true if branch.options.opening_hours.changed?
-        else # create new opening hours
-          branch.options.opening_hours = OpeningHours.create params[:opening_hours]
-          changes = true
         end
+
         throw :error, :status => 400,
+        :message => "Ingen endringer!" unless changes
+
+        # persist the changes:
+        dept.options.opening_hours.save if dept.options.opening_hours
+        dept.options.save
+        {:department => dept.as_json}
+      end
+    end
+
+    resource :branches do
+      desc "return all branches with attributes and options"
+      get "/" do
+        {:branches => Branch.all}
+      end
+
+      desc "get specific branch"
+      get "/:id" do
+        {:branch => Branch.find(params[:id]).as_json}
+      end
+
+      desc "create or update branch (without options) and returns status"
+      post '/' do
+        requires_superadmin
+        create("Branch", params)
+      end
+
+      desc "delete branch (without options) and returns status"
+      delete '/:id' do
+        requires_superadmin
+        delete("Branch", params[:id])
+      end
+
+      desc "update branch options"
+      put "/:id" do
+        branch = Branch.find(params[:id])
+        changes = false
+
+        updates = find_updates branch.options_self_or_inherited, params.except(:opening_hours)
+        if updates
+          branch.options.attributes = updates
+          changes = true if branch.options.changed?
+        end
+
+        if params[:opening_hours] == "inherit"
+          changes = true unless branch.options.opening_hours.nil?
+          branch.options.opening_hours = nil
+          params.delete :opening_hours
+        end
+
+        if params[:opening_hours]
+          # update current opening hours
+          if branch.options.opening_hours
+            branch.options.opening_hours.attributes = params[:opening_hours]
+            changes = true if branch.options.opening_hours.changed?
+          else # create new opening hours
+            branch.options.opening_hours = OpeningHours.create params[:opening_hours]
+            changes = true
+          end
+          throw :error, :status => 400,
           :message => "Du kan ikke stenge før du har åpnet!" unless branch.options.opening_hours.valid?
-      end
-
-      throw :error, :status => 400,
-            :message => "Ingen endringer!" unless changes
-
-      # persist the changes:
-      branch.options.opening_hours.save if branch.options.opening_hours
-      branch.options.save
-      {:branch => branch.as_json}
-    end
-  end
-
-  resource :organization do
-    desc "return the organization with attributes and options"
-    get "/" do
-      {:organization => Organization.first.as_json}
-    end
-
-    desc "update the organization options"
-    put "/:id" do
-      org = Organization.first
-      changes = false
-
-      updates = find_updates org.options_self_or_inherited, params.except(:opening_hours)
-      if updates
-        org.options.attributes = updates
-        changes = true if org.options.changed?
-      end
-
-      if params[:opening_hours] == "inherit"
-        changes = true unless org.options.opening_hours.nil?
-        org.options.opening_hours = nil
-        params.delete :opening_hours
-      end
-
-      if params[:opening_hours]
-        # update current opening hours
-        if org.options.opening_hours
-          org.options.opening_hours.attributes = params[:opening_hours]
-          changes = true if org.options.opening_hours.changed?
-        else # create new opening hours
-          org.options.opening_hours = OpeningHours.create params[:opening_hours]
-          changes = true
         end
+
         throw :error, :status => 400,
-          :message => "Du kan ikke stenge før du har åpnet!" unless org.options.opening_hours.valid?
+        :message => "Ingen endringer!" unless changes
+
+        # persist the changes:
+        branch.options.opening_hours.save if branch.options.opening_hours
+        branch.options.save
+        {:branch => branch.as_json}
+      end
+    end
+
+    resource :organization do
+      desc "return the organization with attributes and options"
+      get "/" do
+        {:organization => Organization.first.as_json}
       end
 
-      throw :error, :status => 400,
-            :message => "Ingen endringer!" unless changes
+      desc "update the organization options"
+      put "/:id" do
+        org = Organization.first
+        changes = false
 
-      # persist the changes:
-      org.options.opening_hours.save if org.options.opening_hours
-      org.options.save
-      {:organization => org.as_json}
+        updates = find_updates org.options_self_or_inherited, params.except(:opening_hours)
+        if updates
+          org.options.attributes = updates
+          changes = true if org.options.changed?
+        end
+
+        if params[:opening_hours] == "inherit"
+          changes = true unless org.options.opening_hours.nil?
+          org.options.opening_hours = nil
+          params.delete :opening_hours
+        end
+
+        if params[:opening_hours]
+          # update current opening hours
+          if org.options.opening_hours
+            org.options.opening_hours.attributes = params[:opening_hours]
+            changes = true if org.options.opening_hours.changed?
+          else # create new opening hours
+            org.options.opening_hours = OpeningHours.create params[:opening_hours]
+            changes = true
+          end
+          throw :error, :status => 400,
+          :message => "Du kan ikke stenge før du har åpnet!" unless org.options.opening_hours.valid?
+        end
+
+        throw :error, :status => 400,
+        :message => "Ingen endringer!" unless changes
+
+        # persist the changes:
+        org.options.opening_hours.save if org.options.opening_hours
+        org.options.save
+        {:organization => org.as_json}
+      end
     end
   end
-end
-

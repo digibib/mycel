@@ -19,4 +19,7 @@ module Settings
                         :host => 'localhost',
                         :pool => 5,
                         :reconnect => true}}
+
+  # Statistics settings
+  FILTER = ["Digitalt Bibliotek"]	# Exclude test clients from stats
 end

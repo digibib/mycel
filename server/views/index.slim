@@ -1,13 +1,7 @@
 - org = Organization.first
 div class="main"
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
-    h2 Organisasjon
-    p <strong>kommer her:</strong>
-    ol
-      li legg til filial
-      li legg til avdeling
-      li legg til klient
-      li legg tl admin
+    == render :slim,  :'admin', :layout => false, :locals => {:screen_res => screen_res}
   - else
     h2 Hva er dette?
     p Mycel er et system for å administrere Deichmans publikumsmaskiner.
