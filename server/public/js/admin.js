@@ -357,7 +357,7 @@ const ViewHandler = {
       const $form = self.$addClientForm;
       const requestID = $('#request_id').val();
       const requestName = self.$requestSelector.children().filter(':selected').text();
-      console.log("hmmph: " + requestID);
+
       if (requestID && window.confirm('Sikker på at du vil slette ' + requestName + '?')) {
         const request = $.ajax({
           url: '/api/requests/' + requestID,
@@ -499,7 +499,7 @@ const AdminHandler = {
 
       request.done(function(data) {
         self.$form.find('span.info').html(data.message).show().fadeOut(5000);
-        self.reloadAdmins(data.id); // hmm, blir ikke oppdatert skikkelig - alle feltene blir ikke fylt ut
+        self.reloadAdmins(data.id);
       });
 
       request.fail(function(jqXHR, textStatus, errorThrown) {
@@ -520,7 +520,7 @@ const AdminHandler = {
         request.done(function(data) {
           clear(self.$form);
           self.$form.find('span.info').html(data.message).show().fadeOut(5000);
-          self.reloadAdmins(false); // hmm, admintypteswitch blir ikke resatt
+          self.reloadAdmins(false);
         });
 
         request.fail(function(jqXHR, textStatus, errorThrown) {

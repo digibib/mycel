@@ -1,0 +1,207 @@
+script src="/js/admin.js"
+link href='/css/admin.css' rel='stylesheet' type='text/css'
+
+
+h2 Organisasjon
+ul class="tasktabs"
+  li[class="active"] Redigere klient
+  li Legg til klient
+  li Admin
+  li Filial/avdeling
+  li Bootprofiler
+
+div class="taskpanes"
+  div class="taskpane"
+    p
+      select[id="branch_selector" class="branch_selector"]
+      select[id="department_selector" class="department_selector"]
+      select[id="client_selector"]
+    p
+      select[id="category_filter_selector"]
+        option[value=""]Velg filter
+        option[value=".connected"]Tilkoblede klienter
+        option[value=".shorttime"]Kortidsklienter
+        option[value=".testclient"]Testklienter
+
+      input[type='radio' name='category_switch' value='on'] Alle
+      input[type='radio' name='category_switch' value='off'] Ingen
+    hr
+
+    form id="edit_client_form"
+      input[type="hidden" id="client_id" name="id" value=""]
+      p
+        label for="edit_client_name" class="fw" Navn:
+        input[id="edit_client_name" class="name" type="text" name="name"]
+      p
+        label for="edit_client_hwaddr" class="fw" Mac:
+        input[id="edit_client_hwaddr" type="text" name="hwaddr"]
+
+        label for="edit_client_ipaddr" class="fw" style="text-align:center" IP:
+        input[id="edit_client_ipaddr" type="text" name="ipaddr"]
+      p
+        label for="edit_client_shorttime" Korttids:
+        input[id="edit_client_shorttime" name="shorttime" type="checkbox"]
+
+        label for="edit_testclient" Test:
+        input[id="edit_testclient" name="testclient" type="checkbox"]
+
+        label for="edit_client_screen_res" Oppløsning:
+        select[id="edit_client_screen_res" name="screen_resolution_id"]
+          - for res in screen_res do
+            |<option value="#{res.id}">#{res.resolution}</option>
+      p
+        label for="ts" class="fw" Sist sett:
+        input[id="ts" name="ts" type="text" disabled]
+      p
+        select[class="branch_selector in_form" name="branch_id"]
+        select[class="department_selector in_form" name="department_id"]
+      hr
+      button[type='button' id="save_client_changes" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="delete_client" class="action_button"]  = "Slett klient"
+
+      span[class="progress" style="margin-left:48px"]
+        img src="/img/ajax-loader.gif"
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+
+  div class="taskpane"
+    p
+      select[id="request_selector"]
+    hr
+
+    form[id="add_client_form"]
+      input[type="hidden" id="request_id" name="id" value=""]
+      input[type="hidden" name="request_id" value=""]
+      p
+        label for="name" class="fw" Navn:
+        input[id="name" type="text" name="name"]
+      p
+        label for="hwaddr" class="fw" Mac:
+        input[id="hwaddr" type="text" name="hwaddr"]
+
+        label for="ipaddr" class="fw" style="text-align:center" IP:
+        input[id="ipaddr" type="text" name="ipaddr"]
+        button[type='button' id="suggest_ip"]  = "Foreslå"
+      p
+      label for="shorttime" Korttids:
+      input[id="shorttime" name="shorttime" type="checkbox"]
+
+      label for="testclient" Test:
+      input[id="testclient" name="testclient" type="checkbox"]
+
+      label for="client_screen_res" Oppløsning:
+      select[id="client_screen_res" name="screen_resolution_id"]
+        - for res in screen_res do
+          |<option value="#{res.id}">#{res.resolution}</option>
+      p
+        select[class="branch_selector in_form"]
+        select[class="department_selector in_form" name="department_id"]
+      hr
+      button[type='button' id="save_new_client" class="action_button"]  = "Lagre ny klient"
+      button[type='button' id="delete_request" class="action_button"]  = "Slett oppføring"
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+  div[class="taskpane"]
+    p
+      select[id="admin_selector" class="admin_selector"]
+    hr
+
+    form[id="admin_form"]
+      input[type="text" name="id" hidden]
+      p
+        label for="username" class="fw" Brukernavn:
+        input[id="username" type="text" name="username"]
+      p
+        label for="password" class="fw" Passord:
+        input[id="password" type="password" name="password"]
+        button[type='button' id="show_password"]...
+      p
+        label for="email" class="fw" Epost:
+        input[id="email" type="text" name="email"]
+      p
+        input[type='radio' name='owner_admins_type' value='Branch']Filial
+        input[type='radio' name='owner_admins_type' value='Department']Avdeling
+        input[type='radio' name='owner_admins_type' value='Organization']Organisasjon (superadmin)
+      p
+        input[type="text" id="owner_admins_id" name="owner_admins_id" hidden]
+        select[id="admin_branches" class="branch_selector in_form"]
+        select[id="admin_departments" class="department_selector"]
+      p
+      hr
+      button[type='button' id="save_admin" class="action_button"]  = "Lagre admin"
+      button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+
+  div[class="taskpane"]
+    p Ved innlegging av filialer og avdelinger, bemerk at noen UI-funksjoner ikke vil være
+      tilgjengelig før midnattsscriptet har kjørt.
+    hr
+    p
+      input[type='radio' name='affiliate_type' value='Branch']Filial
+      input[type='radio' name='affiliate_type' value='Department']Avdeling
+    p
+      select[id="affiliate_branches" class="branch_selector"]
+      select[id="affiliate_departments" class="department_selector"]
+
+    form[id="affiliate_form"]
+      input[type="text" name="id" hidden]
+      input[type="text" id="affiliate_branch_id" name="branch_id" hidden]
+      input[type="text" id="organization_id" name="organization_id" hidden]
+      p
+        label for="affiliate_name" class="fw" Navn:
+        input[id="affiliate_name" type="text" name="name"]
+      p
+      hr
+      button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
+      button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+
+  div[class="taskpane" id="profiles"]
+    p
+      select[id="profile_selector"]
+        option[value=0]Ny profil
+        option[value=1]Korttidsmaskin
+        option[value=2]Lånemaskin
+    hr
+
+    form[id="profile_form"]
+      input[type="text" name="id" hidden]
+      p
+        label[for="profile_name"]Navn:
+        input[id="profile_name" type="text" name="name" placeholder="standard publikumsmaskin"]
+      p
+        label[for="kernel"]Kjerne:
+        input[id="kernel" type="text" name="kernel" placeholder="file:/srv/nfs/mycelimage/casper/vmlinuz"]
+      p
+        label[for="initrd"]Initrd:
+        input[id="initrd" type="text" name="initrd" placeholder="file:/srv/nfs/mycelimage/casper/initrd.gz"]
+      p
+        label[for="cmdline"]Kommandolinje:
+        textarea[id="cmdline" name="cmdline" rows="5" placeholder="root=/dev/nfs boot=casper netboot=nfs nfsroot=xxxxxx:/srv/nfs/mycelimage splash quiet noacpi pci=noacpi acpi=force"]
+      p
+        label[for="message"]Boot-melding:
+        input[id="message" type="text" name="message" placeholder="Booter som publikumsmaskin"]
+      p
+      label[for="description"]Beskrivelse:
+      textarea[id="description" name="description" rows="2" placeholder="Lubuntu 16.04"]
+      p
+      hr
+      button[type='button' id="save_profile" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="clone_profile" class="action_button"]  = "Klon profil"
+      button[type='button' id="delete_profile" class="action_button"]  = "Slett profil"
+
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+  div[class="taskpane"]
+    span[class="error" style="margin-left:48px"]
