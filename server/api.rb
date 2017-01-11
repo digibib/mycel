@@ -168,7 +168,6 @@ class API < Grape::API
       delete("Profile", params[:id])
     end
 
-
   end
 
   resource :admins do
