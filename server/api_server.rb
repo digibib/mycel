@@ -38,28 +38,34 @@ class Server < Goliath::API
       :urls => ['/favicon.ico', '/css', '/js', '/img'])
   @@org = Organization.first
 
-  def response(env)
-    #TODO debug SQL queries & optimize
-    #ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development
+  def set_admin(env)
+     # check if cookie present
+     if env['HTTP_COOKIE']
+       cookie = env['HTTP_COOKIE']
+     else
+       cookie = "mycellogin=none"
+     end
 
-    path = CGI.unescape(env['PATH_INFO']).split('/')
+     # find current admin from cookie
+     if cookie.match(/mycellogin/)
+       env['admin'] = cookie.scan(/mycellogin=(\w+)/).last[0]
+     else
+       env['admin'] = "none"
+     end
+   end
+
+
+
+   def response(env)
+     #TODO debug SQL queries & optimize
+     #ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development
+
+     path = CGI.unescape(env['PATH_INFO']).split('/')
+     set_admin(env)
+
     if path[1] == 'api'
       API.call(env)
     else
-      # check if cookie present
-      if env['HTTP_COOKIE']
-        cookie = env['HTTP_COOKIE']
-      else
-        cookie = "mycellogin=none"
-      end
-
-      # find current admin from cookie
-      if cookie.match(/mycellogin/)
-        env['admin'] = cookie.scan(/mycellogin=(\w+)/).last[0]
-      else
-        env['admin'] = "none"
-      end
-
       if env['admin'] == "none"
         if path[1] == 'setadmin'
           [200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, slim(:index)]
