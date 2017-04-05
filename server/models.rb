@@ -39,7 +39,7 @@ end
 class Options < ActiveRecord::Base
   belongs_to :owner_options, :polymorphic => true
   has_one :opening_hours
-
+  has_many :printers, :through => :printer_links
   accepts_nested_attributes_for :opening_hours
 
   def as_json(*args)
@@ -462,4 +462,17 @@ end
 
 class Profile < ActiveRecord::Base
 
+end
+
+class Printer < ActiveRecord::Base
+  has_one :printer_profile
+end
+
+class PrinterLink < ActiveRecord::Base
+  belongs_to :option
+  belongs_to :printer
+end
+
+class PrinterProfile < ActiveRecord::Base
+  # has_many :printers
 end
