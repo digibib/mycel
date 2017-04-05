@@ -39,28 +39,30 @@ class Server < Goliath::API
   @@org = Organization.first
 
   def set_admin(env)
-      # check if cookie present
-      if env['HTTP_COOKIE']
-        cookie = env['HTTP_COOKIE']
-      else
-        cookie = "mycellogin=none"
-      end
+     # check if cookie present
+     if env['HTTP_COOKIE']
+       cookie = env['HTTP_COOKIE']
+     else
+       cookie = "mycellogin=none"
+     end
 
-      # find current admin from cookie
-      if cookie.match(/mycellogin/)
-        env['admin'] = cookie.scan(/mycellogin=(\w+)/).last[0]
-      else
-        env['admin'] = "none"
-      end
-    end
+     # find current admin from cookie
+     if cookie.match(/mycellogin/)
+       env['admin'] = cookie.scan(/mycellogin=(\w+)/).last[0]
+     else
+       env['admin'] = "none"
+     end
+   end
 
 
-  def response(env)
-    #TODO debug SQL queries & optimize
-    #ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development
 
-    path = CGI.unescape(env['PATH_INFO']).split('/')
-    set_admin(env)
+   def response(env)
+     #TODO debug SQL queries & optimize
+     #ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development
+
+     path = CGI.unescape(env['PATH_INFO']).split('/')
+     set_admin(env)
+
     if path[1] == 'api'
       API.call(env)
     else

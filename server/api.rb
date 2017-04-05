@@ -207,7 +207,13 @@ class API < Grape::API
         client = Client.find_by_hwaddr(mac)
         if client.nil?
           ip = env['REMOTE_ADDR']
-          dns = Resolv.getname(ip)
+
+          begin
+            dns = Resolv.getname(ip)
+          rescue
+            dns = 'Not resolved'
+          end
+
           request = Request.find_by_hwaddr(mac)
           if request.nil?
             request = Request.create(:hwaddr => mac, :ipaddr => ip, :hostname => dns)
