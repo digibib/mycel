@@ -170,6 +170,60 @@ class API < Grape::API
 
   end
 
+
+  resource :printer_profiles do
+    desc "returns all printer profiles"
+    get "/" do
+      {:printer_profiles => PrinterProfile.all}
+    end
+
+    desc "returns a specific printer profile"
+    get "/:id" do
+      {:printer_profile => PrinterProfile.find(params[:id]).as_json}
+    end
+
+    desc "creates or updates printer profile and returns status"
+    post "/" do
+      requires_superadmin
+      create("PrinterProfile", params)
+    end
+
+    desc "deletes an existing printer profile and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("PrinterProfile", params[:id])
+    end
+
+  end
+
+  resource :printers do
+    desc "returns all printers"
+    get "/" do
+      {:printers => Printer.all}
+    end
+
+    desc "returns a specific printer"
+    get "/:id" do
+      {:printer => Printer.find(params[:id]).as_json}
+    end
+
+    desc "creates or updates printer and returns status"
+    post "/" do
+      requires_superadmin
+      create("Printer", params)
+    end
+
+    desc "deletes an existing printer and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Printer", params[:id])
+    end
+
+  end
+
+
+
+
   resource :admins do
     desc "returns all admins"
     get "/" do

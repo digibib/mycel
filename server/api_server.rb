@@ -76,7 +76,7 @@ class Server < Goliath::API
         case path.length
         when 0    # matches /
           [200, {}, slim(:index, :locals => {:screen_res => ScreenResolution.all,
-            admin => Admin.find_by_username(env['admin'])})]
+            :admin => Admin.find_by_username(env['admin'])})]
         when 2    # matches {branches}|users|statistics
           if @@org.branches.find_by_name(path[1])
             branch = Branch.find_by_name(path[1])
@@ -103,7 +103,7 @@ class Server < Goliath::API
             if (dept = @@org.branches.find_by_name(path[1]).departments.find_by_name(path[2]))
               if dept.authorized?(Admin.find_by_username(env['admin']))
                 [200, {}, slim(:department, :locals => {:department => dept,
-                  :screen_res => ScreenResolution.all })]
+                  :screen_res => ScreenResolution.all})]
               else
                 [401, {}, slim(:forbidden)]
               end

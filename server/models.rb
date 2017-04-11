@@ -5,6 +5,26 @@ require "./config/settings"
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
 
+# helpers
+def get_options(diz)
+  puts "hullo"
+  puts diz.options.inspect
+  diz.options.printer_links.each do |pp|
+    puts pp.printer.to_json
+  end
+
+  Printer.all.each do |p|
+    #puts p.inspect
+    #puts p.printer_link.inspect
+  end
+
+  #puts diz.options.printers.inspect
+  opt = self.options.as_json
+  oh = self.options.opening_hours.as_json
+  opt.merge! "opening_hours" => oh
+  opt.except("owner_options_id", "owner_options_type", "id")
+end
+
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
 
@@ -27,6 +47,7 @@ class Organization < ActiveRecord::Base
   end
 
   def options_self_or_inherited
+    #get_options(self)
     opt = self.options.as_json
     oh = self.options.opening_hours.as_json
     opt.merge! "opening_hours" => oh
@@ -39,7 +60,8 @@ end
 class Options < ActiveRecord::Base
   belongs_to :owner_options, :polymorphic => true
   has_one :opening_hours
-  has_many :printers, :through => :printer_links
+  has_many :printer_links
+  has_many :printers, through: :printer_links
   accepts_nested_attributes_for :opening_hours
 
   def as_json(*args)
@@ -466,13 +488,19 @@ end
 
 class Printer < ActiveRecord::Base
   has_one :printer_profile
+  has_one :printer_link # has_one link?
+  # has_many :options, through: :printer_links
+  #   def as_json(*args)
+      #hash = super()
+      #hash.except("options_id")
+    #end
 end
 
 class PrinterLink < ActiveRecord::Base
-  belongs_to :option
+  belongs_to :options
   belongs_to :printer
 end
 
 class PrinterProfile < ActiveRecord::Base
-  # has_many :printers
+  has_many :printers
 end

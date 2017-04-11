@@ -9,6 +9,8 @@ ul class="tasktabs"
   li Admin
   li Filial/avdeling
   li Bootprofiler
+  li Printerprofiler
+  li Printere
 
 div class="taskpanes"
   div class="taskpane"
@@ -203,5 +205,72 @@ div class="taskpanes"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
+
+  div[class="taskpane" id="printer_profiles"]
+    p
+      select[id="printer_profile_selector"]
+        option[value=0]Ny profil
+        option[value=1]Korttidsmaskin
+        option[value=2]Lånemaskin
+    hr
+
+    form[id="printer_profile_form"]
+      input[type="text" name="id" hidden]
+      p
+        label[for="printer_profile_name"]Navn:
+        input[id="printer_profile_name" type="text" name="name" placeholder="3D skriver"]
+      p
+      hr
+      button[type='button' id="save_printer_profile" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="clone_printer_profile" class="action_button"]  = "Klon profil"
+      button[type='button' id="delete_printer_profile" class="action_button"]  = "Slett profil"
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+
   div[class="taskpane"]
+    p
+      select[id="printer_selector"]
+        option[value=0]Ny printer
+    hr
+
+    form[id="printer_profile_form"]
+      input[type="text" name="id" hidden]
+      p
+        label[for="printer__name"]Navn:
+        input[id="printer_name" type="text" name="name" placeholder="3D skriver"]
+      p
+        select[class="printer_profile_selector" name="printer_profile_id"]
+      p
+        select[id="printer_branches" class="branch_selector in_form"]
+      p
+        label[for="uri_printer"]URI printer:
+        input[id="uri_printer" type="text" name="uri_printer"]
+      p
+        label[for="uri_client"]URI klient:
+        input[id="uri_client" type="text" name="uri_client"]
+      p
+        label[for="ppd_printer"]PPD printer:
+        input[id="ppd_printer" type="text" name="ppd_printer"]
+      p
+        label[for="ppd_client"]PPD klient:
+        input[id="ppd_client" type="text" name="ppd_client"]
+      p
+        label[for="ip_printer"]PPD klient:
+        input[id="ip_printer" type="text" name="ip_printer"]
+      p
+        label[for="admin_url"]Admin URL:
+        input[id="admin_url" type="text" name="admin_url"]
+      p
+        label[for="info"]Info:
+        input[id="info" type="text" name="info"]
+      p
+
+    hr
+    button[type='button' id="save_printer" class="action_button"]  = "Lagre endringer"
+    button[type='button' id="clone_printer" class="action_button"]  = "Klon profil"
+    button[type='button' id="delete_printer" class="action_button"]  = "Slett profil"
+
+    span[class="info" style="margin-left:48px"]
     span[class="error" style="margin-left:48px"]

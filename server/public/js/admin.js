@@ -2,8 +2,8 @@
 /* global $ */
 
 $(function() {
-  let clients, branches, departments, requests, admins;
-  let clientOptions, branchOptions, departmentOptions, requestOptions, adminOptions;
+  let clients, branches, departments, requests, admins, printers;
+  let clientOptions, branchOptions, departmentOptions, requestOptions, adminOptions, printerOptions;
 
   //
   // form helper functions
@@ -223,6 +223,51 @@ $(function() {
       }
     });
   };
+
+
+  const getPrinterProfiles = function(selectedID) {
+    return get('/api/printer_profiles/').done(function(data) {
+      const $profileSelector = $('.printer_profile_selector').empty();
+      const options = [];
+      // options.push($('<option />', {text: 'Ny printerprofil', value: '0'}));
+      $('#printer_profile_selector').append($('<option />', {text: 'Ny printerprofil', value: '0'}));
+
+      data.printer_profiles.forEach(profile => {
+        options.push($('<option />', {
+          'text': profile.name,
+          'value': profile.id,
+          'data-profile': JSON.stringify(profile)
+        }));
+      });
+
+      $profileSelector.append(options);
+      if (selectedID) {
+        $profileSelector.val(selectedID);
+      }
+    });
+  };
+
+  const getPrinters = function(selectedID) {
+    return get('/api/printers/').done(function(data) {
+      const $printerSelector = $('#printer_selector').empty();
+      const options = [];
+      options.push($('<option />', {text: 'Ny printer', value: '0'}));
+
+      data.printers.forEach(printer => {
+        options.push($('<option />', {
+          'text': printer.name,
+          'value': printer.id,
+          'data-printer': JSON.stringify(printer)
+        }));
+      });
+
+      $printerSelector.append(options);
+      if (selectedID) {
+        $printerSelector.val(selectedID);
+      }
+    });
+  };
+
 
   //
   // Universal event handlers
@@ -829,7 +874,7 @@ $('.tasktabs li').click(function() {
 // load and initialize
 
 $.when(
-  getClients(), getBranches(), getDepartments(), getRequests(), getAdmins(), getProfiles()
+  getClients(), getBranches(), getDepartments(), getRequests(), getAdmins(), getProfiles(), getPrinterProfiles(), getPrinters()
 ).then(function() {
   ViewHandler.init();
   AffiliateHandler.init();
