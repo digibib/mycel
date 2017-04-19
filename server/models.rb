@@ -5,26 +5,6 @@ require "./config/settings"
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
 
-# helpers
-def get_options(diz)
-  puts "hullo"
-  puts diz.options.inspect
-  diz.options.printer_links.each do |pp|
-    puts pp.printer.to_json
-  end
-
-  Printer.all.each do |p|
-    #puts p.inspect
-    #puts p.printer_link.inspect
-  end
-
-  #puts diz.options.printers.inspect
-  opt = self.options.as_json
-  oh = self.options.opening_hours.as_json
-  opt.merge! "opening_hours" => oh
-  opt.except("owner_options_id", "owner_options_type", "id")
-end
-
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
 
@@ -47,7 +27,6 @@ class Organization < ActiveRecord::Base
   end
 
   def options_self_or_inherited
-    #get_options(self)
     opt = self.options.as_json
     oh = self.options.opening_hours.as_json
     opt.merge! "opening_hours" => oh
@@ -77,6 +56,7 @@ class Branch < ActiveRecord::Base
   has_many :departments, :dependent => :destroy
   has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
+  has_many :printers
 
   validates_presence_of :name
 
@@ -93,6 +73,7 @@ class Branch < ActiveRecord::Base
     hash = super()
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
+    hash.merge!(:printers => self.printers.as_json)
     hash.except("organization_id")
   end
 
@@ -219,6 +200,7 @@ class Client < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge! "screen_resolution" => self.screen_resolution.resolution
     hash.merge!(:options_inherited => self.options_self_or_inherited)
+    hash.merge!(:printers => self.department.branch.printers.as_json) # TODO FIX
   end
 end
 
@@ -488,17 +470,6 @@ end
 
 class Printer < ActiveRecord::Base
   has_one :printer_profile
-  has_one :printer_link # has_one link?
-  # has_many :options, through: :printer_links
-  #   def as_json(*args)
-      #hash = super()
-      #hash.except("options_id")
-    #end
-end
-
-class PrinterLink < ActiveRecord::Base
-  belongs_to :options
-  belongs_to :printer
 end
 
 class PrinterProfile < ActiveRecord::Base
