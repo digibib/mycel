@@ -170,7 +170,12 @@ $(function() {
 
       branchOptions = [];
       data.branches.forEach(branch => {
-        branchOptions.push($('<option />', {text: branch.name, value: branch.id}));
+        branchOptions.push($('<option />', {
+          text: branch.name,
+          value: branch.id,
+          'data-default-printer': branch.options.default_printer_id
+            || branch.options_inherited.default_printer_id
+         }));
       });
 
       $branchSelector.append(branchOptions);
@@ -192,6 +197,9 @@ $(function() {
         departmentOptions.push($('<option />', {
           text: department.name,
           value: department.id,
+          'data-default-printer': department.options.default_printer_id
+            || department.options_inherited.default_printer_id,
+          'data-printer-is-inherited': !department.options.default_printer_id,
           class: 'departments branch-' + department.branch_id
         }));
       });
@@ -236,7 +244,7 @@ $(function() {
         options.push($('<option />', {
           'text': profile.name,
           'value': profile.id,
-          'data-profile': JSON.stringify(profile)
+          'data-printer_profile': JSON.stringify(profile)
         }));
       });
 
@@ -247,21 +255,26 @@ $(function() {
     });
   };
 
+  // printer_selector
   const getPrinters = function(selectedID) {
     return get('/api/printers/').done(function(data) {
-      const $printerSelector = $('#printer_selector').empty();
-      const options = [];
-      options.push($('<option />', {text: 'Ny printer', value: '0'}));
+      const $printerSelector = $('.printer_selector').empty();
+      $('#printer_selector').append($('<option />', {text: 'Ny printer', value: '0'}));
+      printerOptions = [];
+      //options.push($('<option />', {text: 'Ny printer', value: '0'}));
 
       data.printers.forEach(printer => {
-        options.push($('<option />', {
+        printerOptions.push($('<option />', {
           'text': printer.name,
           'value': printer.id,
-          'data-printer': JSON.stringify(printer)
+          'class': 'printers branch-' + printer.branch_id,
+          'data-printer': JSON.stringify(printer), // dont use this i dont think
+          'data-name': printer.name,
+          'data-id': printer.id
         }));
       });
 
-      $printerSelector.append(options);
+      $printerSelector.append(printerOptions);
       if (selectedID) {
         $printerSelector.val(selectedID);
       }
@@ -647,6 +660,7 @@ const AffiliateHandler = {
   type: 'Branch',
   $branchSelector: $('#affiliate_branches'),
   $departmentSelector: $('#affiliate_departments'),
+  $printerSelector: $('#affiliate_printers'),
   $form: $('#affiliate_form'),
   $typeSwitch: $('input:radio[name="affiliate_type"]'),
   $newOption: $('<option />', {
@@ -672,22 +686,28 @@ const AffiliateHandler = {
       self.setDepartment($(this).val());
     });
 
-    $('#save_affiliate').click(function() {
+    $('#affiliate_printers').change(function() {
+      // if type == Branch ==> branchSelector.data-default-printer is set?
+    })
+
+    $('#save_affiliate, #set_default_printer').click(function() {
       // prepare form parameters
-      let reloadFunc, apiString;
+      let id, reloadFunc, apiString;
 
       if (self.type === 'Branch') {
         $('#organization_id').val('1'); // iffy thing
         apiString = '/api/branches/';
-        reloadFunc = function(id) {
+        id = $('#affiliate_branches').val();
+        reloadFunc = function() {
           $.when(getBranches(id)).then(function() {
             self.setBranch(id);
           });
         };
       } else {
+        id = $('#affiliate_departments').val();
         $('#affiliate_branch_id').val($('#affiliate_branches').val());
         apiString = '/api/departments/';
-        reloadFunc = function(id) {
+        reloadFunc = function() {
           $.when(getDepartments(id)).then(function() {
             self.setBranch($('#affiliate_branches').val());
             self.setDepartment(id);
@@ -695,17 +715,30 @@ const AffiliateHandler = {
         };
       }
 
-      // save form
-      const request = save(self.$form, apiString, 'POST');
+      // save form or set printer
+      let request;
+      if ($(this).attr('id') == "save_affiliate") {
+        request = save(self.$form, apiString, 'POST');
+      } else {
+        request = $.ajax({
+                url: apiString + id,
+                type: 'PUT',
+                data: JSON.stringify({default_printer_id: self.$printerSelector.find(':selected').val()}),
+                dataType: "json",
+                contentType: "application/json; charset=UTF-8"
+              })
+      }
 
       request.done(function(data) {
-        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
-        reloadFunc(data.id);
+          self.$form.find('span.error').hide();
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          reloadFunc();
       });
 
       request.fail(function(jqXHR, textStatus, errorThrown) {
-        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-      });
+          self.$form.find('span.info').hide();
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        })
     });
 
     $('#delete_affiliate').click(function() {
@@ -754,8 +787,10 @@ const AffiliateHandler = {
     return this;
   },
   filterDepartments: function(branchID) {
-    const filter = '.departments' + (branchID === '0' ? '' : '.branch-' + branchID);
+    let filter = '.departments' + (branchID === '0' ? '' : '.branch-' + branchID);
     populateSelector(this.$departmentSelector, departmentOptions, filter, false);
+    filter = '.printers' + (branchID === '0' ? '' : '.branch-' + branchID);
+    populateSelector(this.$printerSelector, printerOptions, filter, false);
     return this;
   },
   setDepartment: function(departmentID) {
@@ -764,6 +799,8 @@ const AffiliateHandler = {
     } else {
       this.$departmentSelector.val(departmentID);
       findAndPopulate(this.$form, departments, departmentID);
+      //this.$printerSelector.val(this.$departmentSelector.find(':selected').data('default-printer'));
+      this.setPrinter(this.$departmentSelector);
     }
     return this;
   },
@@ -774,13 +811,33 @@ const AffiliateHandler = {
       this.$branchSelector.prepend(this.$newOption);
       this.$branchSelector.val(branchID);
       branchID == '0' ? clear(this.$form) : findAndPopulate(this.$form, branches, branchID);
+
+      //this.$printerSelector.val(this.$branchSelector.find(':selected').data('default-printer'));
+      this.setPrinter(this.$branchSelector);
     } else {
       this.$departmentSelector.prepend(this.$newOption);
       this.$departmentSelector.children().first().prop('selected', true);
       clear(this.$form);
+      //this.$printerSelector.val(this.$departmentSelector.find(':selected').data('default-printer'));
+      this.setPrinter(this.$departmentSelector);
     }
 
     return this;
+  },
+  setPrinter: function(sel) {
+    let defaultPrinterID = sel.find(':selected').data('default-printer');
+    let isInherited = sel.find(':selected').data('printer-is-inherited');
+
+    this.$printerSelector.find('option').each (function(i) {
+      $(this).text($(this).data('name')); // reset printer name
+
+      if ($(this).val() == defaultPrinterID) {
+        let append = isInherited ? '* (arvet)' : '*'
+        $(this).text($(this).text() + append);
+      }
+    })
+
+    this.$printerSelector.val(defaultPrinterID);
   },
   resetForm: function() {
     clear(this.$form);
@@ -856,6 +913,145 @@ const ProfileHandler = {
   }
 };
 
+
+//
+// PRINTERS
+//
+const PrinterHandler = {
+  $printerSelector: $('#printer_selector'),
+  $form: $('#printer_form'),
+  init: function() {
+    this.bindUIActions();
+    this.showPrinter('0');
+  },
+  reloadPrinters: function(id) {
+    $.when(getPrinters(id))
+    .then(function() {
+      this.showPrinter(id);
+    }.bind(this));
+  },
+  showPrinter: function(printerID) {
+    if (printerID == '0') {
+      clear(this.$form);
+    } else {
+      populate(this.$form, this.$printerSelector.children().filter(':selected').data('printer'));
+    }
+  },
+  bindUIActions: function() {
+    const self = this;
+
+    this.$printerSelector.change(function() {
+      self.showPrinter($(this).val());
+    });
+
+    $('#save_printer').click(function() {
+      save(self.$form, '/api/printers/', 'POST')
+      .done(function(data) {
+        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+        self.reloadPrinters(data.id); // is there?
+      })
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+      });
+    });
+
+    $('#clone_printer').click(function() {
+      const printerID = self.$printerSelector.val();
+      if (printerID != '0') {
+        self.showPrinter(printerID);
+        self.$form.find('[name="name"]').val("klone");
+        self.$form.find('[name="id"]').val("0"); // hmm
+      }
+    });
+
+    $('#delete_printer').click(function() {
+      const id = self.$printerSelector.val();
+      const name = self.$form.find('[name="name"]').val();
+
+      if (id != '0' && window.confirm('Sikker på at du vil slette ' + name + '?')) {
+        save(self.$form, '/api/printers/' + id, 'DELETE')
+        .done(function(data) {
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          self.reloadPrinters(0);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      }
+    });
+  }
+};
+
+//
+// PRINTER PROFILES
+//
+const PrinterProfileHandler = {
+  $printerProfileSelector: $('#printer_profile_selector'),
+  $form: $('#printer_profile_form'),
+  init: function() {
+    this.bindUIActions();
+    this.showPrinterProfile('0');
+  },
+  reloadPrinterProfiles: function(id) {
+    $.when(getPrinterProfiles(id))
+    .then(function() {
+      this.showPrinterProfile(id);
+    }.bind(this));
+  },
+  showPrinterProfile: function(id) {
+    if (id == '0') {
+      clear(this.$form);
+    } else {
+      populate(this.$form, this.$printerProfileSelector.children().filter(':selected').data('printer_profile')); // is correct?!
+    }
+  },
+  bindUIActions: function() {
+    const self = this;
+
+    this.$printerProfileSelector.change(function() {
+      self.showPrinterProfile($(this).val());
+    });
+
+    $('#save_printer_profile').click(function() {
+      save(self.$form, '/api/printer_profiles/', 'POST')
+      .done(function(data) {
+        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+        self.reloadPrinterProfiles(data.id);
+      })
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+      });
+    });
+
+    $('#clone_printer_profile').click(function() {
+      const id = self.$printerProfileSelector.val();
+      if (id != '0') {
+        self.showPrinterProfile(id);
+        self.$form.find('[name="name"]').val("klone");
+        self.$form.find('[name="id"]').val("0");
+      }
+    });
+
+    $('#delete_printer_profile').click(function() {
+      const id = self.$printerProfileSelector.val();
+      const name = self.$form.find('[name="name"]').val();
+
+      if (id != '0' && window.confirm('Sikker på at du vil slette ' + name + '?')) {
+        save(self.$form, '/api/printer_profiles/' + id, 'DELETE')
+        .done(function(data) {
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          self.reloadPrinterProfiles(0);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      }
+    });
+  }
+};
+
+
+
 //
 // Initialize page
 //
@@ -880,6 +1076,8 @@ $.when(
   AffiliateHandler.init();
   AdminHandler.init();
   ProfileHandler.init();
+  PrinterProfileHandler.init();
+  PrinterHandler.init();
   $('.taskpane:first').find('span.progress').hide();
 }).fail(function() {
   const message = "NB! Kritisk feil. Kunne ikke laste inn dataene";

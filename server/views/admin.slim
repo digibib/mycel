@@ -103,6 +103,8 @@ div class="taskpanes"
       button[type='button' id="save_new_client" class="action_button"]  = "Lagre ny klient"
       button[type='button' id="delete_request" class="action_button"]  = "Slett oppføring"
 
+      span[class="progress" style="margin-left:48px" hidden]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -136,6 +138,8 @@ div class="taskpanes"
       button[type='button' id="save_admin" class="action_button"]  = "Lagre admin"
       button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
 
+      span[class="progress" style="margin-left:48px" hidden]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -159,10 +163,18 @@ div class="taskpanes"
         label for="affiliate_name" class="fw" Navn:
         input[id="affiliate_name" type="text" name="name"]
       p
-      hr
-      button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
-      button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
+        hr
+        button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
+        button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
+      p
+        h4 Velg standardskriver:
+      p
+        select[id="affiliate_printers" class="printer_selector"]
+      p
+        button[type='button' id="set_default_printer"] = "Aktiver"
 
+      span[class="progress" style="margin-left:48px" hidden]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -193,14 +205,13 @@ div class="taskpanes"
         label[for="message"]Boot-melding:
         input[id="message" type="text" name="message" placeholder="Booter som publikumsmaskin"]
       p
-      label[for="description"]Beskrivelse:
-      textarea[id="description" name="description" rows="2" placeholder="Lubuntu 16.04"]
+        label[for="description"]Beskrivelse:
+        textarea[id="description" name="description" rows="2" placeholder="Lubuntu 16.04"]
       p
       hr
       button[type='button' id="save_profile" class="action_button"]  = "Lagre endringer"
       button[type='button' id="clone_profile" class="action_button"]  = "Klon profil"
       button[type='button' id="delete_profile" class="action_button"]  = "Slett profil"
-
 
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
@@ -208,7 +219,7 @@ div class="taskpanes"
 
   div[class="taskpane" id="printer_profiles"]
     p
-      select[id="printer_profile_selector"]
+      select[id="printer_profile_selector" class="printer_profile_selector"]
         option[value=0]Ny profil
         option[value=1]Korttidsmaskin
         option[value=2]Lånemaskin
@@ -229,21 +240,23 @@ div class="taskpanes"
       span[class="error" style="margin-left:48px"]
 
 
-  div[class="taskpane"]
+  div[class="taskpane" id="prints"]
     p
-      select[id="printer_selector"]
+      select[id="printer_selector" class="printer_selector"]
         option[value=0]Ny printer
     hr
 
-    form[id="printer_profile_form"]
+    form[id="printer_form"]
       input[type="text" name="id" hidden]
       p
-        label[for="printer__name"]Navn:
+        label[for="printer_name"]Navn:
         input[id="printer_name" type="text" name="name" placeholder="3D skriver"]
       p
+        label[for="printer_profile_selector"]Profil:
         select[class="printer_profile_selector" name="printer_profile_id"]
       p
-        select[id="printer_branches" class="branch_selector in_form"]
+        label[for="printer_branches"]Filial:
+        select[id="printer_branches" name="branch_id" class="branch_selector in_form"]
       p
         label[for="uri_printer"]URI printer:
         input[id="uri_printer" type="text" name="uri_printer"]
@@ -257,20 +270,22 @@ div class="taskpanes"
         label[for="ppd_client"]PPD klient:
         input[id="ppd_client" type="text" name="ppd_client"]
       p
-        label[for="ip_printer"]PPD klient:
+        label[for="ip_printer"]IP printer:
         input[id="ip_printer" type="text" name="ip_printer"]
       p
         label[for="admin_url"]Admin URL:
         input[id="admin_url" type="text" name="admin_url"]
       p
+        label[for="location"]Location:
+        input[id="location" type="text" name="location"]
+      p
         label[for="info"]Info:
         input[id="info" type="text" name="info"]
       p
+      hr
+      button[type='button' id="save_printer" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="clone_printer" class="action_button"]  = "Klon printer"
+      button[type='button' id="delete_printer" class="action_button"]  = "Slett printer"
 
-    hr
-    button[type='button' id="save_printer" class="action_button"]  = "Lagre endringer"
-    button[type='button' id="clone_printer" class="action_button"]  = "Klon profil"
-    button[type='button' id="delete_printer" class="action_button"]  = "Slett profil"
-
-    span[class="info" style="margin-left:48px"]
-    span[class="error" style="margin-left:48px"]
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
