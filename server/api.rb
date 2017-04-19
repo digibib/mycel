@@ -504,13 +504,15 @@ class API < Grape::API
           :message => "Du kan ikke stenge før du har åpnet!" unless dept.options.opening_hours.valid?
         end
 
-        throw :error, :status => 400,
-        :message => "Ingen endringer!" unless changes
+        # At the risk of collapsing the universe: trying to save unchanged object
+        # will no longer result in a thrown error...
+        #throw :error, :status => 400,
+        #:message => "Ingen endringer!" unless changes
 
         # persist the changes:
         dept.options.opening_hours.save if dept.options.opening_hours
         dept.options.save
-        {:department => dept.as_json}
+        {:department => dept.as_json, :message => "OK. Lagret."}
       end
     end
 
@@ -567,13 +569,13 @@ class API < Grape::API
           :message => "Du kan ikke stenge før du har åpnet!" unless branch.options.opening_hours.valid?
         end
 
-        throw :error, :status => 400,
-        :message => "Ingen endringer!" unless changes
+        #throw :error, :status => 400,
+        #:message => "Ingen endringer!" unless changes
 
         # persist the changes:
         branch.options.opening_hours.save if branch.options.opening_hours
         branch.options.save
-        {:branch => branch.as_json}
+        {:branch => branch.as_json, :message => "OK. Lagret."}
       end
     end
 
