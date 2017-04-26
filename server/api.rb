@@ -254,6 +254,30 @@ class API < Grape::API
     end
   end
 
+  resource :client_specs do
+    desc "updates hardware info for client"
+    post "/" do
+      mac = params[:mac]
+      begin
+        client = Client.find_by_hwaddr(mac)
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404,
+        :message => "Det finnes ingen klient med mac #{params[:mac]}"
+      end
+
+      begin
+        spec = ClientSpec.find_by_client_id(client.id)
+      rescue
+        spec = ClientSpec.new(client_id: client.id)
+      end
+
+      updates = params.select {|key| spec.attributes.keys.include?(key) }
+      spec.attributes = spec.attributes.merge(updates)
+
+      #puts spec.attributes
+      # spec.save
+    end
+  end
 
   resource :clients do
     desc "returns all clients, or identifies a client given a MACadress, or registers new request by MAC address"
@@ -339,8 +363,6 @@ class API < Grape::API
       end
     end
 
-
-
     desc "updates an existing client and returns the updated version"
     put "/:id" do
       client = Client.find(params[:id])
@@ -361,7 +383,6 @@ class API < Grape::API
       client.save
       {:client => client}
     end
-
 
     desc "deletes an existing client and returns status"
     delete "/:id" do
@@ -515,6 +536,7 @@ class API < Grape::API
         {:department => dept.as_json, :message => "OK. Lagret."}
       end
     end
+
 
     resource :branches do
       desc "return all branches with attributes and options"

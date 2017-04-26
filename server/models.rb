@@ -150,6 +150,7 @@ class Client < ActiveRecord::Base
   has_one :user, :inverse_of => :client, :autosave => true
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
+  # has_one :client_spec
 
   accepts_nested_attributes_for :options, :screen_resolution
 
@@ -474,4 +475,8 @@ end
 
 class PrinterProfile < ActiveRecord::Base
   has_many :printers
+end
+
+class ClientSpec < ActiveRecord::Base
+  #belongs_to :client
 end
