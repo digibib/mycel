@@ -691,7 +691,7 @@ const AffiliateHandler = {
     })
 
     $('#save_affiliate, #set_default_printer').click(function() {
-      // prepare form parameters
+      // prepare refresh functions
       let id, reloadFunc, apiString;
 
       if (self.type === 'Branch') {
@@ -945,14 +945,28 @@ const PrinterHandler = {
     });
 
     $('#save_printer').click(function() {
-      save(self.$form, '/api/printers/', 'POST')
-      .done(function(data) {
-        self.$form.find('span.info').html(data.message).show().fadeOut(5000);
-        self.reloadPrinters(data.id); // is there?
-      })
-      .fail(function(jqXHR, textStatus, errorThrown) {
-        self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
-      });
+      let branchChanged = false;
+      let hasSubscribers = false;
+      const is_edit = self.$printerSelector.val() != "0"
+      if (is_edit) {
+        const oldData = self.$printerSelector.children().filter(':selected').data('printer')
+        const newBranchID = self.$form.find('#printer_branches').val()
+        branchChanged = oldData.branch_id != newBranchID
+        hasSubscribers = oldData.has_subscribers
+      }
+
+      let confirmMessage = "NB! Denne skriveren er satt som standard i nåværende filial/avdeling. "
+      confirmMessage += "Husk å rydde opp hvis du fortsetter."
+      if (!branchChanged || !hasSubscribers || window.confirm(confirmMessage)) {
+        save(self.$form, '/api/printers/', 'POST')
+        .done(function(data) {
+          self.$form.find('span.info').html(data.message).show().fadeOut(5000);
+          self.reloadPrinters(data.id);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
+        });
+      }
     });
 
     $('#clone_printer').click(function() {
@@ -973,6 +987,10 @@ const PrinterHandler = {
         .done(function(data) {
           self.$form.find('span.info').html(data.message).show().fadeOut(5000);
           self.reloadPrinters(0);
+
+          // on deletion, also refresh affiliate view
+          getBranches($('#affiliate_branches'));
+          getDepartments($('#affiliate_departments'));
         })
         .fail(function(jqXHR, textStatus, errorThrown) {
           self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);
@@ -1041,6 +1059,7 @@ const PrinterProfileHandler = {
         .done(function(data) {
           self.$form.find('span.info').html(data.message).show().fadeOut(5000);
           self.reloadPrinterProfiles(0);
+          PrinterHandler.reloadPrinters(0);
         })
         .fail(function(jqXHR, textStatus, errorThrown) {
           self.$form.find('span.error').html(jqXHR.responseText).show().fadeOut(5000);

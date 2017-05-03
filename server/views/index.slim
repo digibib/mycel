@@ -3,7 +3,6 @@ div class="main"
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
     == render :slim,  :'admin', :layout => false, :locals => {:screen_res => screen_res}
   - else
-    - puts admin
     h2 Hva er dette?
     p Mycel er et system for å administrere Deichmans publikumsmaskiner.
     p Denne siden er kun for superbruker (IT-admin) - klikk deg inn på <a href="/clients">klienter</a> eller <a href="/users">brukere</a> for å administrere din avdeling/filial.

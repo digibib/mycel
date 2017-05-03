@@ -36,18 +36,18 @@ div class="taskpanes"
         input[id="edit_client_name" class="name" type="text" name="name"]
       p
         label for="edit_client_hwaddr" class="fw" Mac:
-        input[id="edit_client_hwaddr" type="text" name="hwaddr"]
+        input[id="edit_client_hwaddr" type="text" name="hwaddr" class="halfwidth"]
 
-        label for="edit_client_ipaddr" class="fw" style="text-align:center" IP:
-        input[id="edit_client_ipaddr" type="text" name="ipaddr"]
+        label for="edit_client_ipaddr" class="halfwidth" style="text-align:center" IP:
+        input[id="edit_client_ipaddr" type="text" name="ipaddr" class="halfwidth"]
       p
-        label for="edit_client_shorttime" Korttids:
+        label[for="edit_client_shorttime" class="halfwidth"]Korttids:
         input[id="edit_client_shorttime" name="shorttime" type="checkbox"]
 
-        label for="edit_testclient" Test:
+        label[for="edit_testclient" class="halfwidth"]Test:
         input[id="edit_testclient" name="testclient" type="checkbox"]
 
-        label for="edit_client_screen_res" Oppløsning:
+        label[for="edit_client_screen_res" class="halfwidth"]Oppløsning:
         select[id="edit_client_screen_res" name="screen_resolution_id"]
           - for res in screen_res do
             |<option value="#{res.id}">#{res.resolution}</option>
@@ -80,19 +80,19 @@ div class="taskpanes"
         input[id="name" type="text" name="name"]
       p
         label for="hwaddr" class="fw" Mac:
-        input[id="hwaddr" type="text" name="hwaddr"]
+        input[id="hwaddr" type="text" name="hwaddr" class="halfwidth"]
 
-        label for="ipaddr" class="fw" style="text-align:center" IP:
-        input[id="ipaddr" type="text" name="ipaddr"]
+        label[for="ipaddr" class="halfwidth" style="text-align:center"]IP:
+        input[id="ipaddr" type="text" name="ipaddr" class="halfwidth"]
         button[type='button' id="suggest_ip"]  = "Foreslå"
       p
-      label for="shorttime" Korttids:
+      label[for="shorttime" class="halfwidth"]Korttids:
       input[id="shorttime" name="shorttime" type="checkbox"]
 
-      label for="testclient" Test:
+      label[for="testclient" class="halfwidth"]Test:
       input[id="testclient" name="testclient" type="checkbox"]
 
-      label for="client_screen_res" Oppløsning:
+      label[for="client_screen_res" class="halfwidth"] Oppløsning:
       select[id="client_screen_res" name="screen_resolution_id"]
         - for res in screen_res do
           |<option value="#{res.id}">#{res.resolution}</option>
@@ -249,37 +249,37 @@ div class="taskpanes"
     form[id="printer_form"]
       input[type="text" name="id" hidden]
       p
-        label[for="printer_name"]Navn:
+        label[for="printer_name" class="fw"]Navn:
         input[id="printer_name" type="text" name="name" placeholder="3D skriver"]
       p
-        label[for="printer_profile_selector"]Profil:
+        label[for="printer_profile_selector" class="fw"]Profil:
         select[class="printer_profile_selector" name="printer_profile_id"]
       p
-        label[for="printer_branches"]Filial:
+        label[for="printer_branches" class="fw"]Filial:
         select[id="printer_branches" name="branch_id" class="branch_selector in_form"]
       p
-        label[for="uri_printer"]URI printer:
+        label[for="uri_printer" class="fw"]URI printer:
         input[id="uri_printer" type="text" name="uri_printer"]
       p
-        label[for="uri_client"]URI klient:
+        label[for="uri_client" class="fw"]URI klient:
         input[id="uri_client" type="text" name="uri_client"]
       p
-        label[for="ppd_printer"]PPD printer:
+        label[for="ppd_printer" class="fw"]PPD printer:
         input[id="ppd_printer" type="text" name="ppd_printer"]
       p
-        label[for="ppd_client"]PPD klient:
+        label[for="ppd_client" class="fw"]PPD klient:
         input[id="ppd_client" type="text" name="ppd_client"]
       p
-        label[for="ip_printer"]IP printer:
+        label[for="ip_printer" class="fw"]IP printer:
         input[id="ip_printer" type="text" name="ip_printer"]
       p
-        label[for="admin_url"]Admin URL:
+        label[for="admin_url" class="fw"]Admin URL:
         input[id="admin_url" type="text" name="admin_url"]
       p
-        label[for="location"]Location:
+        label[for="location" class="fw"]Location:
         input[id="location" type="text" name="location"]
       p
-        label[for="info"]Info:
+        label[for="info" class="fw"]Info:
         input[id="info" type="text" name="info"]
       p
       hr

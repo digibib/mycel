@@ -32,15 +32,17 @@ class Organization < ActiveRecord::Base
     opt.merge! "opening_hours" => oh
     opt.except("owner_options_id", "owner_options_type", "id")
   end
-
-
 end
+
+
+
+
 
 class Options < ActiveRecord::Base
   belongs_to :owner_options, :polymorphic => true
+  belongs_to :printers, :foreign_key => "default_printer_id"
   has_one :opening_hours
-  has_many :printer_links
-  has_many :printers, through: :printer_links
+
   accepts_nested_attributes_for :opening_hours
 
   def as_json(*args)
@@ -470,13 +472,20 @@ class Profile < ActiveRecord::Base
 end
 
 class Printer < ActiveRecord::Base
-  has_one :printer_profile
+  belongs_to :printer_profile
+  has_many :options, class_name: "Options", foreign_key: "default_printer_id", dependent: :nullify
+
+  # does any branch or affiliate have this printer set as their default?
+  def has_subscribers
+    options.size > 0
+  end
 end
 
+
 class PrinterProfile < ActiveRecord::Base
-  has_many :printers
+  has_many :printers, dependent: :destroy
 end
 
 class ClientSpec < ActiveRecord::Base
-  #belongs_to :client
+  belongs_to :client
 end

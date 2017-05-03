@@ -199,7 +199,12 @@ class API < Grape::API
   resource :printers do
     desc "returns all printers"
     get "/" do
-      {:printers => Printer.all}
+      printers = []
+      Printer.all.each do |printer|
+        printers << printer.attributes.merge({has_subscribers: printer.has_subscribers })
+      end
+
+      {:printers => printers}
     end
 
     desc "returns a specific printer"
@@ -274,8 +279,7 @@ class API < Grape::API
       updates = params.select {|key| spec.attributes.keys.include?(key) }
       spec.attributes = spec.attributes.merge(updates)
 
-      #puts spec.attributes
-      # spec.save
+      spec.save if spec.changed?
     end
   end
 
@@ -344,12 +348,12 @@ class API < Grape::API
 
       # select only the keys from params present in client.attributes
       updates = form_data.select {|key| client.attributes.keys.include?(key) }
-      client.attributes = client.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
+      client.attributes = client.attributes.merge(updates){|key, oldval, newval| (key == "id" || key == "ts") ? oldval : newval }
 
       # missing keys typically represent unchecked checkboxes. these are set to false.
       missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
       missing_keys.each do |key|
-        client.attributes = {key.to_sym => false}
+        client.attributes = {key.to_sym => false} unless key == "ts" # except timestamp
       end
 
       if client.save
@@ -473,7 +477,7 @@ class API < Grape::API
     resource :departments do
       desc "return all departments with attributes and options"
       get "/" do
-        {:departments => Department.all}
+        {:departments => Department.all.as_json}
       end
 
       desc "get specific department"
@@ -541,7 +545,7 @@ class API < Grape::API
     resource :branches do
       desc "return all branches with attributes and options"
       get "/" do
-        {:branches => Branch.all}
+        {:branches => Branch.all.as_json}
       end
 
       desc "get specific branch"

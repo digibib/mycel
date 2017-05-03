@@ -101,9 +101,8 @@ class Server < Goliath::WebSocket
 
       if env['user'] && env['client']
         if msg['status'] == "cmd-output"
-          puts "have a banana"
-          puts msg
-          env.channels['admin/1'] << msg.to_json
+          # stub implementation for remote command execution over WS commented out
+          # env.channels['admin/1'] << msg.to_json
         end
 
         case msg['action']
@@ -178,17 +177,15 @@ class Server < Goliath::WebSocket
 
             env['user'] = nil
           end
-          # begins highly unsafe prototest...
+          # begins highly unsafe code, commented out for now
         else
           case msg['status']
           when 'cmd'
-            puts "msg received!"
-            puts msg.to_json
-            env.channels['clients/245'] << msg.to_json
+            # env.channels['clients/245'] << msg.to_json
           when 'cmd-output'
-            puts "reply received!"
+            #
           else
-            puts "whats wrong"
+            #
           end
           # highly unsafe code ends
         end
