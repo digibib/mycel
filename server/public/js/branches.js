@@ -2,7 +2,9 @@ $(document).ready(function () {
 
   // ** connect to mycel websocket server
 
-  var ws = new WebSocket("ws://localhost:9001/subscribe/branches");
+  //var ws = new WebSocket("ws://localhost:9001/subscribe/branches");
+  var ws = new WebSocket("ws://10.172.2.100:9001/subscribe/branches");
+
 
   // handle ws events
 
