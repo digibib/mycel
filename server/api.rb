@@ -271,7 +271,7 @@ class API < Grape::API
       end
 
       begin
-        spec = ClientSpec.find_by_client_id(client.id)
+        spec = ClientSpec.find_by_client_id(client.id) || ClientSpec.new(client_id: client.id)
       rescue
         spec = ClientSpec.new(client_id: client.id)
       end
