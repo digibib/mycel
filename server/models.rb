@@ -35,9 +35,6 @@ class Organization < ActiveRecord::Base
 end
 
 
-
-
-
 class Options < ActiveRecord::Base
   belongs_to :owner_options, :polymorphic => true
   belongs_to :printers, :foreign_key => "default_printer_id"
@@ -152,7 +149,7 @@ class Client < ActiveRecord::Base
   has_one :user, :inverse_of => :client, :autosave => true
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
-  # has_one :client_spec
+  has_one :client_spec, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
 
@@ -203,7 +200,7 @@ class Client < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge! "screen_resolution" => self.screen_resolution.resolution
     hash.merge!(:options_inherited => self.options_self_or_inherited)
-    hash.merge!(:printers => self.department.branch.printers.as_json) # TODO FIX
+    hash.merge!(:printers => self.department.branch.printers)
   end
 end
 
@@ -473,6 +470,7 @@ end
 
 class Printer < ActiveRecord::Base
   belongs_to :printer_profile
+  belongs_to :branch
   has_many :options, class_name: "Options", foreign_key: "default_printer_id", dependent: :nullify
 
   # does any branch or affiliate have this printer set as their default?

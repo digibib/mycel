@@ -270,11 +270,11 @@ class API < Grape::API
         :message => "Det finnes ingen klient med mac #{params[:mac]}"
       end
 
-      begin
-        spec = ClientSpec.find_by_client_id(client.id)
-      rescue
-        spec = ClientSpec.new(client_id: client.id)
-      end
+      #begin
+        spec = ClientSpec.find_by_client_id(client.id) || ClientSpec.new(client_id: client.id)
+      #rescue
+      #  spec = ClientSpec.new(client_id: client.id)
+      #end
 
       updates = params.select {|key| spec.attributes.keys.include?(key) }
       spec.attributes = spec.attributes.merge(updates)
