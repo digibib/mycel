@@ -12,7 +12,7 @@
   padding-left: 5px;
 }
 
-.taskpanes input {
+.taskpanes input, textarea {
     width:500px;
 }
 
@@ -56,4 +56,4 @@ ul.tasktabs li { display:block; float:left; background:#ccc; padding:7px 10px;
 			 border-left:1px solid #ccc; border-top:1px solid #ccc; border-right:1px solid #ccc	;}
 ul.tasktabs li:hover { cursor: pointer; color:#fff; background: #888;}
 ul.tasktabs li.active { cursor:default; background:#fff; color:#000;}
-div.taskpanes { width:90%; height:650px; border: 1px solid #ccc; padding:10px; clear:both;}
+div.taskpanes { width:90%; height:770px; border: 1px solid #ccc; padding:10px; clear:both;}
