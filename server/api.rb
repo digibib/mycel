@@ -129,7 +129,7 @@ class API < Grape::API
         client.touch(:ts) if client.present?
       end
       status 200
-      {message: "OK"}
+      [200, {'Connection' => "close"}, {message: "OK"}]
     end
   end
 
