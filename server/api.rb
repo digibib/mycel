@@ -128,6 +128,8 @@ class API < Grape::API
         client = Client.find_by_hwaddr(mac)
         client.touch(:ts) if client.present?
       end
+      status 200
+      {message: "OK"}
     end
   end
 
