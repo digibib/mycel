@@ -8,10 +8,12 @@ ActiveRecord::Base.include_root_in_json = false
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
 
+  #scope :super, -> { where(superadmin: "1") }
+
   has_many :branches, :dependent => :destroy
   has_many :departments, :through => :branches
   has_one :options, :as => :owner_options
-  has_one :admin, :as => :owner_admins, :conditions => "superadmin = 1"
+  has_one :admin, -> {where superadmin: 1}, :as => :owner_admins
 
   validates_presence_of :name
 
@@ -461,7 +463,7 @@ end
 
 
 class Request < ActiveRecord::Base
-  default_scope order('ts desc')
+  default_scope { order('ts desc') }
 end
 
 class Profile < ActiveRecord::Base

@@ -1,5 +1,5 @@
 source "http://rubygems.org"
-gem "activerecord"
+gem 'activerecord'
 gem "sqlite3"
 gem "goliath"
 gem "em-synchrony"
