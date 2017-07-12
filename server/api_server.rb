@@ -64,6 +64,7 @@ class Server < Goliath::API
      set_admin(env)
 
     if path[1] == 'api'
+      env['HTTP_CONNECTION'] = 'close' if path[2] == 'keep_alive'
       API.call(env)
     else
       if env['admin'] == "none"
