@@ -25,9 +25,12 @@ div class="main"
         - user = User.find(client.user.id)
         - klass = "occupied"
         - image = "/img/pc_green.png"
-      - else
+      - elsif client.connected?
         - klass = "available"
         - image = "/img/pc_black.png"
+      - else
+        - klass = "disconnected"
+        - image = "/img/pc_red.png"
 
       tr class="#{klass}" id="#{client.id}"
         td[style="width:34px"]: img src="#{image}" class="pc"
