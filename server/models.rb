@@ -146,7 +146,7 @@ class Client < ActiveRecord::Base
   validates_presence_of :name, :hwaddr
   validates_uniqueness_of :name, :hwaddr
 
-  has_one :user, :inverse_of => :client, :autosave => true
+  has_one :user, :inverse_of => :client, :autosave => true, dependent: :nullify
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
   has_one :client_spec, :dependent => :destroy
