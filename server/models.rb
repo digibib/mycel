@@ -177,11 +177,17 @@ class Client < ActiveRecord::Base
   end
 
   def status
+    puts "--------"
+    puts ts unless ts.nil?
+    puts Time.now - @@cut_off
+    puts ts > Time.now - @@cut_off unless ts.nil?
+    puts "------------"
+
     if occupied?
       status = 'occupied'
     elsif ts.nil?
       status = 'unseen'
-    elsif ts > Time.now - @@cut_off
+    elsif ts < Time.now - @@cut_off
       status = 'disconnected'
     else
       status = 'available'
