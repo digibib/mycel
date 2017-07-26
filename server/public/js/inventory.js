@@ -2,7 +2,7 @@
 /* global $ */
 
 $(function() {
-  $('#status_selector, #branch_selector').change(function() {
+  const updatePage = function() {
     const $table = $('#inventory_table')
     const status = $('#status_selector option:selected').val()
     const branch = $('#branch_selector option:selected').val()
@@ -19,6 +19,10 @@ $(function() {
 
     $table.find('tr').hide()
     $table.find(filter).show()
+  }
+
+  $('#status_selector, #branch_selector').change(function() {
+    updatePage()
   })
 
 
@@ -37,12 +41,13 @@ $(function() {
       //fixedHeader: true,
       info: false,
       columns: [
-        { data: "status", className: status},
+        { data: "status", className: status, orderData: 6},
         { data: "branch_name"},
         { data: "name"},
         { data: "specs.cpu_family", defaultContent: "-"},
         { data: "specs.ram", defaultContent: "-"},
-        { data: "specs.uuid", defaultContent: "-"}
+        { data: "specs.uuid", defaultContent: "-"},
+        { data: "status", visible: false}
       ],
 
       "columnDefs": [
@@ -89,6 +94,7 @@ $(function() {
     });
   }
 
+  $('#branch_selector, #status_selector').val('all')
   initializeTable()
   $('#inventory_table').DataTable().ajax.url('/api/client_specs').load()
 })
