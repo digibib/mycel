@@ -176,6 +176,20 @@ class Client < ActiveRecord::Base
     self.ts.nil? ? false : self.ts > Time.now - @@cut_off
   end
 
+  def status
+    if occupied?
+      status = 'occupied'
+    elsif ts.nil?
+      status = 'unseen'
+    elsif ts > Time.now - @@cut_off
+      status = 'disconnected'
+    else
+      status = 'available'
+    end
+
+    status
+  end
+
   def log_friendly
     "\"#{self.branch.name}\" \"#{self.department.name}\" \"#{self.name}\" #{self.hwaddr}"
   end

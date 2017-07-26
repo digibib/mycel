@@ -1,0 +1,33 @@
+script src="/js/inventory.js"
+link href='/css/admin.css' rel='stylesheet' type='text/css'
+
+script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"
+link href='https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css' rel='stylesheet' type='text/css'
+
+
+h2 Inventar
+
+label for='status_selector' style='padding-right: 10px;' Status:
+select id='status_selector'
+  option value='all' Alle
+  option value='occupied' Opptatt
+  option value='available' Ledig
+  option value='disconnected' Frakoblet
+  option value='unseen' Usett
+
+label for='branch_selector' style='padding-right: 10px; padding-left: 10px;' Filial:
+select id='branch_selector'
+  option value='all' Alle
+  - for branch in branches do
+    |<option value="#{branch.name}">#{branch.name}</option>
+
+table id="inventory_table" class='table display'
+  thead
+    tr
+      th class="dt-head-left" Status
+      th class="dt-head-left" Filial
+      th class="dt-head-left" Navn
+      th class="dt-head-left compact" CPU
+      th class="dt-head-left compact" RAM
+      th class="dt-head-left compact" UUID
+    tbody

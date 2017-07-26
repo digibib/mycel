@@ -94,6 +94,8 @@ class Server < Goliath::API
                            :locals => {:admin => Admin.find_by_username(env['admin'])})]
           elsif path[1] == 'statistics'
             [200, {}, slim(:statistics)]
+          elsif path[1] == 'inventory'
+            [200, {}, slim(:inventory, locals: {branches: Branch.all})]
           elsif path[1] == 'loggout'
             [200, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
           else    # matches non-existing branch
