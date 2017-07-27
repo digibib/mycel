@@ -55,7 +55,6 @@ class Server < Goliath::API
    end
 
 
-
    def response(env)
      #TODO debug SQL queries & optimize
      #ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development
@@ -96,6 +95,13 @@ class Server < Goliath::API
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
             [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
+          elsif path[1] == 'admin'
+            admin = Admin.find_by_username(env['admin'])
+            if admin.respond_to?(:superadmin?) and admin.superadmin?
+              [200, {}, slim(:admin, locals: {:screen_res => ScreenResolution.all})]
+            else
+              [401, {}, slim(:forbidden)]
+            end
           elsif path[1] == 'loggout'
             [200, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
           else    # matches non-existing branch

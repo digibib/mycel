@@ -314,10 +314,15 @@ const ViewHandler = {
   branchFilter: '',
   departmentFilter: '',
 
-  init: function() {
+  init: function(clientID) {
     this.bindUIActions();
     this.$categoryFilterSelector.children().first().prop('selected', true);
     this.$categorySwitch.first().prop('checked', true);
+
+    if (clientID) {
+      this.$clientSelector.val(clientID)
+    }
+
     this.refresh();
     clear(this.$addClientForm);
   },
@@ -1091,13 +1096,18 @@ $('.tasktabs li').click(function() {
 $.when(
   getClients(), getBranches(), getDepartments(), getRequests(), getAdmins(), getProfiles(), getPrinterProfiles(), getPrinters()
 ).then(function() {
-  ViewHandler.init();
+  const clientID = (new URL(document.location)).searchParams.get("client_id");
+
+  ViewHandler.init(clientID);
   AffiliateHandler.init();
   AdminHandler.init();
   ProfileHandler.init();
   PrinterProfileHandler.init();
   PrinterHandler.init();
   $('.taskpane:first').find('span.progress').hide();
+
+
+
 }).fail(function() {
   const message = "NB! Kritisk feil. Kunne ikke laste inn dataene";
   $('.tasktabs li').off('click');
@@ -1106,4 +1116,8 @@ $.when(
   $('.taskpane:last').find('span.error').html(message).show();
   $('.taskpane:first').find('span.progress').hide();
 });
+
+
+
+
 });

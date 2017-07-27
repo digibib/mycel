@@ -74,7 +74,7 @@ $(function() {
           }
         },
 
-        {
+        { // render status title and icon
           render: function ( data, type, row ) {
             let icon, title
             switch(data) {
@@ -88,13 +88,14 @@ $(function() {
               break;
               case 'disconnected':
               icon = '/img/pc_red.png'
-              title = 'Frakoblet'
+              title = 'Sist sett ' + new Date(row['ts']).toLocaleString('nb')
               break;
               default:
               icon = '/img/pc_black.png'
               title = 'Aldri sett'
             }
-            return "<img src=" + icon + " title='" + title + "'>"
+            const link = "<a href='/admin?client_id=" + row['id'] + "'>"
+            return link + "<img src=" + icon + " title='" + title + "'>" + "</a>"
           },
 
           targets: 0, orderable: true
