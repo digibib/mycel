@@ -61,7 +61,7 @@ class Branch < ActiveRecord::Base
 
   accepts_nested_attributes_for :options
 
-  after_initialize :init
+  after_initialize :init, if: :new_record?
 
 
   def init
@@ -106,7 +106,7 @@ class Department < ActiveRecord::Base
 
   accepts_nested_attributes_for :options
 
-  after_initialize :init
+  after_initialize :init, if: :new_record?
 
   def init
     self.options ||= Options.new()
@@ -153,11 +153,15 @@ class Client < ActiveRecord::Base
 
   accepts_nested_attributes_for :options, :screen_resolution
 
-  after_initialize :init
+  after_initialize :init, if: :new_record?
 
   @@cut_off = 15*60
   scope :connected, -> { where("ts > ?", Time.now - @@cut_off) }
   scope :disconnected, -> { where("ts <= ?", Time.now - @@cut_off) }
+
+  # optimized scope for the inventory page
+  scope :inventory_view, includes(:user, :client_spec, department: :branch)
+
 
   def init
     self.options ||= Options.new()
@@ -165,11 +169,11 @@ class Client < ActiveRecord::Base
   end
 
   def branch
-    Department.find(self.department_id).branch
+    department.branch
   end
 
   def occupied?
-    self.user
+    user.present?
   end
 
   def connected?

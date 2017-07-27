@@ -286,11 +286,11 @@ class API < Grape::API
 
     get "/" do
       clients = []
-      Client.includes(:client_spec, department: :branch).all.each do |client|
-        h = {branch_id: client.branch.id, branch_name: client.branch.name,
-          status: client.status, specs: client.client_spec}
+      Client.inventory_view.all.each do |client|
+        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec}
         clients << client.attributes.merge(h)
       end
+      
       status 200
       {data: clients }
     end
