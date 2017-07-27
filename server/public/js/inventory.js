@@ -17,7 +17,7 @@ $(function() {
       filter += '.' + branch
     }
 
-    $table.find('tr').hide()
+    $table.find('tr:not(:first)').hide()
     $table.find(filter).show()
   }
 
@@ -40,13 +40,22 @@ $(function() {
       autoWidth: false,
       //fixedHeader: true,
       info: false,
+      dom: 'fBrtip',
+      buttons: [
+        {
+          extend: 'csvHtml5',
+          exportOptions: {
+            rows: ':visible'
+          }
+        }
+      ],
       columns: [
         { data: "status", className: status, orderData: 6},
         { data: "branch_name"},
         { data: "name"},
         { data: "specs.cpu_family", defaultContent: "-"},
         { data: "specs.ram", defaultContent: "-"},
-        { data: "specs.uuid", defaultContent: "-"},
+        { data: "hwaddr", defaultContent: "-"},
         { data: "status", visible: false}
       ],
 

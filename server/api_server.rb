@@ -95,7 +95,7 @@ class Server < Goliath::API
           elsif path[1] == 'statistics'
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
-            [200, {}, slim(:inventory, locals: {branches: Branch.all})]
+            [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'loggout'
             [200, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
           else    # matches non-existing branch
