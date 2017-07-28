@@ -33,7 +33,7 @@ $(function() {
         search: 'Søk',
         processing: 'Vennligst vent...',
       },
-      order: [ 1, "asc" ],
+      order: [ [1, "asc"], [2, "asc"] ],
       paging: false,
       processing: true,
       deferRender: true,
@@ -104,7 +104,10 @@ $(function() {
     });
   }
 
-  $('#branch_selector, #status_selector').val('all')
+  // $('#branch_selector, #status_selector').val('all')
   initializeTable()
-  $('#inventory_table').DataTable().ajax.url('/api/client_specs').load()
+  let cb = function() {
+    updatePage()
+  }
+  $('#inventory_table').DataTable().ajax.url('/api/client_specs').load(cb)
 })

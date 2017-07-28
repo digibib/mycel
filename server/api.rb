@@ -91,6 +91,25 @@ def create(class_name, params)
 end
 
 
+# client spec helper
+def create_pie_series(resource, title)
+  names = ClientSpec.pluck(resource.to_sym)
+  names = names.map {|name| name.to_s.split("\n")} # TODO work towards removing this
+
+  freq = {}
+
+  names.each do |name|
+    freq[name] ||= 0
+    freq[name] += 1
+  end
+
+  no_of_items = names.size
+
+  data = freq.map {|key, value| {name: key, y: (value * 100.0/no_of_items).round(1)} }
+
+  {series: [{name: title, colorByPoint: true, data: data}]}.to_json
+end
+
 
 
 class API < Grape::API
@@ -229,8 +248,6 @@ class API < Grape::API
   end
 
 
-
-
   resource :admins do
     desc "returns all admins"
     get "/" do
@@ -261,6 +278,7 @@ class API < Grape::API
     end
   end
 
+
   resource :client_specs do
     desc "updates hardware info for client"
     post "/" do
@@ -272,13 +290,11 @@ class API < Grape::API
         :message => "Det finnes ingen klient med mac #{params[:mac]}"
       end
 
-      #begin
-        spec = ClientSpec.find_by_client_id(client.id) || ClientSpec.new(client_id: client.id)
-      #rescue
-      #  spec = ClientSpec.new(client_id: client.id)
-      #end
+
+      spec = ClientSpec.find_by_client_id(client.id) || ClientSpec.new(client_id: client.id)
 
       updates = params.select {|key| spec.attributes.keys.include?(key) }
+      # updates.each{ |_,v| v.slice!("\n") } # remove newline chars from string, push later when at office TODO
       spec.attributes = spec.attributes.merge(updates)
 
       spec.save if spec.changed?
@@ -290,10 +306,22 @@ class API < Grape::API
         h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec}
         clients << client.attributes.merge(h)
       end
-      
+
       status 200
       {data: clients }
     end
+
+
+
+    get "/processors" do
+      create_pie_series('cpu_family', 'Prosessor')
+    end
+
+    get "/ram" do
+      create_pie_series('ram', 'Minne')
+    end
+
+
 
   end
 
