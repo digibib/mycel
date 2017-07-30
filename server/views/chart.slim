@@ -9,10 +9,16 @@ html
     script src="/js/chart.js"
 
   body
-    div id="pie_ui"
+    div id="chart_ui"
       label for='pie_selector' style='padding-right: 10px; padding-left: 10px;' Velg kake:
       select id="pie_selector"
-        option value="processors" CPU
+        option value="none" -
+        option value="cpu" CPU
         option value="ram" RAM
+
+      label for='bar_selector' style='padding-right: 10px; padding-left: 10px;' Velg søyle:
+      select id="bar_selector"
+        option value="none" -
+        option value="client_status" Klientstatus
 
     div id="container"

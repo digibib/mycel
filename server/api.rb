@@ -91,24 +91,6 @@ def create(class_name, params)
 end
 
 
-# client spec helper
-def create_pie_series(resource, title)
-  names = ClientSpec.pluck(resource.to_sym)
-  names = names.map {|name| name.to_s.split("\n")} # TODO work towards removing this
-
-  freq = {}
-
-  names.each do |name|
-    freq[name] ||= 0
-    freq[name] += 1
-  end
-
-  no_of_items = names.size
-
-  data = freq.map {|key, value| {name: key, y: (value * 100.0/no_of_items).round(1)} }
-
-  {series: [{name: title, colorByPoint: true, data: data}]}.to_json
-end
 
 
 
@@ -221,7 +203,7 @@ class API < Grape::API
     desc "returns all printers"
     get "/" do
       printers = []
-      Printer.all.each do |printer|
+      Printer.api_includes.all.each do |printer|
         printers << printer.attributes.merge({has_subscribers: printer.has_subscribers })
       end
 
@@ -300,6 +282,7 @@ class API < Grape::API
       spec.save if spec.changed?
     end
 
+    desc "returns all client_specs"
     get "/" do
       clients = []
       Client.inventory_view.all.each do |client|
@@ -312,17 +295,55 @@ class API < Grape::API
     end
 
 
+    desc "returns a pie chart series for the client_specs"
+    get "/chart/pie/:type" do
+      case params[:type]
+      when "cpu"
+        resource = 'cpu_family'
+        title = 'Prosessor'
+      when "ram"
+        resource = 'ram'
+        title = 'Minne'
+      end
 
-    get "/processors" do
-      create_pie_series('cpu_family', 'Prosessor')
+      names = ClientSpec.pluck(resource.to_sym)
+      names = names.map {|name| name.to_s.split("\n")} # TODO work towards removing this
+
+      freq = Hash.new(0)
+      names.each {|name| freq[name] += 1 }
+      data = freq.map {|key, value| {name: key, y: (value)}}
+
+      status 200
+      {series: [{name: title, colorByPoint: true, data: data}]}.to_json
     end
 
-    get "/ram" do
-      create_pie_series('ram', 'Minne')
+
+    desc "returns a bar chart series for the client_specs"
+    get "/chart/bar/:type" do
+      status_map = {occupied: {label: 'Usett', color: 'black'}, disconnected: {label: 'Frakoblet', color: 'red'},
+       available: {label: 'Ledig', color: 'blue'}, unseen: {label: 'Opptatt', color: 'green'}}
+
+      # Tally status for all clients and order by branch
+      counts_by_branch = {}
+      Client.inventory_view.all.each do |client|
+        branch_name = client.department.branch.name
+        counts_by_branch[branch_name] ||= status_map.keys.each_with_object({}) {|key, hsh| hsh[key] = 0}
+        counts_by_branch[branch_name][client.status.to_sym] += 1
+      end
+
+      # Flatten to a single level hash to in order to create the series data
+      counts_by_status = {}
+      status_map.keys.each do |status|
+        counts_by_status[status] = counts_by_branch.sort.map {|_, counts| counts[status]}
+      end
+
+      # Final transformation and return
+      series = counts_by_status.map {|key, data| {name: status_map[key][:label], data: data, color: status_map[key][:color]}}
+      categories = counts_by_branch.sort.map {|branch_name, _| branch_name}
+
+      status 200
+      {series: series, categories: categories}
     end
-
-
-
   end
 
   resource :clients do
@@ -361,7 +382,7 @@ class API < Grape::API
       else
         # merge in additional keys before return client list
         clients = []
-        Client.all.each do |client|
+        Client.includes(department: :branch).all.each do |client|
           branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
           clients << client.attributes.merge(branch_id)
         end
@@ -519,7 +540,7 @@ class API < Grape::API
     resource :departments do
       desc "return all departments with attributes and options"
       get "/" do
-        {:departments => Department.all.as_json}
+        {:departments => Department.api_includes.all.as_json}
       end
 
       desc "get specific department"
@@ -587,7 +608,7 @@ class API < Grape::API
     resource :branches do
       desc "return all branches with attributes and options"
       get "/" do
-        {:branches => Branch.all.as_json}
+        {:branches => Branch.api_includes.all.as_json}
       end
 
       desc "get specific branch"

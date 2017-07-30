@@ -53,8 +53,10 @@ end
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
+  has_many :clients, :through => :departments
   has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
+  has_one :opening_hours, through: :options
   has_many :printers
 
   validates_presence_of :name
@@ -62,6 +64,9 @@ class Branch < ActiveRecord::Base
   accepts_nested_attributes_for :options
 
   after_initialize :init, if: :new_record?
+
+  # scope to optimize api requests
+  scope :api_includes, includes(:printers, :organization, options: :opening_hours)
 
 
   def init
@@ -107,6 +112,13 @@ class Department < ActiveRecord::Base
   accepts_nested_attributes_for :options
 
   after_initialize :init, if: :new_record?
+
+  # scope to optimize api requests
+  scope :api_includes, includes(options: :opening_hours, :branch => [:organization, :opening_hours])
+
+  def organization
+    branch.organization
+  end
 
   def init
     self.options ||= Options.new()
@@ -490,6 +502,9 @@ class Printer < ActiveRecord::Base
   belongs_to :printer_profile
   belongs_to :branch
   has_many :options, class_name: "Options", foreign_key: "default_printer_id", dependent: :nullify
+
+  # scope to optimize api requests
+  scope :api_includes, includes(:options)
 
   # does any branch or affiliate have this printer set as their default?
   def has_subscribers

@@ -5,10 +5,16 @@ $(function() {
 
   $('#pie_selector').change(function() {
     loadPie($(this).val())
+    $('#bar_selector').val('none')
+  })
+
+  $('#bar_selector').change(function() {
+    loadBar($(this).val())
+    $('#pie_selector').val('none')
   })
 
   const loadPie = function(type) {
-    $.getJSON('/api/client_specs/' + type).done(function(data) {
+    $.getJSON('/api/client_specs/chart/pie/' + type).done(function(data) {
 
       Highcharts.chart('container', {
         chart: {
@@ -29,7 +35,7 @@ $(function() {
             cursor: 'pointer',
             dataLabels: {
               enabled: true,
-              format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+              format: '<b>{point.name}</b>: {point.y}',
               style: {
                 color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
               }
@@ -46,11 +52,44 @@ $(function() {
   }
 
 
+
+  const loadBar = function(type) {
+    $.getJSON('/api/client_specs/chart/bar/' + type).done(function(data) {
+      Highcharts.chart('container', {
+          chart: {
+              type: 'bar'
+          },
+          title: {
+              text: 'Klientstatus'
+          },
+          xAxis: {
+              categories: data.categories
+          },
+          yAxis: {
+              min: 0,
+              title: {
+                  text: ''
+              }
+          },
+          legend: {
+              reversed: true
+          },
+          plotOptions: {
+              series: {
+                  stacking: 'normal'
+              }
+          },
+          series: data.series
+      })
+    }).fail(function() {
+      alert('Beklager. En feil oppsto')
+    })
+  }
+
+
+  $('#pie_selector option:eq(1)').prop('selected', true)
+  $('#bar_selector option:eq(0)').prop('selected', true)
   loadPie( $('#pie_selector option:selected').val() )
-  //const foo = window.location.search.substring(1)
-  //let params = foo.split('&');
-  //params.forEach(function(param) {
-  //param.split('=')
-  //})
+
 
 });
