@@ -320,8 +320,8 @@ class API < Grape::API
 
     desc "returns a bar chart series for the client_specs"
     get "/chart/bar/:type" do
-      status_map = {occupied: {label: 'Usett', color: 'black'}, disconnected: {label: 'Frakoblet', color: 'red'},
-       available: {label: 'Ledig', color: 'blue'}, unseen: {label: 'Opptatt', color: 'green'}}
+      status_map = {unseen: {label: 'Usett', color: 'black'}, disconnected: {label: 'Frakoblet', color: 'red'},
+       available: {label: 'Ledig', color: 'blue'}, occupied: {label: 'Opptatt', color: 'green'}}
 
       # Tally status for all clients and order by branch
       counts_by_branch = {}
