@@ -194,17 +194,26 @@ class Client < ActiveRecord::Base
 
   def status
     if occupied?
+      online = true
       status = 'occupied'
     elsif ts.nil?
+      online = false
       status = 'unseen'
     elsif ts < Time.now - @@cut_off
+      online = false
       status = 'disconnected'
     else
+      online = true
       status = 'available'
+    end
+
+    if is_online != online
+      update_attributes(online_since: Time.now, is_online: true)
     end
 
     status
   end
+
 
   def log_friendly
     "\"#{self.branch.name}\" \"#{self.department.name}\" \"#{self.name}\" #{self.hwaddr}"

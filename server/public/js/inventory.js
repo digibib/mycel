@@ -80,11 +80,11 @@ $(function() {
             switch(data) {
               case 'occupied':
               icon = '/img/pc_green.png'
-              title = 'Opptatt'
+              title = 'Opptatt&#013;Online siden: ' + new Date(row['online_since']).toLocaleString('nb')
               break;
               case 'available':
               icon = '/img/pc_blue.png'
-              title = 'Ledig'
+              title = 'Ledig&#013;Online siden: ' + new Date(row['online_since']).toLocaleString('nb')
               break;
               case 'disconnected':
               icon = '/img/pc_red.png'
