@@ -192,7 +192,8 @@ class Client < ActiveRecord::Base
     self.ts.nil? ? false : self.ts > Time.now - @@cut_off
   end
 
-  def status
+
+  def status(save_if_changed=false)
     if occupied?
       online = true
       status = 'occupied'
@@ -207,7 +208,7 @@ class Client < ActiveRecord::Base
       status = 'available'
     end
 
-    if is_online != online
+    if save_if_changed && is_online != online
       update_attributes(online_since: Time.now, is_online: true)
     end
 
