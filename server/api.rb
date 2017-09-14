@@ -127,7 +127,14 @@ class API < Grape::API
       if params[:mac].present?
         mac = params[:mac]
         client = Client.find_by_hwaddr(mac)
-        client.touch(:ts) if client.present?
+        if client.present?
+          if not client.is_online
+            client.generate_offline_event
+            client.update_attributes(online_since: Time.now, is_online: true)
+          end
+
+          client.touch(:ts)
+        end
       end
       status 200
       [200, {'Connection' => "close"}, {message: "OK"}]

@@ -162,6 +162,7 @@ class Client < ActiveRecord::Base
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
   has_one :client_spec, :dependent => :destroy
+  has_many :client_events, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
 
@@ -189,30 +190,35 @@ class Client < ActiveRecord::Base
   end
 
   def connected?
-    self.ts.nil? ? false : self.ts > Time.now - @@cut_off
+    ts.nil? ? false : ts > Time.now - @@cut_off
   end
 
 
-  def status(save_if_changed=false)
+  def status
     if occupied?
-      online = true
-      status = 'occupied'
+      'occupied'
     elsif ts.nil?
-      online = false
-      status = 'unseen'
-    elsif ts < Time.now - @@cut_off
-      online = false
-      status = 'disconnected'
+      'unseen'
+    elsif not connected?
+      'disconnected'
     else
-      online = true
-      status = 'available'
+      'available'
     end
+  end
 
-    if save_if_changed && is_online != online
-      update_attributes(online_since: Time.now, is_online: true)
-    end
 
-    status
+  def update_if_offline
+    update_attributes(is_online: false) if is_online and not connected?
+  end
+
+
+  # called when client is marked as offline and receives a keep_alive signal
+  def generate_offline_event
+    event = ClientEvent.new
+    event.client_id = self.id
+    event.started = self.ts
+    event.ended = Time.now
+    event.save
   end
 
 
@@ -528,5 +534,9 @@ class PrinterProfile < ActiveRecord::Base
 end
 
 class ClientSpec < ActiveRecord::Base
+  belongs_to :client
+end
+
+class ClientEvent < ActiveRecord::Base
   belongs_to :client
 end
