@@ -207,12 +207,7 @@ class Client < ActiveRecord::Base
   end
 
 
-  def update_if_offline
-    update_attributes(is_online: false) if is_online and not connected?
-  end
-
-
-  # called when client is marked as offline and receives a keep_alive signal
+  # called when api receives a keep_alive signal from a client that is not connected
   def generate_offline_event
     event = ClientEvent.new
     event.client_id = self.id

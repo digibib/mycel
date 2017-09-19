@@ -128,9 +128,9 @@ class API < Grape::API
         mac = params[:mac]
         client = Client.find_by_hwaddr(mac)
         if client.present?
-          if not client.is_online
+          if not client.connected?
             client.generate_offline_event
-            client.update_attributes(online_since: Time.now, is_online: true)
+            client.update_attributes(online_since: Time.now)
           end
 
           client.touch(:ts)
