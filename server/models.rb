@@ -545,15 +545,14 @@ class ClientEvent < ActiveRecord::Base
     duration_string = "#{hrs}#{minutes}"
 
     if [3,4].include?(started.hour) && [3,4].include?(ended.hour) && started.mday == ended.mday
-      prefix=""
+      ""
     else
-      prefix="->"
+      started_string = started.strftime('%e/%m %H:%M')
+      ended_string = started.mday == ended.mday ? ended.strftime('%H:%M') : ended.strftime('%e/%m %H:%M')
+
+      "Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
     end
 
-    started_string = started.strftime('%e/%m %H:%M')
-    ended_string = started.mday == ended.mday ? ended.strftime('%H:%M') : ended.strftime('%e/%m %H:%M')
-
-    "#{prefix} Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
   end
 
 

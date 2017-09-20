@@ -295,7 +295,7 @@ class API < Grape::API
       Client.inventory_view.all.each do |client|
         # build title attribute string containing latest offline events
         events = ""
-        client.client_events.order("started DESC").limit(6).each do |event|
+        client.client_events.order("started DESC").each do |event|
           events = events + event.to_title
         end
 
