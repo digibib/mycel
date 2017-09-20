@@ -293,13 +293,44 @@ class API < Grape::API
     get "/" do
       clients = []
       Client.inventory_view.all.each do |client|
-        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec}
+        # build title attribute string containing latest offline events
+        events = ""
+        client.client_events.order("started DESC").limit(6).each do |event|
+          events = events + event.to_title
+        end
+
+        # merge attributes and return
+        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec, title: events}
         clients << client.attributes.merge(h)
       end
 
       status 200
       {data: clients }
     end
+
+    # TODO experimental and currently not in use. doesnt particularly belong under
+    # this resource. can be removed.
+    desc "returns a timeline chart series for the client"
+    get "/chart/timeline/:client_id" do
+      clients = Client.where(id: params[:client_id])
+      series = []
+      clients.each do |client|
+        data = []
+
+        client.client_events.each do |event|
+          data << [(event.started.to_time.to_r * 1000).round, 0]
+          data << [(event.started.to_time.to_r * 1000).round, 1]
+          data << [(event.ended.to_time.to_r * 1000).round, 1]
+          data << [(event.ended.to_time.to_r * 1000).round, 0]
+        end
+
+        series << {name: client.name, data: data }
+      end
+
+      {series: series}.to_json
+    end
+
+
 
 
     desc "returns a pie chart series for the client_specs"

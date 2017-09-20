@@ -94,11 +94,19 @@ $(function() {
               icon = '/img/pc_black.png'
               title = 'Aldri sett'
             }
+
             const link = "<a href='/admin?client_id=" + row['id'] + "'>"
             return link + "<img src=" + icon + " title='" + title + "'>" + "</a>"
           },
 
           targets: 0, orderable: true
+        },
+        { // render client title
+          render: function ( data, type, row ) {
+            return "<div title='" + row['title'] + "'>" + data + "</div>"
+          },
+
+          targets: 2, orderable: true
         }
       ]
     });

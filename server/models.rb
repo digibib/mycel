@@ -534,4 +534,27 @@ end
 
 class ClientEvent < ActiveRecord::Base
   belongs_to :client
+
+  # representation of the event for use in html title attribrutes. quick and dirty.
+  def to_title
+    duration = ended - started
+    hours = (duration/3600).to_i
+    hrs = hours > 0 ? "#{hours}t" : ""
+    minutes = "#{((duration%3600)/60).to_i}m"
+
+    duration_string = "#{hrs}#{minutes}"
+
+    if [3,4].include?(started.hour) && [3,4].include?(ended.hour) && started.mday == ended.mday
+      prefix=""
+    else
+      prefix="->"
+    end
+
+    started_string = started.strftime('%e/%m %H:%M')
+    ended_string = started.mday == ended.mday ? ended.strftime('%H:%M') : ended.strftime('%e/%m %H:%M')
+
+    "#{prefix} Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
+  end
+
+
 end
