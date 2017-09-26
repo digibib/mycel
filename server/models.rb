@@ -534,6 +534,8 @@ end
 
 class ClientEvent < ActiveRecord::Base
   belongs_to :client
+  scope :omit_reboots, -> { where("not (HOUR(started) IN (3,4) AND TIMESTAMPDIFF(MINUTE,started, ended) < 120)") }
+
 
   # representation of the event for use in html title attribrutes. quick and dirty.
   def to_title
@@ -552,8 +554,44 @@ class ClientEvent < ActiveRecord::Base
 
       "Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
     end
-
   end
+
+  def self.create_downtime_series(client_id)
+    client = Client.find(client_id)
+
+    now = Time.now
+    no_of_days = 3
+
+    period_start = now - no_of_days.days
+    period_duration = no_of_days * 3600 * 1000 * 24
+
+    events =
+      ClientEvent.omit_reboots
+      .where(client_id: client_id)
+      .where("ended >= '#{period_start}'")
+      .order('started asc')
+
+    data = []
+
+    # adds event if client has been down for the entire duration of the period
+    if events.size == 0 and (client.ts.nil? or client.ts < period_start)
+      data << {start: period_start, end: now}
+    end
+
+    # adds recorded events
+    events.each do |event|
+      started = event.started < period_start ? period_start : event.started
+      data << {start: started, end: event.ended}
+    end
+
+    # adds event if client has been online during period but is currently offline
+    if not client.connected? and not events.size == 0 and client.ts.present?
+      data << {start: client.ts, end: now}
+    end
+
+    {period_start: period_start, period_duration: period_duration, events: data}
+  end
+
 
 
 end
