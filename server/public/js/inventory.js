@@ -33,7 +33,7 @@ $(function() {
         search: 'Søk',
         processing: 'Vennligst vent...',
       },
-      order: [ [1, "asc"], [2, "asc"] ],
+      order: [ [2, "asc"], [3, "asc"] ],
       paging: false,
       processing: true,
       deferRender: true,
@@ -51,6 +51,7 @@ $(function() {
       ],
       columns: [
         { data: "status", className: status, orderData: 6},
+        { data: "downtimes", visible: true},
         { data: "branch_name"},
         { data: "name"},
         { data: "specs.cpu_family", defaultContent: "-"},
@@ -68,7 +69,7 @@ $(function() {
         // adding classes to the TRs for filtering. There are probably better
         // ways to do this, but it works.
         {
-          "targets": [0,1],
+          "targets": [0,2],
           "createdCell": function (td, cellData, rowData, row, col) {
             $(td).parent().addClass(cellData)
           }
@@ -106,7 +107,44 @@ $(function() {
             return "<div title='" + row['title'] + "'>" + data + "</div>"
           },
 
-          targets: 2, orderable: true
+          targets: 3, orderable: true
+        },
+        { // render downtime series into statusbar
+          render: function ( data, type, row ) {
+            const periodStart = new Date(data.period_start)
+            const periodDuration = data.period_duration
+
+            const dayLabels = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
+            let bar = '<div class="statusbar">'
+
+            data.events.forEach(function(event) {
+              const start = new Date(event.start)
+              const end = new Date(event.end)
+
+              const from = dayLabels[start.getDay()] + ' ' + start.toLocaleTimeString('nb')
+              const to = dayLabels[end.getDay()] + ' ' + end.toLocaleTimeString('nb')
+
+              const diffInSeconds = Math.abs(end - start) / 1000
+              const days = Math.floor(diffInSeconds / 60 / 60 / 24)
+              const hours = Math.floor(diffInSeconds / 60 / 60 % 24)
+              const minutes = Math.floor(diffInSeconds / 60 % 60)
+
+              let duration = days > 0 ? days + 'd ' : ''
+              duration += hours > 0 ? hours + 't ' : ''
+              duration += minutes + 'm '
+
+              bar += '<div class="down" '
+              + 'style="left:' + ((start - periodStart) / periodDuration) * 100 + '%;width:' + (end - start) / periodDuration * 100  + '%" '
+              + 'title="Fra: ' + from + '\nTil: ' + to + '\nVarighet: ' + duration + '">'
+              + '</div>';
+            })
+
+            bar += '</div>'
+
+            return bar
+          },
+
+          targets: 1, orderable: false
         }
       ]
     });

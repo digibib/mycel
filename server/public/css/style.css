@@ -351,3 +351,39 @@ td.usertype { border-left: 1px solid #777; min-width:40px;}
 	-o-transition: height 0.1s ease;
 	transition: height 0.1s ease;
 }
+
+
+/* ------ statusbar stylings -------------- */
+
+
+.statusbar {
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#bfd255), color-stop(50%,#8eb92a), color-stop(51%,#72aa00), color-stop(100%,#9ecb2d)); /* Chrome,Safari4+ */
+}
+
+div.statusbar {
+  position: relative;
+  height:inherit;
+  margin:0;
+
+  width:50px;
+  height:15px;
+
+  background: green;
+  background: -webkit-gradient(
+    linear, left top, left bottom, color-stop(0%,#bfd255), color-stop(50%,#8eb92a), color-stop(51%,#72aa00), color-stop(100%,#9ecb2d));
+}
+
+
+.statusbar .down, .statusbar.down {
+  min-width: 1px;
+  display: inline-block;
+  position: absolute;
+  height: 15px;
+  background: red;
+  background: -webkit-gradient(
+    linear, left top, left bottom, color-stop(0%,#efc5ca), color-stop(50%,#d24b5a), color-stop(51%,#ba2737), color-stop(100%,#f18e99));
+}
+
+.statusbar .down:hover {
+  background: #B94A48;
+}

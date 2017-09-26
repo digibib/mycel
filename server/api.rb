@@ -299,14 +299,18 @@ class API < Grape::API
           events = events + event.to_title
         end
 
+        downtimes = ClientEvent.create_downtime_series(client.id)
+
         # merge attributes and return
-        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec, title: events}
+        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name,
+           specs: client.client_spec, title: events, downtimes: downtimes}
         clients << client.attributes.merge(h)
       end
 
       status 200
       {data: clients }
     end
+
 
     # TODO experimental and currently not in use. doesnt particularly belong under
     # this resource. can be removed.
@@ -330,6 +334,41 @@ class API < Grape::API
       {series: series}.to_json
     end
 
+
+    # TODO move to client?
+    desc "returns a uptime series for the client"
+    get "/chart/uptime/:client_id" do
+      no_of_days = 12
+      duration = 12.days.to_i / 60
+
+      origin = Time.now - no_of_days.days
+      period_start = origin.strftime('%Y-%m-%d %H:%M:%S')
+
+      client = Client.find(params[:client_id])
+
+      events =
+        ClientEvent.where(client_id: params[:client_id])
+        .where("ended >= '#{period_start}'")
+        .order('started asc')
+
+      if events.size == 0
+        starting_status = client.connected?
+      else
+        starting_status = events.first.started <= period_start
+      end
+
+      data = []
+      events.each do |event|
+        data << {start: event.started, end: event.ended}
+      end
+
+      unless client.connected?
+        # add extra event, start = client.ts, end: now
+        # ending_status: client.connected?
+      end
+
+      {starting_status: starting_status, period_start: period_start, origin: origin, duration: duration, data: data}.to_json
+    end
 
 
 
