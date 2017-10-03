@@ -81,25 +81,30 @@ class Server < Goliath::WebSocket
 
   end
 
-  def on_message(env, message)
-    msg = JSON.parse(message)
-    #env.logger.debug("WS MESSAGE: #{msg}")
+      def on_message(env, message)
+        msg = JSON.parse(message)
+        #env.logger.debug("WS MESSAGE: #{msg}")
+        Fiber.new do
+          begin
+            env['client'] ||= Client.find msg["client"]
+            if msg["user"] == "Anonym"
+              env['user'] ||= AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
+            else
+              env['user'] ||= User.find_by_username msg["user"]
+            end
+          rescue Exception => e
+            env['user'] = nil
+            env.logger.error(e.message)
+            env.logger.error("trying to find this user: #{msg['user']}")
+          end
 
-    Fiber.new do
-      env['client'] ||= Client.find msg["client"]
-      if msg["user"] == "Anonym"
-        env['user'] ||= AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
-      else
-        begin
-          env['user'] ||= User.find_by_username msg["user"]
-        rescue Exception => e
-          env['user'] = nil
-          env.logger.error(e.message)
-          env.logger.error("trying to find this user: #{msg['user']}")
-        end
-      end
 
       if env['user'] && env['client']
+        if msg['status'] == "cmd-output"
+          # stub implementation for remote command execution over WS commented out
+          # env.channels['admin/1'] << msg.to_json
+        end
+
         case msg['action']
           when 'log-on'
             #NB must be authenticated! i.e user object must exist
@@ -171,10 +176,21 @@ class Server < Goliath::WebSocket
             env.channels['branches/'] << broadcast
 
             env['user'] = nil
+          end
+          # begins highly unsafe code, commented out for now
+        else
+          case msg['status']
+          when 'cmd'
+            # env.channels['clients/245'] << msg.to_json
+          when 'cmd-output'
+            #
+          else
+            #
+          end
+          # highly unsafe code ends
         end
-      end
-    end.resume
-  end
+      end.resume
+    end
 
   def on_error(env, error)
     env.logger.error error

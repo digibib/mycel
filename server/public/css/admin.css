@@ -1,23 +1,39 @@
 .taskpanes input[type="radio"], .taskpanes input[type="checkbox"] {
-    width:30px;
+    width:20px;
 }
 
+.taskpanes .fw {
+  display: inline-block;
+  width: 100px;
+  padding-right: 0px;
+}
 
-.taskpanes input[name="hwaddr"] {
+.taskpanes input[type='radio'] {
+  padding-left: 5px;
+}
+
+.taskpanes input, textarea {
+    width:500px;
+}
+
+.taskpanes input.halfwidth {
     width:140px;
 }
 
-.taskpanes label.fw {
+
+.taskpanes label.halfwidth {
   display: inline-block;
-  width: 100px;
+  padding-right: 5px;
+  padding-left: 5px;
 }
+
 
 .taskpanes select + select {
     margin-left: 5px;
 }
 
 .taskpanes label + select {
-    margin-left: 5px;
+    margin-left: 0px;
 }
 
 .taskpanes button.action_button {
@@ -40,4 +56,4 @@ ul.tasktabs li { display:block; float:left; background:#ccc; padding:7px 10px;
 			 border-left:1px solid #ccc; border-top:1px solid #ccc; border-right:1px solid #ccc	;}
 ul.tasktabs li:hover { cursor: pointer; color:#fff; background: #888;}
 ul.tasktabs li.active { cursor:default; background:#fff; color:#000;}
-div.taskpanes { width:90%; height:550px; border: 1px solid #ccc; padding:10px; clear:both;}
+div.taskpanes { width:90%; height:770px; border: 1px solid #ccc; padding:10px; clear:both;}

@@ -124,8 +124,17 @@ class API < Grape::API
       if params[:mac].present?
         mac = params[:mac]
         client = Client.find_by_hwaddr(mac)
-        client.touch(:ts) if client.present?
+        if client.present?
+          if not client.connected?
+            client.generate_offline_event
+            client.update_attributes(online_since: Time.now)
+          end
+
+          client.touch(:ts)
+        end
       end
+      status 200
+      [200, {'Connection' => "close"}, {message: "OK"}]
     end
   end
 
@@ -168,6 +177,63 @@ class API < Grape::API
 
   end
 
+
+  resource :printer_profiles do
+    desc "returns all printer profiles"
+    get "/" do
+      {:printer_profiles => PrinterProfile.all}
+    end
+
+    desc "returns a specific printer profile"
+    get "/:id" do
+      {:printer_profile => PrinterProfile.find(params[:id]).as_json}
+    end
+
+    desc "creates or updates printer profile and returns status"
+    post "/" do
+      requires_superadmin
+      create("PrinterProfile", params)
+    end
+
+    desc "deletes an existing printer profile and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("PrinterProfile", params[:id])
+    end
+
+  end
+
+  resource :printers do
+    desc "returns all printers"
+    get "/" do
+      printers = []
+      Printer.api_includes.all.each do |printer|
+        printers << printer.attributes.merge({has_subscribers: printer.has_subscribers })
+      end
+
+      {:printers => printers}
+    end
+
+    desc "returns a specific printer"
+    get "/:id" do
+      {:printer => Printer.find(params[:id]).as_json}
+    end
+
+    desc "creates or updates printer and returns status"
+    post "/" do
+      requires_superadmin
+      create("Printer", params)
+    end
+
+    desc "deletes an existing printer and returns status"
+    delete "/:id" do
+      requires_superadmin
+      delete("Printer", params[:id])
+    end
+
+  end
+
+
   resource :admins do
     desc "returns all admins"
     get "/" do
@@ -198,6 +264,122 @@ class API < Grape::API
     end
   end
 
+
+  resource :client_specs do
+    desc "updates hardware info for client"
+    post "/" do
+      mac = params[:mac]
+      begin
+        client = Client.find_by_hwaddr(mac)
+      rescue ActiveRecord::RecordNotFound
+        throw :error, :status => 404,
+        :message => "Det finnes ingen klient med mac #{params[:mac]}"
+      end
+
+
+      spec = ClientSpec.find_by_client_id(client.id) || ClientSpec.new(client_id: client.id)
+
+      updates = params.select {|key| spec.attributes.keys.include?(key) }
+      # updates.each{ |_,v| v.slice!("\n") } # remove newline chars from string, push later when at office TODO
+      spec.attributes = spec.attributes.merge(updates)
+
+      spec.save if spec.changed?
+    end
+
+    desc "returns all client_specs"
+    get "/" do
+      clients = []
+      Client.inventory_view.all.each do |client|
+        # build title attribute string containing latest offline events
+        events = ""
+        client.client_events.order("started DESC").each do |event|
+          events = events + event.to_title
+        end
+
+        # merge attributes and return
+        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec, title: events}
+        clients << client.attributes.merge(h)
+      end
+
+      status 200
+      {data: clients }
+    end
+
+    # TODO experimental and currently not in use. doesnt particularly belong under
+    # this resource. can be removed.
+    desc "returns a timeline chart series for the client"
+    get "/chart/timeline/:client_id" do
+      clients = Client.where(id: params[:client_id])
+      series = []
+      clients.each do |client|
+        data = []
+
+        client.client_events.each do |event|
+          data << [(event.started.to_time.to_r * 1000).round, 0]
+          data << [(event.started.to_time.to_r * 1000).round, 1]
+          data << [(event.ended.to_time.to_r * 1000).round, 1]
+          data << [(event.ended.to_time.to_r * 1000).round, 0]
+        end
+
+        series << {name: client.name, data: data }
+      end
+
+      {series: series}.to_json
+    end
+
+
+
+
+    desc "returns a pie chart series for the client_specs"
+    get "/chart/pie/:type" do
+      case params[:type]
+      when "cpu"
+        resource = 'cpu_family'
+        title = 'Prosessor'
+      when "ram"
+        resource = 'ram'
+        title = 'Minne'
+      end
+
+      names = ClientSpec.pluck(resource.to_sym)
+      names = names.map {|name| name.to_s.split("\n")} # TODO work towards removing this
+
+      freq = Hash.new(0)
+      names.each {|name| freq[name] += 1 }
+      data = freq.map {|key, value| {name: key, y: (value)}}
+
+      status 200
+      {series: [{name: title, colorByPoint: true, data: data}]}.to_json
+    end
+
+
+    desc "returns a bar chart series for the client_specs"
+    get "/chart/bar/:type" do
+      status_map = {unseen: {label: 'Usett', color: 'black'}, disconnected: {label: 'Frakoblet', color: 'red'},
+       available: {label: 'Ledig', color: 'blue'}, occupied: {label: 'Opptatt', color: 'green'}}
+
+      # Tally status for all clients and order by branch
+      counts_by_branch = {}
+      Client.inventory_view.all.each do |client|
+        branch_name = client.department.branch.name
+        counts_by_branch[branch_name] ||= status_map.keys.each_with_object({}) {|key, hsh| hsh[key] = 0}
+        counts_by_branch[branch_name][client.status.to_sym] += 1
+      end
+
+      # Flatten to a single level hash to in order to create the series data
+      counts_by_status = {}
+      status_map.keys.each do |status|
+        counts_by_status[status] = counts_by_branch.sort.map {|_, counts| counts[status]}
+      end
+
+      # Final transformation and return
+      series = counts_by_status.map {|key, data| {name: status_map[key][:label], data: data, color: status_map[key][:color]}}
+      categories = counts_by_branch.sort.map {|branch_name, _| branch_name}
+
+      status 200
+      {series: series, categories: categories}
+    end
+  end
 
   resource :clients do
     desc "returns all clients, or identifies a client given a MACadress, or registers new request by MAC address"
@@ -235,7 +417,7 @@ class API < Grape::API
       else
         # merge in additional keys before return client list
         clients = []
-        Client.all.each do |client|
+        Client.includes(department: :branch).all.each do |client|
           branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
           clients << client.attributes.merge(branch_id)
         end
@@ -264,12 +446,12 @@ class API < Grape::API
 
       # select only the keys from params present in client.attributes
       updates = form_data.select {|key| client.attributes.keys.include?(key) }
-      client.attributes = client.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
+      client.attributes = client.attributes.merge(updates){|key, oldval, newval| (key == "id" || key == "ts") ? oldval : newval }
 
       # missing keys typically represent unchecked checkboxes. these are set to false.
       missing_keys = client.attributes.keys.select {|key| !form_data.key?(key) }
       missing_keys.each do |key|
-        client.attributes = {key.to_sym => false}
+        client.attributes = {key.to_sym => false} unless key == "ts" # except timestamp
       end
 
       if client.save
@@ -282,8 +464,6 @@ class API < Grape::API
         :message => message
       end
     end
-
-
 
     desc "updates an existing client and returns the updated version"
     put "/:id" do
@@ -305,7 +485,6 @@ class API < Grape::API
       client.save
       {:client => client}
     end
-
 
     desc "deletes an existing client and returns status"
     delete "/:id" do
@@ -396,7 +575,7 @@ class API < Grape::API
     resource :departments do
       desc "return all departments with attributes and options"
       get "/" do
-        {:departments => Department.all}
+        {:departments => Department.api_includes.all.as_json}
       end
 
       desc "get specific department"
@@ -448,20 +627,23 @@ class API < Grape::API
           :message => "Du kan ikke stenge før du har åpnet!" unless dept.options.opening_hours.valid?
         end
 
-        throw :error, :status => 400,
-        :message => "Ingen endringer!" unless changes
+        # At the risk of collapsing the universe: trying to save unchanged object
+        # will no longer result in a thrown error...
+        #throw :error, :status => 400,
+        #:message => "Ingen endringer!" unless changes
 
         # persist the changes:
         dept.options.opening_hours.save if dept.options.opening_hours
         dept.options.save
-        {:department => dept.as_json}
+        {:department => dept.as_json, :message => "OK. Lagret."}
       end
     end
+
 
     resource :branches do
       desc "return all branches with attributes and options"
       get "/" do
-        {:branches => Branch.all}
+        {:branches => Branch.api_includes.all.as_json}
       end
 
       desc "get specific branch"
@@ -511,13 +693,13 @@ class API < Grape::API
           :message => "Du kan ikke stenge før du har åpnet!" unless branch.options.opening_hours.valid?
         end
 
-        throw :error, :status => 400,
-        :message => "Ingen endringer!" unless changes
+        #throw :error, :status => 400,
+        #:message => "Ingen endringer!" unless changes
 
         # persist the changes:
         branch.options.opening_hours.save if branch.options.opening_hours
         branch.options.save
-        {:branch => branch.as_json}
+        {:branch => branch.as_json, :message => "OK. Lagret."}
       end
     end
 

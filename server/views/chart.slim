@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    meta charset='utf-8'
+    title Mycel
+    link href='/css/style.css' rel='stylesheet' type='text/css'
+    script src="/js/jquery-1.12.4.min.js"
+    script src="https://code.highcharts.com/highcharts.js"
+    script src="/js/chart.js"
+
+  body
+    div id="chart_ui"
+      label for='pie_selector' style='padding-right: 10px; padding-left: 10px;' Velg kake:
+      select id="pie_selector"
+        option value="none" -
+        option value="cpu" CPU
+        option value="ram" RAM
+
+      label for='bar_selector' style='padding-right: 10px; padding-left: 10px;' Velg søyle:
+      select id="bar_selector"
+        option value="none" -
+        option value="client_status" Klientstatus
+
+    div id="container"

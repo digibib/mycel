@@ -9,6 +9,8 @@ ul class="tasktabs"
   li Admin
   li Filial/avdeling
   li Bootprofiler
+  li Printerprofiler
+  li Printere
 
 div class="taskpanes"
   div class="taskpane"
@@ -34,18 +36,18 @@ div class="taskpanes"
         input[id="edit_client_name" class="name" type="text" name="name"]
       p
         label for="edit_client_hwaddr" class="fw" Mac:
-        input[id="edit_client_hwaddr" type="text" name="hwaddr"]
+        input[id="edit_client_hwaddr" type="text" name="hwaddr" class="halfwidth"]
 
-        label for="edit_client_ipaddr" class="fw" style="text-align:center" IP:
-        input[id="edit_client_ipaddr" type="text" name="ipaddr"]
+        label for="edit_client_ipaddr" class="halfwidth" style="text-align:center" IP:
+        input[id="edit_client_ipaddr" type="text" name="ipaddr" class="halfwidth"]
       p
-        label for="edit_client_shorttime" Korttids:
+        label[for="edit_client_shorttime" class="halfwidth"]Korttids:
         input[id="edit_client_shorttime" name="shorttime" type="checkbox"]
 
-        label for="edit_testclient" Test:
+        label[for="edit_testclient" class="halfwidth"]Test:
         input[id="edit_testclient" name="testclient" type="checkbox"]
 
-        label for="edit_client_screen_res" Oppløsning:
+        label[for="edit_client_screen_res" class="halfwidth"]Oppløsning:
         select[id="edit_client_screen_res" name="screen_resolution_id"]
           - for res in screen_res do
             |<option value="#{res.id}">#{res.resolution}</option>
@@ -78,19 +80,19 @@ div class="taskpanes"
         input[id="name" type="text" name="name"]
       p
         label for="hwaddr" class="fw" Mac:
-        input[id="hwaddr" type="text" name="hwaddr"]
+        input[id="hwaddr" type="text" name="hwaddr" class="halfwidth"]
 
-        label for="ipaddr" class="fw" style="text-align:center" IP:
-        input[id="ipaddr" type="text" name="ipaddr"]
+        label[for="ipaddr" class="halfwidth" style="text-align:center"]IP:
+        input[id="ipaddr" type="text" name="ipaddr" class="halfwidth"]
         button[type='button' id="suggest_ip"]  = "Foreslå"
       p
-      label for="shorttime" Korttids:
+      label[for="shorttime" class="halfwidth"]Korttids:
       input[id="shorttime" name="shorttime" type="checkbox"]
 
-      label for="testclient" Test:
+      label[for="testclient" class="halfwidth"]Test:
       input[id="testclient" name="testclient" type="checkbox"]
 
-      label for="client_screen_res" Oppløsning:
+      label[for="client_screen_res" class="halfwidth"] Oppløsning:
       select[id="client_screen_res" name="screen_resolution_id"]
         - for res in screen_res do
           |<option value="#{res.id}">#{res.resolution}</option>
@@ -101,6 +103,8 @@ div class="taskpanes"
       button[type='button' id="save_new_client" class="action_button"]  = "Lagre ny klient"
       button[type='button' id="delete_request" class="action_button"]  = "Slett oppføring"
 
+      span[class="progress" style="margin-left:48px" hidden]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -134,6 +138,8 @@ div class="taskpanes"
       button[type='button' id="save_admin" class="action_button"]  = "Lagre admin"
       button[type='button' id="delete_admin" class="action_button"]  = "Slett admin"
 
+      span[class="progress" style="margin-left:48px" hidden]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -157,10 +163,18 @@ div class="taskpanes"
         label for="affiliate_name" class="fw" Navn:
         input[id="affiliate_name" type="text" name="name"]
       p
-      hr
-      button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
-      button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
+        hr
+        button[type='button' id="save_affiliate" class="action_button"]  = "Lagre"
+        button[type='button' id="delete_affiliate" class="action_button"]  = "Slett"
+      p
+        h4 Velg standardskriver:
+      p
+        select[id="affiliate_printers" class="printer_selector"]
+      p
+        button[type='button' id="set_default_printer"] = "Aktiver"
 
+      span[class="progress" style="margin-left:48px" hidden]
+        img src="/img/ajax-loader.gif"
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
@@ -191,17 +205,90 @@ div class="taskpanes"
         label[for="message"]Boot-melding:
         input[id="message" type="text" name="message" placeholder="Booter som publikumsmaskin"]
       p
-      label[for="description"]Beskrivelse:
-      textarea[id="description" name="description" rows="2" placeholder="Lubuntu 16.04"]
+        label[for="description"]Beskrivelse:
+        textarea[id="description" name="description" rows="2" placeholder="Lubuntu 16.04"]
       p
       hr
       button[type='button' id="save_profile" class="action_button"]  = "Lagre endringer"
       button[type='button' id="clone_profile" class="action_button"]  = "Klon profil"
       button[type='button' id="delete_profile" class="action_button"]  = "Slett profil"
 
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]
+
+
+  div[class="taskpane" id="printer_profiles"]
+    p
+      select[id="printer_profile_selector" class="printer_profile_selector"]
+        option[value=0]Ny profil
+        option[value=1]Korttidsmaskin
+        option[value=2]Lånemaskin
+    hr
+
+    form[id="printer_profile_form"]
+      input[type="text" name="id" hidden]
+      p
+        label[for="printer_profile_name"]Navn:
+        input[id="printer_profile_name" type="text" name="name" placeholder="3D skriver"]
+      p
+      hr
+      button[type='button' id="save_printer_profile" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="clone_printer_profile" class="action_button"]  = "Klon profil"
+      button[type='button' id="delete_printer_profile" class="action_button"]  = "Slett profil"
 
       span[class="info" style="margin-left:48px"]
       span[class="error" style="margin-left:48px"]
 
-  div[class="taskpane"]
-    span[class="error" style="margin-left:48px"]
+
+  div[class="taskpane" id="prints"]
+    p
+      select[id="printer_selector" class="printer_selector"]
+        option[value=0]Ny printer
+    hr
+
+    form[id="printer_form"]
+      input[type="text" name="id" hidden]
+      p
+        label[for="printer_name" class="fw"]Navn:
+        input[id="printer_name" type="text" name="name" placeholder="3D skriver"]
+      p
+        label[for="printer_profile_selector" class="fw"]Profil:
+        select[class="printer_profile_selector" name="printer_profile_id"]
+      p
+        label[for="printer_branches" class="fw"]Filial:
+        select[id="printer_branches" name="branch_id" class="branch_selector in_form"]
+      p
+        label[for="uri_printer" class="fw"]URI printer:
+        input[id="uri_printer" type="text" name="uri_printer"]
+      p
+        label[for="uri_client" class="fw"]URI klient:
+        input[id="uri_client" type="text" name="uri_client"]
+      p
+        label[for="ppd_printer" class="fw"]PPD printer:
+        input[id="ppd_printer" type="text" name="ppd_printer"]
+      p
+        label[for="ppd_client" class="fw"]PPD klient:
+        input[id="ppd_client" type="text" name="ppd_client"]
+      p
+        label[for="ip_printer" class="fw"]IP printer:
+        input[id="ip_printer" type="text" name="ip_printer"]
+      p
+        label[for="admin_url" class="fw"]Admin URL:
+        input[id="admin_url" type="text" name="admin_url"]
+      p
+        label[for="location" class="fw"]Location:
+        input[id="location" type="text" name="location"]
+      p
+        label[for="info" class="fw"]Info:
+        input[id="info" type="text" name="info"]
+      p
+        label[for="poptions" class="fw"]Options (-E):
+        textarea[id="poptions" name="poptions" rows=5 form="printer_form"]
+      p
+      hr
+      button[type='button' id="save_printer" class="action_button"]  = "Lagre endringer"
+      button[type='button' id="clone_printer" class="action_button"]  = "Klon printer"
+      button[type='button' id="delete_printer" class="action_button"]  = "Slett printer"
+
+      span[class="info" style="margin-left:48px"]
+      span[class="error" style="margin-left:48px"]

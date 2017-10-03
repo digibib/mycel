@@ -55,7 +55,6 @@ class Server < Goliath::API
    end
 
 
-
    def response(env)
      #TODO debug SQL queries & optimize
      #ActiveRecord::Base.logger = env.logger if Goliath.env.to_s == "development
@@ -64,6 +63,7 @@ class Server < Goliath::API
      set_admin(env)
 
     if path[1] == 'api'
+      env['HTTP_CONNECTION'] = 'close' if path[2] == 'keep_alive'
       API.call(env)
     else
       if env['admin'] == "none"
@@ -93,6 +93,17 @@ class Server < Goliath::API
                            :locals => {:admin => Admin.find_by_username(env['admin'])})]
           elsif path[1] == 'statistics'
             [200, {}, slim(:statistics)]
+          elsif path[1] == 'inventory'
+            [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
+          elsif path[1] == 'chart'
+            [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
+          elsif path[1] == 'admin'
+            admin = Admin.find_by_username(env['admin'])
+            if admin.respond_to?(:superadmin?) and admin.superadmin?
+              [200, {}, slim(:admin, locals: {:screen_res => ScreenResolution.all})]
+            else
+              [401, {}, slim(:forbidden)]
+            end
           elsif path[1] == 'loggout'
             [200, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
           else    # matches non-existing branch
@@ -102,7 +113,8 @@ class Server < Goliath::API
           if @@org.branches.find_by_name(path[1])
             if (dept = @@org.branches.find_by_name(path[1]).departments.find_by_name(path[2]))
               if dept.authorized?(Admin.find_by_username(env['admin']))
-                [200, {}, slim(:department, :locals => {:department => dept, :screen_res => ScreenResolution.all })]
+                [200, {}, slim(:department, :locals => {:department => dept,
+                  :screen_res => ScreenResolution.all})]
               else
                 [401, {}, slim(:forbidden)]
               end

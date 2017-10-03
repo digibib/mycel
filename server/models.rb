@@ -32,12 +32,12 @@ class Organization < ActiveRecord::Base
     opt.merge! "opening_hours" => oh
     opt.except("owner_options_id", "owner_options_type", "id")
   end
-
-
 end
+
 
 class Options < ActiveRecord::Base
   belongs_to :owner_options, :polymorphic => true
+  belongs_to :printers, :foreign_key => "default_printer_id"
   has_one :opening_hours
 
   accepts_nested_attributes_for :opening_hours
@@ -53,14 +53,20 @@ end
 class Branch < ActiveRecord::Base
   belongs_to :organization
   has_many :departments, :dependent => :destroy
+  has_many :clients, :through => :departments
   has_many :admins, :as => :owner_admins
   has_one :options, :as => :owner_options, :dependent => :destroy
+  has_one :opening_hours, through: :options
+  has_many :printers
 
   validates_presence_of :name
 
   accepts_nested_attributes_for :options
 
-  after_initialize :init
+  after_initialize :init, if: :new_record?
+
+  # scope to optimize api requests
+  scope :api_includes, includes(:printers, :organization, options: :opening_hours)
 
 
   def init
@@ -71,6 +77,7 @@ class Branch < ActiveRecord::Base
     hash = super()
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
+    hash.merge!(:printers => self.printers.as_json)
     hash.except("organization_id")
   end
 
@@ -104,7 +111,14 @@ class Department < ActiveRecord::Base
 
   accepts_nested_attributes_for :options
 
-  after_initialize :init
+  after_initialize :init, if: :new_record?
+
+  # scope to optimize api requests
+  scope :api_includes, includes(options: :opening_hours, :branch => [:organization, :opening_hours])
+
+  def organization
+    branch.organization
+  end
 
   def init
     self.options ||= Options.new()
@@ -144,17 +158,23 @@ class Client < ActiveRecord::Base
   validates_presence_of :name, :hwaddr
   validates_uniqueness_of :name, :hwaddr
 
-  has_one :user, :inverse_of => :client, :autosave => true
+  has_one :user, :inverse_of => :client, :autosave => true, dependent: :nullify
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
+  has_one :client_spec, :dependent => :destroy
+  has_many :client_events, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
 
-  after_initialize :init
+  after_initialize :init, if: :new_record?
 
   @@cut_off = 15*60
   scope :connected, -> { where("ts > ?", Time.now - @@cut_off) }
   scope :disconnected, -> { where("ts <= ?", Time.now - @@cut_off) }
+
+  # optimized scope for the inventory page
+  scope :inventory_view, includes(:user, :client_spec, department: :branch)
+
 
   def init
     self.options ||= Options.new()
@@ -162,16 +182,40 @@ class Client < ActiveRecord::Base
   end
 
   def branch
-    Department.find(self.department_id).branch
+    department.branch
   end
 
   def occupied?
-    self.user
+    user.present?
   end
 
   def connected?
-    self.ts.nil? ? false : self.ts > Time.now - @@cut_off
+    ts.nil? ? false : ts > Time.now - @@cut_off
   end
+
+
+  def status
+    if occupied?
+      'occupied'
+    elsif ts.nil?
+      'unseen'
+    elsif not connected?
+      'disconnected'
+    else
+      'available'
+    end
+  end
+
+
+  # called when api receives a keep_alive signal from a client that is not connected
+  def generate_offline_event
+    event = ClientEvent.new
+    event.client_id = self.id
+    event.started = self.ts
+    event.ended = Time.now
+    event.save
+  end
+
 
   def log_friendly
     "\"#{self.branch.name}\" \"#{self.department.name}\" \"#{self.name}\" #{self.hwaddr}"
@@ -197,6 +241,7 @@ class Client < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge! "screen_resolution" => self.screen_resolution.resolution
     hash.merge!(:options_inherited => self.options_self_or_inherited)
+    hash.merge!(:printers => self.department.branch.printers)
   end
 end
 
@@ -461,5 +506,54 @@ class Request < ActiveRecord::Base
 end
 
 class Profile < ActiveRecord::Base
+
+end
+
+class Printer < ActiveRecord::Base
+  belongs_to :printer_profile
+  belongs_to :branch
+  has_many :options, class_name: "Options", foreign_key: "default_printer_id", dependent: :nullify
+
+  # scope to optimize api requests
+  scope :api_includes, includes(:options)
+
+  # does any branch or affiliate have this printer set as their default?
+  def has_subscribers
+    options.size > 0
+  end
+end
+
+
+class PrinterProfile < ActiveRecord::Base
+  has_many :printers, dependent: :destroy
+end
+
+class ClientSpec < ActiveRecord::Base
+  belongs_to :client
+end
+
+class ClientEvent < ActiveRecord::Base
+  belongs_to :client
+
+  # representation of the event for use in html title attribrutes. quick and dirty.
+  def to_title
+    duration = ended - started
+    hours = (duration/3600).to_i
+    hrs = hours > 0 ? "#{hours}t" : ""
+    minutes = "#{((duration%3600)/60).to_i}m"
+
+    duration_string = "#{hrs}#{minutes}"
+
+    if [3,4].include?(started.hour) && [3,4].include?(ended.hour) && started.mday == ended.mday
+      ""
+    else
+      started_string = started.strftime('%e/%m %H:%M')
+      ended_string = started.mday == ended.mday ? ended.strftime('%H:%M') : ended.strftime('%e/%m %H:%M')
+
+      "Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
+    end
+
+  end
+
 
 end
