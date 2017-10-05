@@ -50,7 +50,7 @@ $(function() {
         }
       ],
       columns: [
-        { data: "status", className: status, orderData: 6},
+        { data: "status", className: 'status', orderData: 6},
         { data: "downtimes", visible: true},
         { data: "branch_name"},
         { data: "name"},
@@ -60,16 +60,23 @@ $(function() {
         { data: "status", visible: false}
       ],
 
+      // adding class to the TR for filtering by status. There are probably better
+      // ways to do this, but it works.
+      "rowCallback": function( row, data, index ) {
+        $(row).removeClass('occupied available unseen disconnected')
+        $(row).addClass(data.status)
+      },
+
       "columnDefs": [
         {
           targets: '_all',
           searchable: true
         },
 
-        // adding classes to the TRs for filtering. There are probably better
+        // adding class to the TR for filtering by branch. There are probably better
         // ways to do this, but it works.
         {
-          "targets": [0,2],
+          "targets": [2],
           "createdCell": function (td, cellData, rowData, row, col) {
             $(td).parent().addClass(cellData)
           }
@@ -150,10 +157,24 @@ $(function() {
     });
   }
 
-  // $('#branch_selector, #status_selector').val('all')
+
   initializeTable()
+
   let cb = function() {
     updatePage()
+
+    setInterval( function () {
+    let table = $('#inventory_table').DataTable()
+
+    $('#inventory_table tr td:nth-child(1)').each(function(i) {
+      let cell = table.cell($(this));
+      cell.data('available')
+    })
+
+    table.draw()
+    updatePage()
+  }, 30000 );
   }
+
   $('#inventory_table').DataTable().ajax.url('/api/client_specs').load(cb)
 })
