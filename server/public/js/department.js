@@ -34,7 +34,7 @@ $(document).ready(function () {
 
   ws.onmessage = function(evt) {
     // message
-    alert(evt.data)
+
     console.log(evt.data);
     data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
     var msg = "";
