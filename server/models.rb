@@ -500,6 +500,19 @@ class Admin < ActiveRecord::Base
       return Department.all.collect { |d| d.id }
     end
   end
+
+  def allowed_branches
+    if owner_admins_type == 'Department'
+      return [Department.find(owner_admins_id).branch_id]
+    elsif self.owner_admins_type == 'Branch'
+      return [Branch.find(owner_admins_id).id]
+    else
+      return Branch.all.collect { |b| b.id }
+    end
+
+
+  end
+
 end
 
 class ScreenResolution < ActiveRecord::Base

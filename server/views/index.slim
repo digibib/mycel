@@ -1,5 +1,15 @@
+script src="/js/index.js"
+
 - org = Organization.first
 div class="main"
+  - if branches.size == -1
+    <a href="/dep?id=#{branches.first.id}">#{branches.first.name}</a>
+  - elsif branches.size > 1
+    select id="branch_selector"
+      option[data-branchid="0"] -- velg --
+      - branches.each do |branch|
+        option[data-branchid="#{branch.id}"] #{branch.name}
+
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
     == render :slim,  :'admin', :layout => false, :locals => {:screen_res => screen_res}
   - else

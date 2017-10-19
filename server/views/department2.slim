@@ -29,11 +29,8 @@ div class="divdot inputf"
 - for d in Department.all
   input id="dm_#{d.id}" class="adjust-minutes" type="hidden" value="#{d.options_self_or_inherited['time_limit'].to_i - 60}"
 div class="main"
-  input[type="hidden" value="#{department.name}" id="department-name"]
-  - if department.name == department.branch.name
-    h2 #{department.branch.name}
-  - else
-    h2 #{department.branch.name}: #{department.name}
+  input[type="hidden" value="#{branch.id}" id="branch-id"]
+  h2 #{branch.name}
 
   h2 Klienter
 
@@ -47,21 +44,3 @@ div class="main"
         th
         th info
     tbody
-
-
-
-  h2 Lokale innstillinger
-  p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
-  p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde i steden.
-
-  == render :slim,  :'options', :layout => false, :locals => {:level => department}
-
-  h2 Statistikk
-  p Gjelder for alle klienter i denne avdelingen.
-
-  div.divdot
-    p: strong Noen tall for i år</strong> (oppdateres daglig)
-    - filename = 'stats_b_'+department.branch.id.to_s+'_d_'+department.id.to_s
-    == render :slim, filename.to_sym, :layout => false
-    p.statscomment: em * gjennomsnitt er beregnet ut i fra alle dager, og ikke bare virkedager når biblioteket er åpent
-  p Si fra om det er andre tall dere vil ha, så skal jeg se hva jeg kan få til.

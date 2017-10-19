@@ -38,15 +38,6 @@ $(function() {
     request.done(function(data) {
       $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
         .show().fadeOut(5000);
-        // Show in inactive users table
-        $('#add_user_form')[0].reset();
-        $('table.userform').hide();
-        var tr = '<tr id="' + data.user.id + '"><td>G</td><td>'+data.user.username;
-        tr +=  '</td><td class="td-minutes" style="width:40px">' + data.user.minutes;
-        tr += '</td><td><input class="users minutes" type="hidden" value="'+data.user.minutes;
-        tr += '"><input class="nr required" type="text"><button class="users add_time" type="button">';
-        tr += '+</button></td><td><button class="users delete" type="button">Slett</button></td></tr>';
-        $('table.users.inactive').append(tr);
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
@@ -55,19 +46,7 @@ $(function() {
     })
   });
 
-
-
-
-
-
-
-
-  const handleClient = function(client) {
-
-
-
-  }
-
+  // handle client list
   const getImageTag = function(status) {
     let icon, title
     switch(status) {
@@ -126,23 +105,6 @@ $(function() {
   }
 
 
-
-  //  tr class="#{klass}" id="#{client.id}"
-    //  td[style="width:34px"]: img src="#{image}" class="pc"
-  //    td #{client.name}
-  //    td[style="width:160px" class="td-user"]
-  //      div class="toggle"
-  //        #{user.name if client.occupied?}
-  //    - adjust = 0
-  //    - adjust = client.options_self_or_inherited['time_limit'].to_i - 60 if client.user and client.user.type_short === "B"
-  //    td[style="width:34px" class="td-minutes"] #{user.minutes+adjust if client.occupied?}
-
-
-//         td[style="width:160px"]
-  //        span class="info"
-  //        span class="error"
-
-
   const handleDep = function(department) {
     let rows = ''
 
@@ -157,7 +119,7 @@ $(function() {
 
       const remainingTime = (client.user && client.user.minutes + adjust) || ''
 
-      let foo = '<td></td>'
+      let addMinutesColumn = '<td></td>'
       let klazz = client.user ? 'toggle' : 'toggle hidden'
       if (client.user) {
         let id = "<input type='hidden' class='user_id' value='" + client.user.id + "'>"
@@ -165,36 +127,41 @@ $(function() {
         let input = "<input type='text' class='nr required'>"
         let button = "<button type='button' class='users add_time'>+</button>"
 
-        foo = '<td><div class="toggle">' + id + minutes + input + button + '</div></td>'
+        addMinutesColumn = '<td><div class="toggle">' + id + minutes + input + button + '</div></td>'
       }
 
       // tr has class 'occupied' available, etc. does it do anything?
-      // tr id="client.id"
-      // image has a class pc, probably intended for future use
       let row = '<tr id="' + client.id +  '">'
-      row += '<td>' + getImageTag(client.status) + '</td>'
-      row += '<td>' + getUptimeSeries(client.offline_events) + '</td>'
+      row += '<td class ="td-icon">' + getImageTag(client.status) + '</td>'
+      row += '<td class="td-uptime">' + getUptimeSeries(client.offline_events) + '</td>'
       row += '<td>' + client.name + '</td>'
       row += '<td class="td-user"><div class="toggle">' + userName + '</div></td>'
       row += '<td class="td-minutes">' + remainingTime + '</td>'
-      //row += '<td>' + foo + '</td>'
-      row += foo
-      // add info
+      row += addMinutesColumn
+      row += '<td style="width:160px"><span class="info"></span><span class="error"></span></td>'
       row += '</tr>'
 
       rows += row
     })
 
-    //alert(rows)
     $('.clients > tbody:last-child').append(rows)
+  }
 
+
+
+  const updateStatus = function(type) {
+    $.getJSON('/api/branches/' + branchID + '?expand=true').done(function(data) {
+      data.branch.departments.forEach(function(department) {
+        department.clients.forEach(function(client) {
+          $('tr#' + client.id).find('td-icon').html(getImageTag(client.status))
+        })
+      })
+    })
   }
 
 
   const loadData = function(type) {
-    $.getJSON('/api/branches/1?expand=true').done(function(data) {
-
-      // handle branch
+    $.getJSON('/api/branches/' + branchID + '?expand=true').done(function(data) {
 
       data.branch.departments.forEach(function(department) {
         handleDep(department)
@@ -203,6 +170,7 @@ $(function() {
 
   }
 
-  //alert("yo!")
+  const branchID = $('#branch-id').val()
   loadData()
+  setInterval(updateStatus, 1 * 60 * 1000)
 })

@@ -14,7 +14,7 @@ $(document).ready(function () {
 
   //var ws = new WebSocket("ws://localhost:9001/subscribe/departments/"+dept_id);
   var ws = new WebSocket("ws://10.172.2.100:9001/subscribe/departments/"+dept_id);
-  
+
   // handle ws events
 
   ws.onopen = function() {
@@ -143,8 +143,7 @@ $(document).ready(function () {
   });
 
   // ** Handle adjust user minutes
-  $('button.users.add_time').on('click', function () {
-
+  $(document).on('click', 'button.users.add_time', function(){
     var $i = $(this).siblings('input.nr.required')
     if (parseInt($i.val()) == 0) {
       $i.val('');

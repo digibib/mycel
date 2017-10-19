@@ -68,14 +68,18 @@ class Server < Goliath::API
     else
       if env['admin'] == "none"
         if path[1] == 'setadmin'
-          [200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, slim(:index)]
+          [200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, 'http://localhost:9000']
+          #[200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, slim(:index)]
         else
           [401, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
         end
       else
         case path.length
         when 0    # matches /
+          allowed_branches = Admin.find_by_username(env['admin']).allowed_branches
+          branches = Branch.where(id: allowed_branches)
           [200, {}, slim(:index, :locals => {:screen_res => ScreenResolution.all,
+            branches: branches,
             :admin => Admin.find_by_username(env['admin'])})]
         when 2    # matches {branches}|users|statistics
           if @@org.branches.find_by_name(path[1])
@@ -95,8 +99,6 @@ class Server < Goliath::API
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
             [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
-          elsif path[1] == 'inv'
-            [200, {}, slim(:inventory2, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'chart'
             [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'admin'
@@ -107,8 +109,9 @@ class Server < Goliath::API
               [401, {}, slim(:forbidden)]
             end
           elsif path[1] == 'dep'
+            branch = Branch.find_by_id(params["id"])
             [200, {}, slim(:department2, :locals => {:department => Department.first,
-              :screen_res => ScreenResolution.all})]
+              branch: branch, :screen_res => ScreenResolution.all})]
           elsif path[1] == 'loggout'
             [200, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
           else    # matches non-existing branch
