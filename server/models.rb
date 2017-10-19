@@ -78,6 +78,7 @@ class Branch < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
     hash.merge!(:printers => self.printers.as_json)
+    hash.merge!(departments: departments.as_json({expand: true})) if args.extract_options![:expand]
     hash.except("organization_id")
   end
 
@@ -128,6 +129,7 @@ class Department < ActiveRecord::Base
     hash = super()
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.branch.options_self_or_inherited)
+    hash.merge!(:clients => self.clients.as_json({expand: true})  ) if args.extract_options![:expand]
     hash.except("organization_id")
   end
 
@@ -236,12 +238,17 @@ class Client < ActiveRecord::Base
     opt.except("owner_options_id", "owner_options_type", "id")
   end
 
-  def as_json
+  def as_json(*args)
     hash = super()
     hash.merge!(:options => self.options.as_json)
     hash.merge! "screen_resolution" => self.screen_resolution.resolution
     hash.merge!(:options_inherited => self.options_self_or_inherited)
     hash.merge!(:printers => self.department.branch.printers)
+    hash.merge!(:status => self.status)
+
+    expand = args.extract_options![:expand]
+    hash.merge!(:offline_events => ClientEvent.create_downtime_series(id)) if expand
+    hash.merge!(:user => user) if expand
   end
 end
 

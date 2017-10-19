@@ -690,7 +690,12 @@ class API < Grape::API
 
       desc "get specific branch"
       get "/:id" do
-        {:branch => Branch.find(params[:id]).as_json}
+        {:branch => Branch.api_includes.find(params[:id]).as_json({expand: params[:expand]})}
+      end
+
+      desc "get specific branch"
+      get "/expand/:id" do
+        {:branch => Branch.api_includes.find(params[:id]).as_json({expand: true} )}
       end
 
       desc "create or update branch (without options) and returns status"

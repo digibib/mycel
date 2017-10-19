@@ -1,0 +1,67 @@
+script src="/js/dep.js"
+script src="/js/department.js"
+
+div class="divdot inputf"
+  button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+  span[class='info' id="user_saved_info" style="margin-left:20px"]
+  form id="add_user_form"
+    table class="userform"
+      tr
+        td brukernavn
+        td: input[type="text" id="username" class="required" maxlength="10"]
+        td passord
+        td: input[type="text" id="user_password" maxlength="10" class="required"]
+      tr
+        td alder
+        td: select[name="age" id="user_age"]
+          |<option value="20">voksen</option>
+          |<option value="10">barn</option>
+        td minutter
+        td: input[type="text" class="nr required" id="user_minutes"]
+      tr
+        td: button[type='button' id="usersave"]  = "Lagre bruker"
+        td: button[type='button' id="usercancel"]  = "Avbryt"
+        td
+        td[id="user_form_response"]
+          span[class='error']
+
+
+- for d in Department.all
+  input id="dm_#{d.id}" class="adjust-minutes" type="hidden" value="#{d.options_self_or_inherited['time_limit'].to_i - 60}"
+div class="main"
+  input[type="hidden" value="#{department.name}" id="department-name"]
+  - if department.name == department.branch.name
+    h2 #{department.branch.name}
+  - else
+    h2 #{department.branch.name}: #{department.name}
+
+  h2 Klienter
+
+  table class="clients"
+    thead
+      tr
+        th[colspan="2"] status
+        th[style="width:120px"] klientnavn
+        th bruker
+        th[colspan="2"] minutter igjen
+        th
+        th info
+    tbody
+
+
+
+  h2 Lokale innstillinger
+  p Følgende innstillinger vil gjelde for alle klientene i denne avdelingen.
+  p Hvis du lagrer et skjema med blanke felt, så vil innstillingene for filialen (#{department.branch.name}) gjelde i steden.
+
+  == render :slim,  :'options', :layout => false, :locals => {:level => department}
+
+  h2 Statistikk
+  p Gjelder for alle klienter i denne avdelingen.
+
+  div.divdot
+    p: strong Noen tall for i år</strong> (oppdateres daglig)
+    - filename = 'stats_b_'+department.branch.id.to_s+'_d_'+department.id.to_s
+    == render :slim, filename.to_sym, :layout => false
+    p.statscomment: em * gjennomsnitt er beregnet ut i fra alle dager, og ikke bare virkedager når biblioteket er åpent
+  p Si fra om det er andre tall dere vil ha, så skal jeg se hva jeg kan få til.
