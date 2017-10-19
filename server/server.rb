@@ -117,7 +117,6 @@ class Server < Goliath::WebSocket
               Fiber.new do
                 user.reload
                 env['timer'].cancel if user.client.nil?
-
                 broadcast = JSON.generate({:status => "ping",
                                            :client => {:id => client.id,
                                                        :dept_id => client.department.id},
@@ -130,6 +129,7 @@ class Server < Goliath::WebSocket
                 env.channels['clients/'+client.id.to_s] << broadcast
                 env.channels['departments/'+client.department.id.to_s] << broadcast
                 env.channels['users/'] << broadcast
+                env.channels['branches/'] << broadcast
               end.resume
             end
 

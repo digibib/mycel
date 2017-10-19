@@ -11,9 +11,15 @@ $(document).ready(function () {
   backup.ah = $('input#age_higher').val();
 
   // ** connect to mycel websocket server
-
-  //var ws = new WebSocket("ws://localhost:9001/subscribe/departments/"+dept_id);
-  var ws = new WebSocket("ws://10.172.2.100:9001/subscribe/departments/"+dept_id);
+  var ws
+  if (dept_id) {
+    //var ws = new WebSocket("ws://localhost:9001/subscribe/departments/"+dept_id);
+    ws = new WebSocket("ws://10.172.2.100:9001/subscribe/departments/"+dept_id);
+  } else {
+    const branchID = $('#branch-id').val()
+    //ws = new WebSocket("ws://localhost:9001/subscribe/branches/"+ branchID);
+    ws = new WebSocket("ws://10.172.2.100:9001/subscribe/branches/"+ branchID);
+  }
 
   // handle ws events
 
@@ -28,6 +34,7 @@ $(document).ready(function () {
 
   ws.onmessage = function(evt) {
     // message
+    alert(evt.data)
     console.log(evt.data);
     data = JSON && JSON.parse(evt.data) || $.parseJSON(evt.data);
     var msg = "";
