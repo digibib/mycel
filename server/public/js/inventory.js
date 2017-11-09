@@ -150,7 +150,6 @@ $(function() {
 
             return bar
           },
-
           targets: 1, orderable: false
         }
       ]
@@ -162,18 +161,8 @@ $(function() {
 
   let cb = function() {
     updatePage()
-
-    setInterval( function () {
-    let table = $('#inventory_table').DataTable()
-
-    $('#inventory_table tr td:nth-child(1)').each(function(i) {
-      let cell = table.cell($(this));
-      cell.data('available')
-    })
-
-    table.draw()
-    updatePage()
-  }, 30000 );
+    const table = $('#inventory_table').DataTable()
+    setInterval( function () {table.ajax.reload()}, 30000);
   }
 
   $('#inventory_table').DataTable().ajax.url('/api/client_specs').load(cb)

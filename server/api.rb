@@ -457,14 +457,20 @@ class API < Grape::API
           {:client => client.as_json}
         end
       else
-        # merge in additional keys before return client list
         clients = []
         Client.includes(department: :branch).all.each do |client|
-          branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
-          clients << client.attributes.merge(branch_id)
+          attribs =
+          { branch_id: client.department.branch_id,
+            is_connected: client.connected?,
+            status: client.status,
+            offline_events: ClientEvent.create_downtime_series(client.id),
+            user: client.user
+          }
+
+          clients << client.attributes.merge(attribs)
         end
         status 200
-        {:clients => clients }
+        {clients: clients }
       end
     end
 

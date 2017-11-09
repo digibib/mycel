@@ -95,6 +95,8 @@ class Server < Goliath::API
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
             [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
+          elsif path[1] == 'i'
+            [200, {}, slim(:branch_ui, locals: {branch: Branch.find(2)})]
           elsif path[1] == 'chart'
             [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'admin'
