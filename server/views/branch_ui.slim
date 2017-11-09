@@ -1,0 +1,59 @@
+script src="/js/branch_ui.js"
+script src="/js/branch_ui_options.js"
+
+script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"
+script src="https://cdn.datatables.net/buttons/1.3.1/js/dataTables.buttons.min.js"
+script src="https://cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"
+
+
+link href='https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css' rel='stylesheet' type='text/css'
+link href='https://cdn.datatables.net/buttons/1.3.1/css/buttons.dataTables.min.css' rel='stylesheet' type='text/css'
+
+
+div style="padding-top: 20px; padding-bottom: 20px;"
+  span
+    a[href="/chart" style="float:right"]
+      img src="/img/pie-chart.png" width=32 height=32 alt="Alle liker kake"
+    h2 style="display:inline; text-decoration: underline;" Inventar
+
+div style="padding-bottom: 20px;"
+  label for='status_selector' style='padding-right: 10px;' Status:
+  select id='status_selector'
+    option value='all' Alle
+    option value='occupied' Opptatt
+    option value='available' Ledig
+    option value='disconnected' Frakoblet
+    option value='unseen' Usett
+
+  label for='branch_selector' style='padding-right: 10px; padding-left: 10px;' Filial:
+  select id='branch_selector'
+    option value='all' Alle
+
+
+- branch.departments.each do |department|
+  - adjust = department.options_self_or_inherited['time_limit'].to_i - 60
+  input[hidden id="dept#{department.id}" data-adjust="#{adjust}"]
+
+table id="inventory_table" class='table display'
+  thead
+    tr
+      th class="dt-head-left" Status
+      th class="dt-head-left"
+      th class="dt-head-left" Navn
+      th class="dt-head-left" Bruker
+      th class="dt-head-left compact" Tid
+      th class="dt-head-left compact"
+      th class="dt-head-left compact" info
+    tbody
+
+
+
+ul class="ubertabs"
+  - units = [branch, *branch.departments]
+  - units.each do |unit|
+    li #{unit.name}
+
+div class="uberpanes"
+  - units.each do |unit|
+    div class="uberpane"
+      == render :slim,  :'branch_ui_options', :layout => false, :locals => {:level => unit}

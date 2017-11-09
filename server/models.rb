@@ -78,6 +78,7 @@ class Branch < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
     hash.merge!(:printers => self.printers.as_json)
+
     hash.except("organization_id")
   end
 
@@ -173,7 +174,7 @@ class Client < ActiveRecord::Base
   scope :disconnected, -> { where("ts <= ?", Time.now - @@cut_off) }
 
   # optimized scope for the inventory page
-  scope :inventory_view, includes(:user, :client_spec, department: :branch)
+  scope :inventory_view, includes(:user, :client_spec, :options, department: :branch)
 
 
   def init
@@ -206,7 +207,6 @@ class Client < ActiveRecord::Base
     end
   end
 
-
   # called when api receives a keep_alive signal from a client that is not connected
   def generate_offline_event
     event = ClientEvent.new
@@ -222,7 +222,7 @@ class Client < ActiveRecord::Base
   end
 
   def options_self_or_inherited
-    dept = Department.find(self.department.id)
+    dept = department #Department.find(self.department.id)
     opt = {}
     self.options.attributes.each do |k,v|
       if self.options[k]
