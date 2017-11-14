@@ -4,7 +4,7 @@ div class="maintab"
     li Aldersbegrensninger
     li Tidsbegrensninger
     li Hjemmeside
-    li Printer
+    li Statistikk
   div class="panes"
     div class="pane"
       h3 Åpningstider
@@ -178,13 +178,10 @@ div class="maintab"
               span[name="homepage_info" class="info" style="margin-left:48px"]
               span[name="homepage_error" class="error" style="margin-left:48px"]
     div class="pane"
-      h3 Printer
+      h3 Statistikk
       div class="divdot inputf"
-        table class="genform"
-          tr
-            td printeradresse
-            td: input[type="text" name="printer" value="#{level.options_self_or_inherited['printeraddr']}"]
-            td: button[type='button' name="printersave"]  = "Lagre"
-            td
-              span[name="printer_info" class="info" style="margin-left:48px"]
-              span[name="printer_error" class="error" style="margin-left:48px"]
+        - if level.is_a?(Branch)
+          - filename = 'stats_b_'+level.id.to_s
+        - else
+          - filename = 'stats_b_' + level.branch.id.to_s+'_d_'+level.id.to_s
+        == render :slim, filename.to_sym, :layout => false

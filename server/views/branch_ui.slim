@@ -1,3 +1,4 @@
+script src="/js/util.js"
 script src="/js/branch_ui.js"
 script src="/js/branch_ui_options.js"
 
@@ -9,41 +10,60 @@ script src="https://cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"
 link href='https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css' rel='stylesheet' type='text/css'
 link href='https://cdn.datatables.net/buttons/1.3.1/css/buttons.dataTables.min.css' rel='stylesheet' type='text/css'
 
-
-div style="padding-top: 20px; padding-bottom: 20px;"
-  span
-    a[href="/chart" style="float:right"]
-      img src="/img/pie-chart.png" width=32 height=32 alt="Alle liker kake"
-    h2 style="display:inline; text-decoration: underline;" Inventar
-
-div style="padding-bottom: 20px;"
-  label for='status_selector' style='padding-right: 10px;' Status:
-  select id='status_selector'
-    option value='all' Alle
-    option value='occupied' Opptatt
-    option value='available' Ledig
-    option value='disconnected' Frakoblet
-    option value='unseen' Usett
-
-  label for='branch_selector' style='padding-right: 10px; padding-left: 10px;' Filial:
-  select id='branch_selector'
-    option value='all' Alle
-
+- units = [branch, *branch.departments]
 
 - branch.departments.each do |department|
   - adjust = department.options_self_or_inherited['time_limit'].to_i - 60
   input[hidden id="dept#{department.id}" data-adjust="#{adjust}"]
 
-table id="inventory_table" class='table display'
+
+div style="padding-top: 20px; padding-bottom: 20px;"
+  span
+    h2 style="display:inline; text-decoration: underline;" #{branch.name}
+    img[src="/img/ajax-loader2.gif" id="ajax_spinner" hidden]
+    div style="float:right;" class="department_buttons"
+      button Alle
+      - units.each do |unit|
+        - unless unit.is_a?(Branch)
+          button[value="#{unit.id}"] #{unit.name}
+
+
+div class="divdot inputf"
+  button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+  span[class='info' id="user_saved_info" style="margin-left:20px"]
+  form id="add_user_form"
+    table class="userform"
+      tr
+        td brukernavn
+        td: input[type="text" id="username" class="required" maxlength="10"]
+        td passord
+        td: input[type="text" id="user_password" maxlength="10" class="required"]
+      tr
+        td alder
+        td: select[name="age" id="user_age"]
+          |<option value="20">voksen</option>
+          |<option value="10">barn</option>
+        td minutter
+        td: input[type="text" class="nr required" id="user_minutes"]
+      tr
+        td: button[type='button' id="usersave"]  = "Lagre bruker"
+        td: button[type='button' id="usercancel"]  = "Avbryt"
+        td:  button[type='button' id="userclear"]  = "Nullstill skjema"
+        td[id="user_form_response"]
+          span[class='error']
+
+
+
+table id="inventory_table"
   thead
     tr
-      th class="dt-head-left" Status
-      th class="dt-head-left"
-      th class="dt-head-left" Navn
-      th class="dt-head-left" Bruker
-      th class="dt-head-left compact" Tid
-      th class="dt-head-left compact"
-      th class="dt-head-left compact" info
+      th[style="padding-right: 2px"] Status
+      th[style="padding-left: 0px"]
+      th Navn
+      th Bruker
+      th Tid
+      th
+      th
     tbody
 
 
