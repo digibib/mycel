@@ -153,16 +153,16 @@ class Department < ActiveRecord::Base
 end
 
 class Client < ActiveRecord::Base
-
   belongs_to :department
 
   validates_presence_of :name, :hwaddr
   validates_uniqueness_of :name, :hwaddr
 
-  has_one :user, :inverse_of => :client, :autosave => true, dependent: :nullify
+  has_one :user, :inverse_of => :client, dependent: :nullify
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
   has_one :client_spec, :dependent => :destroy
+
   has_many :client_events, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
@@ -214,6 +214,20 @@ class Client < ActiveRecord::Base
     event.started = self.ts
     event.ended = Time.now
     event.save
+  end
+
+  def generate_logon_event
+    #event = ClientEvent.new
+    #event.started = Time.now
+    #event.client_id = self.id
+    #event.ended = null
+    #event.save
+  end
+
+  def generete_logoff_event
+    # event = logon_event.last
+    # if event.ended.present? -> log errorThrown
+    # else event.ended = Time.now event.save
   end
 
 
@@ -359,6 +373,18 @@ class OpeningHours < ActiveRecord::Base
 end
 
 class User < ActiveRecord::Base
+  #after_commit :generate_client_event
+
+  def generate_client_event
+    puts client_id
+    puts client_id_was
+    if self.client_id_changed?
+      puts client_id ? "logon saint" : "logoff saint"
+    else
+      puts "funka ikke"
+    end
+  end
+
   validates_presence_of  :minutes
 
   belongs_to :client, :inverse_of => :user, :autosave => true
@@ -380,14 +406,21 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
+    return true if c == self.client
+
+    c.generate_logon_event unless c.occupied?
+
     #return false if c.user
-    c.user.log_off if c.user
+    c.user.log_off(false) if c.user
+    c.user = self
     self.client = c
   end
 
-  def log_off
-    self.client.user = nil if (self.client and self.client.user)
-    self.client = nil
+  def log_off(generate_event = true)
+    client.generate_logoff_event if generate_event and client
+
+    self.client.user = nil if self.client and self.client.user
+    self.client_id = nil
   end
 
   def as_json(*args)

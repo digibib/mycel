@@ -1,4 +1,4 @@
-// TODO change all # duplicates to .class
+
 // TODO split this into common.js, department.js and branch.js when done
 // read branch_id here at top
 
@@ -44,11 +44,6 @@ $(document).ready(function () {
 
     backups[key] = backup
   })
-
-  //var backup = new Object();
-  //backup.homepage = $('input[name="homepage"]').val();
-  //backup.al = $('input[name="age_lower"]').val();
-  //backup.ah = $('input[name="age_higher"]').val();
 
   // ** set input masks **
 
@@ -216,8 +211,6 @@ $(document).ready(function () {
         mainTab.find('span[name="hours_info"]:first').html("OK! Arver instillinger").show().fadeOut(5000);
         mainTab.find('[name="change_hours_form"]:first').find('span.inherited').show();
         $.each(level.options_inherited.opening_hours, function(k, v) {
-          console.log("wat!")
-          console.log(k)
           if (v == true) {
             mainTab.find('input[name="' + k + '":first]').attr('checked', true);
             mainTab.find('input[name="' + k.slice(0, -6) + 'opens":first]').attr('checked', true);
@@ -225,7 +218,7 @@ $(document).ready(function () {
             //$('#'+k.slice(0,-6)+'opens').attr("disabled", "disabled");
             //$('#'+k.slice(0,-6)+'closes').attr("disabled", "disabled");
           } else {
-            console.log("hmm")
+
             mainTab.find('input[name="' + k + '":first]').val(v);
 
             //$('input#'+k).val(v);
@@ -238,24 +231,25 @@ $(document).ready(function () {
       const key = getBackupKey(mainTab)
       let backup = backups[key]
 
-      $('span#hours_info').hide();
-      console.log(jqXHR.responseText);
+      mainTab.find('span[name="hours_info"]').hide();
+
       if (backup.ohcopy) {
-        $('#change_hours_form').replaceWith(backup.ohcopy);
+        mainTab.find('[name="change_hours_form"]').replaceWith(backup.ohcopy);
       }
       backup.ohcopy = null;
-      $('span#hours_error').html(jqXHR.responseText).show().fadeOut(5000);
+      mainTab.find('span[name="hours_error"]').html(jqXHR.responseText).show().fadeOut(5000);
     });
   });
 
   // ** handle age-limit events
-  $('button#agesave').on('click', function () {
+  $('button[name="agesave"]').on('click', function () {
     const mainTab = $(this).closest('.maintab');
     const levelID = mainTab.find('input[name="level_id"]').val();
     const levelURL = getLevelURL(mainTab)
 
-    var lower = $('input#age_lower').val();
-    var higher = $('input#age_higher').val();
+    var lower = mainTab.find('input[name="age_lower"]').val();
+    var higher = mainTab.find('input[name="age_higher"]').val();
+
     if ((lower == "") && (higher == "")) {
       var age_data = { age_limit_lower: "inherit", age_limit_higher: "inherit" };
     } else {
@@ -276,26 +270,26 @@ $(document).ready(function () {
         var al = level.options.age_limit_lower ? level.options.age_limit_lower : level.options_inherited.age_limit_lower;
         var ah = level.options.age_limit_higher ? level.options.age_limit_higher : level.options_inherited.age_limit_higher;;
 
-        $('input#age_lower').val(al);
-        $('input#age_higher').val(ah);
-        $('span#age_inherited').hide();
+        mainTab.find('input[name="age_lower"]').val(al);
+        mainTab.find('input[name="age_higher"]').val(ah);
+        mainTab.find('span[name="age_inherited"]').hide();
         var msg = "OK! Lagret.";
       } else {
-        $('input#age_lower').val(level.options_inherited.age_limit_lower);
-        $('input#age_higher').val(level.options_inherited.age_limit_higher);
-        $('span#age_inherited').show();
+        mainTab.find('input[name="age_lower"]').val(level.options_inherited.age_limit_lower);
+        mainTab.find('input[name="age_higher"]').val(level.options_inherited.age_limit_higher);
+        mainTab.find('input[name="age_inherited"]').show();
         var msg = "OK! Arver instillinger";
       }
-      $('span#age_info').html(msg).show().fadeOut(5000);
+      mainTab.find('span[name="age_info"]').html(msg).show().fadeOut(5000);
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
       const key = getBackupKey(mainTab)
       let backup = backups[key]
 
-      $('span#age_error').html(jqXHR.responseText).show().fadeOut(5000);
-      $('#age_lower').val(backup.al);
-      $('#age_higher').val(backup.ah);
+      mainTab.find('span[name="age_error"]').html(jqXHR.responseText).show().fadeOut(5000);
+      mainTab.find('input[name="age_lower"]').val(backup.al);
+      mainTab.find('input[name="age_higher"]').val(backup.ah);
     });
 
   });
@@ -303,11 +297,13 @@ $(document).ready(function () {
   // ** handle time-limit events
 
   $('input[name="time_limit_no_limit"]').change(function () {
+    const mainTab = $(this).closest('.maintab');
+
     if($(this).attr("checked"))
     {
-      $('input#time_limit').attr("disabled", "disabled");
+      mainTab.find('input[name="time_limit"]').attr("disabled", "disabled");
     } else {
-      $('input#time_limit').removeAttr("disabled");
+      mainTab.find('input[name="time_limit"]').removeAttr("disabled");
     }
   });
 
@@ -344,7 +340,8 @@ $(document).ready(function () {
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
-      mainTab.find('span[name="time_error"]').html(jqXHR.responseText).show().fadeOut(5000);
+      const msg = "Feil oppsto: " + jqXHR.responseText
+      mainTab.find('span[name="time_error"]').html(msg).show().fadeOut(5000);
     });
   });
 
@@ -383,7 +380,8 @@ $(document).ready(function () {
     });
 
     request.fail(function(jqXHR, textStatus, errorThrown) {
-      mainTab.find('span[name="shorttime_error"]').html(jqXHR.responseText).show().fadeOut(5000);
+      const msg = "Feil oppsto: " + jqXHR.responseText
+      mainTab.find('span[name="shorttime_error"]').html(msg).show().fadeOut(5000);
     });
   });
 
@@ -392,7 +390,6 @@ $(document).ready(function () {
     const mainTab = $(this).closest('.maintab')
     const levelID = mainTab.find('input[name="level_id"]').val();
     const levelURL = getLevelURL(mainTab)
-
 
     var hp = mainTab.find('input[name="homepage"]').val();
     if (hp == "") { hp = "inherit"; }
@@ -427,7 +424,7 @@ $(document).ready(function () {
     });
   });
 
-  // ** handle save printer
+  // ** handle save printer - in all likeliness can be removed
   $('button[name="printersave"]').on('click', function () {
     const mainTab = $(this).closest('.maintab');
     const levelID = mainTab.find('input[name="level_id"]').val();

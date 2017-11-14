@@ -1,7 +1,74 @@
 "use strict";
 /* global $ */
 
+
+
 $(function() {
+  const reloadRate = 60 * 1000
+
+  // sometimes the user is granted more minutes at the same time server times are
+  // being updated, resulting in the minutes being overwritten with outdated info.
+  // To counter this, the ajaxStop is being used as a semaphore.
+  let userBeingUpdated = 0
+
+  $(document).ajaxStop(function() {
+    userBeingUpdated = 0
+  })
+
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // ** handle add-guest-user events **
+
+  $("button#adduser").on("click", function() {
+    $('table.userform').toggle();
+  });
+
+  $("button#usercancel").on("click", function() {
+    $('table.userform').hide();
+  });
+
+  $("button#userclear").on("click", function() {
+    $('table.userform input').val('')
+    $('table.userform select#user_age').prop('selectedIndex', 0)
+  });
+
+  $('button#usersave').on('click', function () {
+    var missing = 0;
+    $('#add_user_form').find('input.required').each(function() {
+      if ($(this).val() == '' ) {
+        $(this).addClass('inputmissing');
+        missing = 1;
+      }
+    });
+
+    if (missing) { return; }
+
+    var request = $.ajax({
+      url: '/api/users',
+      type: 'POST',
+      data: {
+             username: $('input#username').val(),
+             password: $('input#user_password').val(),
+             age: $('select#user_age').val(),
+             minutes: $('input#user_minutes').val(),
+             },
+      dataType: "json"
+      });
+
+    request.done(function(data) {
+      $('#user_saved_info').html('OK! Bruker "' + data.user.username + '" oprettet.')
+        .show().fadeOut(5000);
+    });
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+      $('td#user_form_response').find('span.error')
+        .html("Brukeren finnes allerede! Velg et annet brukernavn.").show().fadeOut(5000);
+    })
+  });
+
+  ///////////////////////////////////////////////////////////////////////////////
+
   const updatePage = function() {
     const $table = $('#inventory_table')
     const status = $('#status_selector option:selected').val()
@@ -25,9 +92,20 @@ $(function() {
     updatePage()
   })
 
+  $('.department_buttons button').click(function() {
+    const $rows = $('#inventory_table tr')
+    const deptID = $(this).val()
+
+    if (deptID) {
+        $rows.each(function() { $(this).toggle($(this).data('deptid') == deptID)})
+    } else {
+      $rows.toggle(true)
+    }
+  })
+
   $(document).on('click', 'button.users.add_time', function() {
     const $row = $(this).parents('tr');
-    const userID = $(this).data('id') // fix
+    const userID = $row.find('.current_user span').data('id')  //$(this).data('id') // fix
 
     const $minutesInput = $row.find('.nr.required')
     const minutesToAdd = parseInt($minutesInput.val(), 10)
@@ -36,10 +114,12 @@ $(function() {
     const userMinutes = parseInt($currentMinutes.data('user_minutes'), 10)
     const userAdjust = parseInt($currentMinutes.data('adjust'), 10)
 
-    if (!minutesToAdd > 0) {
+    if (isNaN(minutesToAdd) || minutesToAdd === 0) {
       $row.find('.error').html('Ugyldig input').show().fadeOut(5000)
       return
     }
+
+    userBeingUpdated = userID
 
     const request = $.ajax({
       url: '/api/users/'+ userID,
@@ -56,106 +136,48 @@ $(function() {
       $row.find('.info').html('ok').show().fadeOut(5000)
     })
 
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+        $row.find('.error').html(jqXHR.responseText).show().fadeOut(5000);
+     })
   })
 
 
-  //$('#inventory_table').DataTable().ajax.url('/api/clients').load(cb)
-  const createStatusCell = function(status, ts, onlineSince) {
-    let icon, title
-    switch(status) {
-      case 'occupied':
-      icon = '/img/pc_green.png'
-      title = 'Opptatt&#013;Online siden: ' + new Date(onlineSince).toLocaleString('nb')
-      break;
-      case 'available':
-      icon = '/img/pc_blue.png'
-      title = 'Ledig&#013;Online siden: ' + new Date('onlineSince').toLocaleString('nb')
-      break;
-      case 'disconnected':
-      icon = '/img/pc_red.png'
-      title = 'Sist sett ' + new Date(ts).toLocaleString('nb')
-      break;
-      default:
-      icon = '/img/pc_black.png'
-      title = 'Aldri sett'
-    }
-
-    //const link = "<a href='/admin?client_id=" + row['id'] + "'>"
-    return "<img src=" + icon + " title='" + title + "'>"
-  }
-
-  const createStatusBar = function(data) {
-    const periodStart = new Date(data.period_start)
-    const periodDuration = data.period_duration
-
-    const dayLabels = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
-    let bar = '<div class="statusbar">'
-
-    data.events.forEach(function(event) {
-      const start = new Date(event.start)
-      const end = new Date(event.end)
-
-      const from = dayLabels[start.getDay()] + ' ' + start.toLocaleTimeString('nb')
-      const to = dayLabels[end.getDay()] + ' ' + end.toLocaleTimeString('nb')
-
-      const diffInSeconds = Math.abs(end - start) / 1000
-      const days = Math.floor(diffInSeconds / 60 / 60 / 24)
-      const hours = Math.floor(diffInSeconds / 60 / 60 % 24)
-      const minutes = Math.floor(diffInSeconds / 60 % 60)
-
-      let duration = days > 0 ? days + 'd ' : ''
-      duration += hours > 0 ? hours + 't ' : ''
-      duration += minutes + 'm '
-
-      bar += '<div class="down" '
-      + 'style="left:' + ((start - periodStart) / periodDuration) * 100 + '%;width:' + (end - start) / periodDuration * 100  + '%" '
-      + 'title="Fra: ' + from + '\nTil: ' + to + '\nVarighet: ' + duration + '">'
-      + '</div>';
-    })
-
-    bar += '</div>'
-
-    return bar
-  }
-
   const createUserCell = function(user) {
-    return user ? "<span data-id='" + user.id + "'>" + user.name + "</span>" : ''
+    const userID = user ? user.id : ''
+    const userName = user ? user.name : ''
+    return "<span data-id='" + userID + "'>" + userName + "</span>"
   }
 
   const createMinutesCell = function(client) {
-    let result = ''
+    let adjust = ''
+    let userMinutes = ''
 
     if (client.user) {
       const departmentAdjust = parseInt($('#dept' + client.department_id).data('adjust'), 10)
-      const adjust = client.user.type === "B" ? departmentAdjust : 0
-      const userMinutes = client.user.minutes
-
-      result = "<span data-user_minutes='" + userMinutes +"' data-adjust='" + adjust + "'>" + (userMinutes + adjust) + "</span>"
+      adjust = client.user.type === "B" ? departmentAdjust : 0
+      userMinutes = client.user.minutes
     }
 
-    return result
+    return "<span data-user_minutes='" + userMinutes +"' data-adjust='" + adjust + "'>" + (userMinutes + adjust) + "</span>"
   }
-
-  const createAddMinutesButton = function(user) {
-    return user ? '<input type="text" class="nr required"><button type="button" class="users add_time" data-id="'+ user.id +'">+</button>' : ''
-  }
-
 
   const req = $.getJSON('/api/clients')
+
   req.done(function(data) {
     let rows = []
 
     data.clients
-      .filter(function(client) {return client.branch_id == 2})
-      .forEach(function(client) {
-      let row = "<tr class='" + client.status + "' data-clientID='" + client.id + "'>"
-      row += "<td>" + createStatusCell(client.status, client.ts, client.online_since) + "</td>"
-      row += "<td>" + createStatusBar(client.offline_events) + "</td>"
+    .filter(function(client) {return client.branch_id == 2})
+    .forEach(function(client) {
+      const hidden = client.user ? '' : ' hidden'
+
+      let row = "<tr class='" + client.status + "' data-clientID='" + client.id + "' data-deptID='" + client.department_id + "'>"
+      row += "<td class='status_client'>" + Util.createStatusCell(client.status, client.ts, client.online_since) + "</td>"
+      row += "<td class='status_bar'>" + Util.createStatusBar(client.offline_events) + "</td>"
       row += "<td>" + client.name + "</td>"
       row += "<td class='current_user'>" + createUserCell(client.user) + "</td>"
       row += "<td class='current_minutes'>" + createMinutesCell(client) + "</td>"
-      //row += '<td><input type="text" class="nr required"></td>'
-      row += "<td class='foo'>" + createAddMinutesButton(client.user) + "</td>"
+      row += "<td class='edit_minutes'" + hidden + " ><input type='text' class='nr required'><button type='button' class='users add_time'>+</button></td>"
       row += "<td><span class='info' /><span class='error' /></td>"
       row += "</tr>"
 
@@ -165,6 +187,50 @@ $(function() {
     $('#inventory_table').append(rows)
   })
 
-  // update:  image, statusbar (sjeldnere?) bruker minutter (info)
-  // husk: UI for gjestebruker
+  // TODO request failed
+
+
+  const updateClientRow = function($row, client) {
+    $row.find('.current_user').html(createUserCell(client.user))
+    $row.find('.current_minutes').html(createMinutesCell(client))
+  }
+
+
+  // TODO set branchID as constant from page
+  const reloadClientData = function() {
+    $('#ajax_spinner').show()
+
+    $.getJSON('/api/clients').done(function(data) {
+      data.clients
+      .filter(function(client) {return client.branch_id == 2})
+      .forEach(function(client) {
+        const $row = $('#inventory_table').find("[data-clientid='" + client.id + "']");
+        const currentUserID = parseInt($row.find('.current_user span').data('id'), 10)
+        const userID = client.user ? parseInt(client.user.id, 10) : ''
+
+        if (userBeingUpdated === userID) {
+          return
+        }
+
+        if (currentUserID && !userID) {
+          $row.find('.info').html('logget av').show().fadeOut(5000);
+        } else if (!currentUserID && userID) {
+          $row.find('.info').html('logget på').show().fadeOut(5000);
+        } else if ((currentUserID && userID) && (currentUserID !== userID)) {
+          $row.find('.info').html('brukerbytte').show().fadeOut(5000);
+        }
+
+        $row.find('.current_user').html(createUserCell(client.user))
+        $row.find('.current_minutes').html(createMinutesCell(client))
+        $row.find('.edit_minutes').toggle(client.user != null)
+      })
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        alert(jqXHR.responseText)
+     }).always(function() {
+       $('#ajax_spinner').hide()
+     })
+  }
+
+  setInterval(reloadClientData, reloadRate)
+
 })
