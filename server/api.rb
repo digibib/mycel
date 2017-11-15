@@ -295,7 +295,7 @@ class API < Grape::API
       Client.inventory_view.all.each do |client|
         # build title attribute string containing latest offline events
         events = ""
-        client.client_events.order("started DESC").each do |event|
+        client.connection_events.order("started DESC").each do |event|
           events = events + event.to_title
         end
 
@@ -321,7 +321,7 @@ class API < Grape::API
       clients.each do |client|
         data = []
 
-        client.client_events.each do |event|
+        client.connection_events.each do |event|
           data << [(event.started.to_time.to_r * 1000).round, 0]
           data << [(event.started.to_time.to_r * 1000).round, 1]
           data << [(event.ended.to_time.to_r * 1000).round, 1]
