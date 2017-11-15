@@ -162,7 +162,7 @@ $(function() {
   let cb = function() {
     updatePage()
     const table = $('#inventory_table').DataTable()
-    setInterval( function () {table.ajax.reload()}, 30000);
+    // setInterval( function () {table.ajax.reload()}, 30000);
   }
 
   $('#inventory_table').DataTable().ajax.url('/api/client_specs').load(cb)

@@ -6,6 +6,8 @@
 $(function() {
   const reloadRate = 60 * 1000
 
+  const departmentIDs = $('.department_ids').map(function(){ return $(this).data('id')}).get()
+
   // sometimes the user is granted more minutes at the same time server times are
   // being updated, resulting in the minutes being overwritten with outdated info.
   // To counter this, the ajaxStop is being used as a semaphore.
@@ -16,6 +18,10 @@ $(function() {
   })
 
 
+  // handle branch selection (superadmin only)
+  $('#branch_selector').change(function() {
+    window.location.href = "/i?bid=" + $(this).find('option:selected').data('bid')
+  })
 
   //////////////////////////////////////////////////////////////////////////////
   // ** handle add-guest-user events **
@@ -69,35 +75,16 @@ $(function() {
 
   ///////////////////////////////////////////////////////////////////////////////
 
-  const updatePage = function() {
-    const $table = $('#inventory_table')
-    const status = $('#status_selector option:selected').val()
-    const branch = $('#branch_selector option:selected').val()
-
-    let filter = 'tr'
-
-    if (status !== 'all') {
-      filter += '.' + status
-    }
-
-    if (branch !== 'all') {
-      filter += '.' + branch
-    }
-
-    $table.find('tr:not(:first)').hide()
-    $table.find(filter).show()
-  }
-
-  $('#status_selector, #branch_selector').change(function() {
-    updatePage()
-  })
 
   $('.department_buttons button').click(function() {
-    const $rows = $('#inventory_table tr')
+    const $rows = $('#user_table tr')
     const deptID = $(this).val()
 
+    $('.department_buttons button').removeClass('active')
+    $(this).addClass('active')
+
     if (deptID) {
-        $rows.each(function() { $(this).toggle($(this).data('deptid') == deptID)})
+      $rows.each(function() { $(this).toggle($(this).data('deptid') == deptID)})
     } else {
       $rows.toggle(true)
     }
@@ -167,7 +154,7 @@ $(function() {
     let rows = []
 
     data.clients
-    .filter(function(client) {return client.branch_id == 2})
+    .filter(function(client) {return departmentIDs.includes(client.department_id)})
     .forEach(function(client) {
       const hidden = client.user ? '' : ' hidden'
 
@@ -184,10 +171,12 @@ $(function() {
       rows.push(row)
     })
 
-    $('#inventory_table').append(rows)
+    $('#user_table').append(rows)
   })
 
-  // TODO request failed
+  req.fail(function() {
+    $('#server_status').show()
+  })
 
 
   const updateClientRow = function($row, client) {
@@ -202,9 +191,9 @@ $(function() {
 
     $.getJSON('/api/clients').done(function(data) {
       data.clients
-      .filter(function(client) {return client.branch_id == 2})
+      .filter(function(client) {return departmentIDs.includes(client.department_id)})
       .forEach(function(client) {
-        const $row = $('#inventory_table').find("[data-clientid='" + client.id + "']");
+        const $row = $('#user_table').find("[data-clientid='" + client.id + "']");
         const currentUserID = parseInt($row.find('.current_user span').data('id'), 10)
         const userID = client.user ? parseInt(client.user.id, 10) : ''
 
@@ -224,13 +213,17 @@ $(function() {
         $row.find('.current_minutes').html(createMinutesCell(client))
         $row.find('.edit_minutes').toggle(client.user != null)
       })
+
+      $('#server_status').hide()
     }).fail(function(jqXHR, textStatus, errorThrown) {
-        alert(jqXHR.responseText)
+        $('#server_status').show()
      }).always(function() {
        $('#ajax_spinner').hide()
      })
   }
 
   setInterval(reloadClientData, reloadRate)
+
+
 
 })
