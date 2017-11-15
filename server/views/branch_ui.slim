@@ -10,22 +10,40 @@ script src="https://cdn.datatables.net/buttons/1.3.1/js/buttons.html5.min.js"
 link href='https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css' rel='stylesheet' type='text/css'
 link href='https://cdn.datatables.net/buttons/1.3.1/css/buttons.dataTables.min.css' rel='stylesheet' type='text/css'
 
-- units = [branch, *branch.departments]
+- if level.is_a?(Organization)
+  select id="branch_selector"
+    - level.branches.each do |branch|
+      - if branch.id == selected_id
+        option[data-bid="#{branch.id}" selected] #{branch.name}
+      - else
+        option[data-bid="#{branch.id}"] #{branch.name}
 
-- branch.departments.each do |department|
+  - branch = level.branches.find(selected_id)
+  - branch_name = branch.name
+  - departments = branch.departments
+- elsif level.is_a?(Branch)
+  - branch = level
+  - branch_name = branch.name
+  - departments = branch.departments
+- else
+  - branch = nil
+  - branch_name = level.name
+  - departments = [level]
+
+- units = level.is_a?(Department) ? [*departments] : [branch, *departments]
+
+- departments.each do |department|
   - adjust = department.options_self_or_inherited['time_limit'].to_i - 60
-  input[hidden id="dept#{department.id}" data-adjust="#{adjust}"]
-
+  input[hidden class="department_ids" id="dept#{department.id}" data-adjust="#{adjust}" data-id="#{department.id}"]
 
 div style="padding-top: 20px; padding-bottom: 20px;"
   span
-    h2 style="display:inline; text-decoration: underline;" #{branch.name}
+    h2 style="display:inline; text-decoration: underline;" #{branch_name}
     img[src="/img/ajax-loader2.gif" id="ajax_spinner" hidden]
     div style="float:right;" class="department_buttons"
-      button Alle
-      - units.each do |unit|
-        - unless unit.is_a?(Branch)
-          button[value="#{unit.id}"] #{unit.name}
+      button[class='active'] Alle
+      - departments.each do |department|
+          button[value="#{department.id}"] #{department.name}
 
 
 div class="divdot inputf"
@@ -53,12 +71,14 @@ div class="divdot inputf"
           span[class='error']
 
 
+div[id="server_status" style="color: red;" hidden]
+  span NB! Har ikke kontakt med serveren - listen er ikke oppdatert
 
-table id="inventory_table"
+table id="user_table" class="clients"
   thead
     tr
-      th[style="padding-right: 2px"] Status
-      th[style="padding-left: 0px"]
+      th Status
+      th
       th Navn
       th Bruker
       th Tid
@@ -69,7 +89,6 @@ table id="inventory_table"
 
 
 ul class="ubertabs"
-  - units = [branch, *branch.departments]
   - units.each do |unit|
     li #{unit.name}
 

@@ -96,7 +96,13 @@ class Server < Goliath::API
           elsif path[1] == 'inventory'
             [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'i'
-            [200, {}, slim(:branch_ui, locals: {branch: Branch.find(2)})]
+            adm = Admin.find_by_username(env['admin'])
+            level = adm.owner_admins_type.safe_constantize.find(adm.owner_admins_id)
+
+            bid = params['bid'].present? ? params['bid'].to_i : Organization.first.branches.first.id
+            selected_id = level.is_a?(Organization) ? bid : nil
+
+            [200, {}, slim(:branch_ui, locals: {level: level, selected_id: selected_id})]
           elsif path[1] == 'chart'
             [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'admin'

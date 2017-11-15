@@ -396,3 +396,8 @@ div.statusbar {
 .statusbar .down:hover {
   background: #B94A48;
 }
+
+.department_buttons button.active {
+  background-color: white;
+  color: black;
+}

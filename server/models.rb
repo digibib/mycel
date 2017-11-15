@@ -163,7 +163,9 @@ class Client < ActiveRecord::Base
   has_one :options, :as => :owner_options, :dependent => :destroy
   has_one :client_spec, :dependent => :destroy
 
-  has_many :client_events, :dependent => :destroy
+  #has_many :client_events, :dependent => :destroy
+  has_many :connection_events, :dependent => :destroy
+  has_many :logon_events, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
 
@@ -209,25 +211,11 @@ class Client < ActiveRecord::Base
 
   # called when api receives a keep_alive signal from a client that is not connected
   def generate_offline_event
-    event = ClientEvent.new
+    event = ConnectionEvent.new
     event.client_id = self.id
     event.started = self.ts
     event.ended = Time.now
     event.save
-  end
-
-  def generate_logon_event
-    #event = ClientEvent.new
-    #event.started = Time.now
-    #event.client_id = self.id
-    #event.ended = null
-    #event.save
-  end
-
-  def generete_logoff_event
-    # event = logon_event.last
-    # if event.ended.present? -> log errorThrown
-    # else event.ended = Time.now event.save
   end
 
 
@@ -373,18 +361,6 @@ class OpeningHours < ActiveRecord::Base
 end
 
 class User < ActiveRecord::Base
-  #after_commit :generate_client_event
-
-  def generate_client_event
-    puts client_id
-    puts client_id_was
-    if self.client_id_changed?
-      puts client_id ? "logon saint" : "logoff saint"
-    else
-      puts "funka ikke"
-    end
-  end
-
   validates_presence_of  :minutes
 
   belongs_to :client, :inverse_of => :user, :autosave => true
@@ -406,21 +382,20 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
-    return true if c == self.client
-
-    c.generate_logon_event unless c.occupied?
-
     #return false if c.user
-    c.user.log_off(false) if c.user
+
+    c.user.log_off if c.user
+    self.reload
+    LogonEvent.add_logon(c.id)
     c.user = self
     self.client = c
   end
 
-  def log_off(generate_event = true)
-    client.generate_logoff_event if generate_event and client
+  def log_off
+    LogonEvent.add_logoff(client.id) if client
 
     self.client.user = nil if self.client and self.client.user
-    self.client_id = nil
+    self.client = nil
   end
 
   def as_json(*args)
@@ -599,7 +574,7 @@ class ClientEvent < ActiveRecord::Base
     period_duration = no_of_days * 3600 * 1000 * 24
 
     events =
-      ClientEvent.omit_reboots
+      ConnectionEvent.omit_reboots
       .where(client_id: client_id)
       .where("ended >= '#{period_start}'")
       .order('started asc')
@@ -624,7 +599,29 @@ class ClientEvent < ActiveRecord::Base
 
     {period_start: period_start, period_duration: period_duration, events: data}
   end
+end
 
 
+class ConnectionEvent < ClientEvent
+
+end
+
+class LogonEvent < ClientEvent
+
+  def self.add_logon(client_id)
+    event = LogonEvent.new({client_id: client_id})
+    event.save
+  end
+
+  def self.add_logoff(client_id)
+    event = LogonEvent.where(client_id: client_id).last
+    if event.ended.present?
+      # log error
+      puts "oherrejeminihervarrenoegaeli!"
+    else
+      event.ended = Time.now
+      event.save
+    end
+  end
 
 end
