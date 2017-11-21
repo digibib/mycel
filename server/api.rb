@@ -4,6 +4,7 @@ require 'resolv'
 
 require_relative 'config/pxe_settings.rb'
 
+
 # TODO put utility functions into module for mixin when API is finalized
 
 # utility function to check if there are changes in a suplied hash
@@ -52,17 +53,17 @@ def requires_superadmin
   end
 end
 
-def create_logstring(item)
-  if item.defined?('name')
+# Very basic logging for the admin module
+def log_event(action_name, item, level)
+  if item.respond_to?('name')
     name = item.name
-  elsif item.defined?('username')
+  elsif item.respond_to?('username')
     name = item.username
   else
     name = "Ukjent navn"
   end
 
-
-  "#{item.classs.name}: navn: #{name} id: #{item.id}"
+  env.logger.send(level, "ADMIN-HANDLING: #{action_name} #{item.class.name}: #{name} (id: #{item.id})")
 end
 
 def delete(class_name, id)
@@ -70,6 +71,7 @@ def delete(class_name, id)
 
   item = klazz.find(id)
   if item.destroy
+    log_event("Slettet", item, 'info')
     status 200
     {message: "OK. Slettet."}
   else
@@ -92,6 +94,8 @@ def create(class_name, params)
   item.attributes = item.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
 
   if item.save
+    type = is_new ? "Opprettet" : "Endret"
+    log_event(type, item, 'info')
     status 200
     {message: "OK. Lagret.", id: item.id}
   else
@@ -502,6 +506,7 @@ class API < Grape::API
       requires_superadmin
 
       form_data = params[:form_data].to_hash
+      is_new = form_data["id"].blank?
       client = form_data["id"].present? ? Client.find(form_data["id"]) : Client.new
 
       # select only the keys from params present in client.attributes
@@ -515,6 +520,8 @@ class API < Grape::API
       end
 
       if client.save
+        type = is_new ? "Opprettet" : "Endret"
+        log_event(type, client, 'info')
         Request.find(form_data["request_id"]).destroy if form_data["request_id"].present?
         status 200
         {message: "OK. Lagret."}
