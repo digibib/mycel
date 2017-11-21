@@ -159,10 +159,12 @@ $(function() {
 
   initializeTable()
 
-  let cb = function() {
+  const cb = function() {
     updatePage()
     const table = $('#inventory_table').DataTable()
-    // setInterval( function () {table.ajax.reload()}, 30000);
+    setInterval( function () {
+      table.ajax.reload(updatePage)
+    }, 5 * 60 * 1000);
   }
 
   $('#inventory_table').DataTable().ajax.url('/api/client_specs').load(cb)
