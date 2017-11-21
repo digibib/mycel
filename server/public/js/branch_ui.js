@@ -73,6 +73,28 @@ $(function() {
     })
   });
 
+  //////////////////////////////////////////////////////////////////////////////
+  // ** handle find user events **
+  const userDatalist = $('#user_datalist')
+
+  $('#find_user_by_name').on('keypress', function(event) {
+    if (event.which == 13) {
+      // enter pressed
+    }
+
+    const query = $(this).val()
+    userDatalist.empty()
+
+    if (query.length > 0) {
+      $.getJSON('/api/users/search/by_username/' + query).done(function(data) {
+        data.forEach(function(elem) {
+          userDatalist.append($("<option/>").html(elem.name))
+        })
+    })
+    }
+  })
+
+
   ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -185,7 +207,6 @@ $(function() {
   }
 
 
-  // TODO set branchID as constant from page
   const reloadClientData = function() {
     $('#ajax_spinner').show()
 
