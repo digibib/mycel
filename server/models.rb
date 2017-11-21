@@ -5,6 +5,9 @@ require "./config/settings"
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
 
+#ActiveRecord::Base.logger = Logger.new(STDOUT)
+#config.log_level = :debug
+
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
 
@@ -382,20 +385,20 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
+    #LogonEvent.add_logon(c.id) unless client
+    c.user = self
     #return false if c.user
 
-    c.user.log_off if c.user
-    self.reload
-    LogonEvent.add_logon(c.id)
-    c.user = self
-    self.client = c
+    #c.user.log_off if c.user
+    #self.reload
+    #LogonEvent.add_logon(c.id)
+    #c.user = self
+    #self.client = c
   end
 
   def log_off
-    LogonEvent.add_logoff(client.id) if client
-
-    self.client.user = nil if self.client and self.client.user
-    self.client = nil
+    #LogonEvent.add_logoff(client.id) if client
+    self.client.user = nil if client and client.user
   end
 
   def as_json(*args)
@@ -593,8 +596,8 @@ class ClientEvent < ActiveRecord::Base
     end
 
     # adds event if client has been online during period but is currently offline
-    if not client.connected? and not events.size == 0 and client.ts.present?
-      data << {start: client.ts, end: now}
+    if not client.connected? and (data.size > 0)
+      data << {start: client.ts, end: now} if client.ts.present? and client.ts >= period_start
     end
 
     {period_start: period_start, period_duration: period_duration, events: data}
@@ -609,16 +612,29 @@ end
 class LogonEvent < ClientEvent
 
   def self.add_logon(client_id)
-    event = LogonEvent.new({client_id: client_id})
-    event.save
+    event = LogonEvent.where(client_id: client_id).last
+
+    if event.present? and event.ended.blank?
+      #log error
+      puts "Tidligere bruker var ikke logget av: " + client_id.to_s
+      event.ended = Time.now
+      event.save
+    end
+
+    LogonEvent.new({client_id: client_id}).save
   end
 
   def self.add_logoff(client_id)
     event = LogonEvent.where(client_id: client_id).last
-    if event.ended.present?
+
+    if event.blank?
+      # do nothing
+    elseif event.ended.present?
       # log error
-      puts "oherrejeminihervarrenoegaeli!"
+      puts "Logon-event var ikke opprettet: " + client_id.to_s
     else
+      puts event.ended.present?
+      puts Time.now
       event.ended = Time.now
       event.save
     end

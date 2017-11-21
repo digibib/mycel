@@ -560,9 +560,7 @@ class API < Grape::API
     end
 
     get '/search/by_username/:query_string' do
-      foo = User.inactive.where("username LIKE ?", "%#{params[:query_string]}%")
-      puts foo.inspect
-      foo.to_json
+      User.inactive.where("username LIKE ?", "%#{params[:query_string]}%").to_json
     end
 
 
