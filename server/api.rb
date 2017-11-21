@@ -557,9 +557,20 @@ class API < Grape::API
     end
 
     get '/search/by_username/:query_string' do
-      User.inactive.where("username LIKE ?", "%#{params[:query_string]}%").to_json
+      results = LibraryUser.inactive.where("name LIKE ?", "%#{params[:query_string]}%").pluck(:name)
+      results << GuestUser.inactive.where("username LIKE ?", "%#{params[:query_string]}%").pluck(:username)
+      results.flatten.to_json
     end
 
+    get '/search/closest_match' do
+      query = params[:query]
+
+      user = LibraryUser.find_by_username(query) || GuestUser.find_by_name(query)
+      user = LibraryUser.inactive.where("name LIKE ?", "%#{query}%").first unless user
+      user = GuestUser.inactive.where("username LIKE ?", "%#{query}%").first unless user
+
+      user.to_json
+    end
 
     desc "authenticates a user"
     post "/authenticate" do
