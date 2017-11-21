@@ -96,7 +96,7 @@ class Server < Goliath::API
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
             [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
-          elsif path[1] == 'i'
+          elsif path[1] == 'i' or path[1] == 'beta'
             adm = Admin.find_by_username(env['admin'])
             level = adm.owner_admins_type.safe_constantize.find(adm.owner_admins_id)
 

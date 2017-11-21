@@ -88,7 +88,7 @@ class Server < Goliath::WebSocket
           begin
             env['client'] ||= Client.find msg["client"]
             if msg["user"] == "Anonym"
-              env['user'] ||= AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
+              env['user'] ||= env['client'].user || AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
             else
               env['user'] ||= User.find_by_username msg["user"]
             end
