@@ -1,7 +1,7 @@
 require "em-synchrony/activerecord"
 require "./sip2.rb"
 require "./config/settings"
-
+#require 'logger'
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
 
@@ -385,19 +385,14 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
-    #LogonEvent.add_logon(c.id) unless client
-    c.user = self
-    #return false if c.user
-
-    #c.user.log_off if c.user
-    #self.reload
-    #LogonEvent.add_logon(c.id)
-    #c.user = self
-    #self.client = c
+    unless c.user and c.user == self
+      LogonEvent.add_logon(c.id)
+      c.user = self
+    end
   end
 
   def log_off
-    #LogonEvent.add_logoff(client.id) if client
+    LogonEvent.add_logoff(client.id) if client
     self.client.user = nil if client and client.user
   end
 
