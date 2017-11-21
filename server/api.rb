@@ -52,6 +52,18 @@ def requires_superadmin
   end
 end
 
+def create_logstring(item)
+  if item.defined?('name')
+    name = item.name
+  elsif item.defined?('username')
+    name = item.username
+  else
+    name = "Ukjent navn"
+  end
+
+
+  "#{item.classs.name}: navn: #{name} id: #{item.id}"
+end
 
 def delete(class_name, id)
   klazz = class_name.constantize
@@ -543,6 +555,13 @@ class API < Grape::API
     get "/" do
       {:users => User.all.as_json}
     end
+
+    get '/search/by_username/:query_string' do
+      foo = User.inactive.where("username LIKE ?", "%#{params[:query_string]}%")
+      puts foo.inspect
+      foo.to_json
+    end
+
 
     desc "authenticates a user"
     post "/authenticate" do

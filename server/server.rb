@@ -111,7 +111,7 @@ class Server < Goliath::WebSocket
             client = env['client']
             user = env['user']
             user.log_on client
-            user.save
+            #user.save
 
             env['timer'] = EM.add_periodic_timer(30) do
               Fiber.new do
@@ -156,7 +156,7 @@ class Server < Goliath::WebSocket
             user = env['user']
             client = env['client']
             user.log_off
-            user.save
+            #user.save
             EM.cancel_timer(env['timer'])
             # log format:    type    who          who-id   who-age         action    where
             env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")
