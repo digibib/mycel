@@ -185,7 +185,4 @@ div class="maintab"
         - else
           - filename = 'stats_b_' + level.branch.id.to_s+'_d_'+level.id.to_s
 
-        - begin
-          == render :slim, filename.to_sym, :layout => false
-        - rescue
-          h2: Systemfeil: Statistikkfilen ikke funnet
+        == render :slim, filename.to_sym, :layout => false
