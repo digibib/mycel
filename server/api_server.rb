@@ -9,6 +9,7 @@ require "./models"
 require "./api"
 require "./config/settings"
 
+
 ActiveRecord::Base.establish_connection(Settings::DB[Goliath.env.to_sym])
 Slim::Engine.set_default_options :pretty => true
 
@@ -105,6 +106,8 @@ class Server < Goliath::API
             [200, {}, slim(:branch_ui, locals: {level: level, selected_id: selected_id})]
           elsif path[1] == 'chart'
             [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
+          elsif path[1] == 'wstest'
+            [200, {}, slim(:wstest)]
           elsif path[1] == 'admin'
             admin = Admin.find_by_username(env['admin'])
             if admin.respond_to?(:superadmin?) and admin.superadmin?
