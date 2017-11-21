@@ -23,6 +23,15 @@ $(function() {
     window.location.href = "/i?bid=" + $(this).find('option:selected').data('bid')
   })
 
+  $('#show_inactive_user_panel').click(function() {
+    $('#find_user_by_name').val('')
+    $('#inactive_user_panel').toggle()
+  })
+
+  $('#show_settings_panel').click(function() {
+    $('#settings_panel').toggle()
+  })
+
   //////////////////////////////////////////////////////////////////////////////
   // ** handle add-guest-user events **
 
@@ -74,26 +83,68 @@ $(function() {
   });
 
   //////////////////////////////////////////////////////////////////////////////
-  // ** handle find user events **
+  // ** handle find user and add time to inactive events **
   const userDatalist = $('#user_datalist')
 
-  $('#find_user_by_name').on('keypress', function(event) {
-    if (event.which == 13) {
-      // enter pressed
+  $(document).on('click', 'button.add_time_to_inactive', function() {
+    const $row = $(this).parents('tr');
+    const userID = $row.data('userid')
+
+    const $minutesInput = $row.find('.nr.required')
+    const minutesToAdd = parseInt($minutesInput.val(), 10)
+    const userMinutes = parseInt($row.find('td.current_minutes').html(), 10)
+
+    if (isNaN(minutesToAdd) || minutesToAdd === 0) {
+      $row.find('.error').html('Ugyldig input').show().fadeOut(5000)
+      return
     }
 
-    const query = $(this).val()
-    userDatalist.empty()
+    const request = $.ajax({
+      url: '/api/users/'+ userID,
+      type: "PUT",
+      data: {minutes: userMinutes + minutesToAdd},
+      dataType: "json"
+    });
 
-    if (query.length > 0) {
-      $.getJSON('/api/users/search/by_username/' + query).done(function(data) {
-        data.forEach(function(elem) {
-          userDatalist.append($("<option/>").html(elem.name))
-        })
+    request.done(function(data) {
+      $minutesInput.val('')
+      $row.find('td.current_minutes').html(data.user.minutes)
+
+      $row.find('.info').html('ok').show().fadeOut(5000)
     })
-    }
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+        $row.find('.error').html(jqXHR.responseText).show().fadeOut(5000);
+     })
   })
 
+  $('#find_user_by_name').on('keyup', function(event) {
+    const query = $(this).val()
+    if (event.which == 13) {
+      $.getJSON('/api/users/search/closest_match?query=' + encodeURI(query)).done(function(user) {
+        let row = "<tr data-userid='" + user.id + "'>"
+        row += "<td>" + user.type + "</td>"
+        row += "<td>" + user.name + "/" + user.username + "</td>"
+        row += "<td class='current_minutes'>" + user.minutes + "</td>"
+        row += "<td class='edit_minutes'><input type='text' class='nr required'><button type='button' class='add_time_to_inactive'>+</button></td>"
+        row += "<td><span class='info'/><span class='error'/>"
+        row += "</tr>"
+
+        $('#inactive_user_body').html(row)
+      })
+    } else if (event.which == 39 || event.which == 40) {
+      // sit back and relax
+    } else {
+      userDatalist.empty()
+
+      if (query.length > 0) {
+        $.getJSON('/api/users/search/by_username/' + query).done(function(names) {
+          names.forEach(function(name) {
+            userDatalist.append($("<option/>").html(name))
+          })
+        })
+    }}
+  })
 
   ///////////////////////////////////////////////////////////////////////////////
 
