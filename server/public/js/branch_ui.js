@@ -118,23 +118,34 @@ $(function() {
      })
   })
 
+
+  const getUserByClosestMatch = function(userName) {
+    $.getJSON('/api/users/search/closest_match?query=' + encodeURI(userName)).done(function(user) {
+      const userID = user ? user.id : '0'
+      const userType = user ? user.type : '-'
+      const name = user ? user.name : '-'
+      const userName = user ? user.username : '-'
+      const minutes = user ? user.minutes : '0'
+
+      let row = "<tr data-userid='" + userID + "'>"
+      row += "<td>" + userType + "</td>"
+      row += "<td>" + name + "/" + userName + "</td>"
+      row += "<td class='current_minutes'>" + minutes + "</td>"
+      row += "<td class='edit_minutes'><input type='text' class='nr required'><button type='button' class='add_time_to_inactive'>+</button></td>"
+      row += "<td><span class='info'/><span class='error'/>"
+      row += "</tr>"
+
+      $('#inactive_user_body').html(row)
+    })
+  }
+
+  let storedQuery = ''
+
   $('#find_user_by_name').on('keyup', function(event) {
     const query = $(this).val()
-    if (event.which == 13) {
-      $.getJSON('/api/users/search/closest_match?query=' + encodeURI(query)).done(function(user) {
-        let row = "<tr data-userid='" + user.id + "'>"
-        row += "<td>" + user.type + "</td>"
-        row += "<td>" + user.name + "/" + user.username + "</td>"
-        row += "<td class='current_minutes'>" + user.minutes + "</td>"
-        row += "<td class='edit_minutes'><input type='text' class='nr required'><button type='button' class='add_time_to_inactive'>+</button></td>"
-        row += "<td><span class='info'/><span class='error'/>"
-        row += "</tr>"
 
-        $('#inactive_user_body').html(row)
-      })
-    } else if (event.which == 39 || event.which == 40) {
-      // sit back and relax
-    } else {
+    if (query != storedQuery) {
+      storedQuery = query
       userDatalist.empty()
 
       if (query.length > 0) {
@@ -144,6 +155,16 @@ $(function() {
           })
         })
     }}
+  })
+
+
+  $('#find_user_by_name').on('input', function(event) {
+    const query = $(this).val()
+
+    if (event.which === undefined || event.which == 13) {
+      storedQuery = query
+      getUserByClosestMatch(query)
+    }
   })
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -221,6 +242,7 @@ $(function() {
     return "<span data-user_minutes='" + userMinutes +"' data-adjust='" + adjust + "'>" + (userMinutes + adjust) + "</span>"
   }
 
+
   const req = $.getJSON('/api/clients')
 
   req.done(function(data) {
@@ -234,6 +256,7 @@ $(function() {
       let row = "<tr class='" + client.status + "' data-clientID='" + client.id + "' data-deptID='" + client.department_id + "'>"
       row += "<td class='status_client'>" + Util.createStatusCell(client.status, client.ts, client.online_since) + "</td>"
       row += "<td class='status_bar'>" + Util.createStatusBar(client.offline_events) + "</td>"
+      row += "<td>" + $('#dept' + client.department_id).data('name') + "</td>"
       row += "<td>" + client.name + "</td>"
       row += "<td class='current_user'>" + createUserCell(client.user) + "</td>"
       row += "<td class='current_minutes'>" + createMinutesCell(client) + "</td>"
@@ -295,6 +318,7 @@ $(function() {
   }
 
   setInterval(reloadClientData, reloadRate)
+
 
 
 
