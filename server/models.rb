@@ -397,14 +397,10 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
-    unless c.user and c.user == self
-      LogonEvent.add_logon(c.id)
-      c.user = self
-    end
+    c.user = self unless c.user and c.user == self
   end
 
   def log_off
-    LogonEvent.add_logoff(client.id) if client
     self.client.user = nil if client and client.user
   end
 
