@@ -26,7 +26,7 @@ script src="/js/branch_ui_options.js"
 
 - departments.each do |department|
   - adjust = department.options_self_or_inherited['time_limit'].to_i - 60
-  input[hidden class="department_ids" id="dept#{department.id}" data-adjust="#{adjust}" data-id="#{department.id}"]
+  input[hidden class="department_ids" id="dept#{department.id}" data-adjust="#{adjust}" data-id="#{department.id}" data-name="#{department.name}"]
 
 div style="padding-top: 20px; padding-bottom: 20px;"
   span
@@ -104,6 +104,7 @@ table id="user_table" class="clients"
     tr
       th Status
       th
+      th Avdeling
       th Navn
       th Bruker
       th Tid
