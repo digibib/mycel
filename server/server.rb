@@ -20,6 +20,14 @@ module Goliath
       def run
         EM.add_periodic_timer(60) do
           Fiber.new do
+            Client.all.each do |client|
+              client.update_logon_events
+            end
+          end.resume
+        end
+
+        EM.add_periodic_timer(60) do
+          Fiber.new do
             # log format: type  active-users                 num-clients
             @logger.info "stats #{Client.joins(:user).count} #{Client.count}"
             for user in User.joins(:client).readonly(false).all

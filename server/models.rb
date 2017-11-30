@@ -221,6 +221,18 @@ class Client < ActiveRecord::Base
     event.save
   end
 
+  def update_logon_events
+    has_active_event = logon_events.present? and logon_events.last.present? and logon_events.last.ended.blank?
+    has_active_user = user.present?
+
+    if has_active_event and not has_active_user
+      event = logon_events.last
+      event.ended = Time.now
+      event.save
+    elsif not has_active_event and has_active_user
+      LogonEvent.new({client_id: id}).save
+    end
+  end
 
   def log_friendly
     "\"#{self.branch.name}\" \"#{self.department.name}\" \"#{self.name}\" #{self.hwaddr}"
@@ -538,6 +550,7 @@ class ClientSpec < ActiveRecord::Base
   belongs_to :client
 end
 
+
 class ClientEvent < ActiveRecord::Base
   belongs_to :client
   scope :omit_reboots, -> { where("not (HOUR(started) IN (3,4) AND TIMESTAMPDIFF(MINUTE,started, ended) < 120)") }
@@ -605,34 +618,5 @@ class ConnectionEvent < ClientEvent
 end
 
 class LogonEvent < ClientEvent
-
-  def self.add_logon(client_id)
-    event = LogonEvent.where(client_id: client_id).last
-
-    if event.present? and event.ended.blank?
-      #log error
-      puts "Tidligere bruker var ikke logget av: " + client_id.to_s
-      event.ended = Time.now
-      event.save
-    end
-
-    LogonEvent.new({client_id: client_id}).save
-  end
-
-  def self.add_logoff(client_id)
-    event = LogonEvent.where(client_id: client_id).last
-
-    if event.blank?
-      # do nothing
-    elseif event.ended.present?
-      # log error
-      puts "Logon-event var ikke opprettet: " + client_id.to_s
-    else
-      puts event.ended.present?
-      puts Time.now
-      event.ended = Time.now
-      event.save
-    end
-  end
 
 end
