@@ -222,14 +222,14 @@ class Client < ActiveRecord::Base
   end
 
   def update_logon_events
-    has_active_event = logon_events.present? and logon_events.last.present? and logon_events.last.ended.blank?
+    has_active_event = logon_events.present? && logon_events.last.present? && logon_events.last.ended.blank?
     has_active_user = user.present?
 
-    if has_active_event and not has_active_user
+    if has_active_event && !has_active_user
       event = logon_events.last
       event.ended = Time.now
       event.save
-    elsif not has_active_event and has_active_user
+    elsif !has_active_event && has_active_user
       LogonEvent.new({client_id: id}).save
     end
   end
