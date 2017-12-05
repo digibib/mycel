@@ -25,7 +25,9 @@ Util.createStatusBar = function(data) {
       duration += hours > 0 ? hours + 't ' : ''
       duration += minutes + 'm '
 
-      bar += '<div class="down" '
+      let klazz = event.type == 'offline' ? 'down' : 'occupied'
+
+      bar += '<div class="' + klazz + '" '
       + 'style="left:' + ((start - periodStart) / periodDuration) * 100 + '%;width:' + (end - start) / periodDuration * 100  + '%" '
       + 'title="Fra: ' + from + '\nTil: ' + to + '\nVarighet: ' + duration + '">'
       + '</div>';
