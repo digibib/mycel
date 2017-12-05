@@ -181,6 +181,44 @@ class Client < ActiveRecord::Base
   # optimized scope for the inventory page
   scope :inventory_view, includes(:user, :client_spec, :options, department: :branch)
 
+  def opening_hours_array
+    schedule = department.options.opening_hours || department.branch.opening_hours
+
+    opening_hours = []
+    wdays = %w[sunday monday tuesday wednsday thursday friday saturday]
+    wdays.each do |wday|
+      opens = schedule["#{wday}_opens"]
+      closes = schedule["#{wday}_closes"]
+      interval = (closes - opens) / 60
+      opening_hours << {opens: opens, closes: closes, interval: interval}
+    end
+
+    opening_hours
+  end
+
+  def foo
+    opening_hours = opening_hours_array
+
+    # for utnyttelsesgrad: bare regn sammen duration, behøver ikke se på åpningstid
+    # åpningstid er dog smart for uptime-beregning
+
+    begstr = '2017-12-04 10:00:00'
+    endstr = '2017-12-04 19:00:00'
+
+    events =
+      LogonEvent
+      .where(client_id: 278)
+      .where("ended >= '#{begstr}' and started <= '#{endstr}'") # or ended = nil?
+      .order('started asc')
+
+    events.each do |event|
+      #puts event.inspect
+    end
+
+    utilization_in_minutes = events.inject(0) {|sum, event| sum + (event.ended - event.started)/60 }
+    utilization_in_percent = ((utilization_in_minutes / opening_hours[0][:interval]) * 100).to_i #wday
+  end
+
 
   def init
     self.options ||= Options.new()
@@ -571,11 +609,10 @@ class ClientEvent < ActiveRecord::Base
     end
   end
 
-  def self.create_downtime_series(client_id)
+  def self.create_downtime_series(client_id, no_of_days = 3)
     client = Client.find(client_id)
 
     now = Time.now
-    no_of_days = 3
 
     period_start = now - no_of_days.days
     period_duration = no_of_days * 3600 * 1000 * 24
@@ -589,23 +626,65 @@ class ClientEvent < ActiveRecord::Base
     data = []
 
     # adds event if client has been down for the entire duration of the period
-    if events.size == 0 and (client.ts.nil? or client.ts < period_start)
-      data << {start: period_start, end: now}
+    if events.size == 0 && (client.ts.nil? || client.ts < period_start)
+      data << {start: period_start, end: now, type: 'offline', titlestamp: client.ts}
     end
 
     # adds recorded events
     events.each do |event|
       started = event.started < period_start ? period_start : event.started
-      data << {start: started, end: event.ended}
+      data << {start: started, end: event.ended, type: 'offline'}
     end
 
     # adds event if client has been online during period but is currently offline
-    if not client.connected? and (data.size > 0)
-      data << {start: client.ts, end: now} if client.ts.present? and client.ts >= period_start
+    if !client.connected? && (data.size > 0)
+      data << {start: client.ts, end: now, type: 'offline'} if client.ts.present? && client.ts >= period_start
     end
 
     {period_start: period_start, period_duration: period_duration, events: data}
   end
+
+
+  def self.create_super_series(client_id, no_of_days = 3)
+    client = Client.find(client_id)
+
+    now = Time.now
+
+    period_start = now - no_of_days.days
+    period_duration = no_of_days * 3600 * 1000 * 24
+
+    events =
+      ClientEvent.omit_reboots
+      .where(client_id: client_id)
+      .where("ended >= '#{period_start}'") # or ended = nil? #.where("ended >= '#{period_start}'")
+      .order('started asc')
+
+    data = []
+
+    # adds event if client has been down for the entire duration of the period
+    if events.size == 0 && (client.ts.nil? || client.ts < period_start)
+      data << {start: period_start, end: now, type: 'offline', titlestamp: client.ts}
+    end
+
+    # adds recorded events
+    events.each do |event|
+      started = event.started < period_start ? period_start : event.started
+      type = event.is_a?(ConnectionEvent) ? 'offline' : 'occupied'
+      ended = event.ended || now
+      data << {start: started, end: ended, type: type}
+    end
+
+    # adds event if client has been online during period but is currently offline
+    if !client.connected? && (data.size > 0)
+      data << {start: client.ts, end: now, type: 'offline'} if client.ts.present? && client.ts >= period_start
+    end
+
+
+    {period_start: period_start, period_duration: period_duration, events: data}
+  end
+
+
+
 end
 
 
