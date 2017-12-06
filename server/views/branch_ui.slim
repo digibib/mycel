@@ -46,7 +46,7 @@ p
 
 div[id="inactive_user_panel" hidden]
   label Brukernavn:
-  input[id="find_user_by_name" list="user_datalist" type="text" style="width: 300px"]
+  input[id="find_user_by_name" list="user_datalist" type="text" style="width: 300px" placeholder="Skriv inn brukernavn her..."]
   datalist[id="user_datalist"]
 
 
@@ -111,3 +111,6 @@ table id="user_table" class="clients"
       th
       th
     tbody
+
+- if branch
+  a[href="/branch_stats?id=#{branch.id}"] Oversikt (prototype)

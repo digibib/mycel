@@ -68,7 +68,8 @@ class Server < Goliath::API
     else
       if env['admin'] == "none"
         if path[1] == 'setadmin'
-          [200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, slim(:index)]
+          [200, {'Set-Cookie' => ["mycellogin=#{env.params['admin']}"]}, slim(:index, :locals => {:screen_res => ScreenResolution.all,
+            :admin => Admin.find_by_username(env.params['admin'])})]
         else
           [401, {'Set-Cookie' => ["mycellogin=none"]}, slim(:login)]
         end
@@ -95,7 +96,7 @@ class Server < Goliath::API
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
             [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
-          elsif path[1] == 'i' or path[1] == 'beta'
+          elsif path[1] == 'i' || path[1] == 'beta' || path[1] == 'filial'
             adm = Admin.find_by_username(env['admin'])
             level = adm.owner_admins_type.safe_constantize.find(adm.owner_admins_id)
 
@@ -103,6 +104,8 @@ class Server < Goliath::API
             selected_id = level.is_a?(Organization) ? bid : nil
 
             [200, {}, slim(:branch_ui, locals: {level: level, selected_id: selected_id})]
+          elsif path[1] == 'branch_stats'
+            [200, {}, slim(:branch_stats, layout: false, locals: {branch: Branch.find(params['id'])})]
           elsif path[1] == 'chart'
             [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'wstest'

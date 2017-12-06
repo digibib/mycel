@@ -476,7 +476,7 @@ class API < Grape::API
           { branch_id: client.department.branch_id,
             is_connected: client.connected?,
             status: client.status,
-            offline_events: ClientEvent.create_downtime_series(client.id),
+            offline_events: ClientEvent.create_occupied_series(client.id),
             user: client.user
           }
 
