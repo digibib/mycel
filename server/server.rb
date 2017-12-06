@@ -103,6 +103,7 @@ class Server < Goliath::WebSocket
           rescue Exception => e
             env['user'] = nil
             env.logger.error(e.message)
+            #env.logger.error(e.backtrace)
             env.logger.error("trying to find this user: #{msg['user']}")
           end
 
