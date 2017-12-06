@@ -304,6 +304,7 @@ $(function() {
           $row.find('.info').html('brukerbytte').show().fadeOut(5000);
         }
 
+        $row.find('.status_client').html(createStatusCell(client.status, client.ts, client.online_since))
         $row.find('.current_user').html(createUserCell(client.user))
         $row.find('.current_minutes').html(createMinutesCell(client))
         $row.find('.edit_minutes').toggle(client.user != null)
