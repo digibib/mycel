@@ -48,8 +48,8 @@ $(document).ready(function () {
   // ** set input masks **
 
   $('input[name="user_minutes"]').setMask('999');
-  $('input[name="age_lower"]').setMask('99');
-  $('input[name="age_higher"]').setMask('99');
+  $('input[name="age_lower"]').setMask('999');
+  $('input[name="age_higher"]').setMask('999');
   $('input[name="minutes_limit"]').setMask('999');
   $('input[name="minutes_before_closing"]').setMask('99');
 
