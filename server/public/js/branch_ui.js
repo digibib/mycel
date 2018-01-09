@@ -20,7 +20,7 @@ $(function() {
 
   // handle branch selection (superadmin only)
   $('#branch_selector').change(function() {
-    window.location.href = "/i?bid=" + $(this).find('option:selected').data('bid')
+    window.location.href = "/filial?bid=" + $(this).find('option:selected').data('bid')
   })
 
   $('#show_inactive_user_panel').click(function() {
@@ -243,7 +243,7 @@ $(function() {
   }
 
 
-  const req = $.getJSON('/api/clients')
+  const req = $.getJSON('/api/clients?bid=' + $('#branch_id').data('id'))
 
   req.done(function(data) {
     let rows = []
@@ -284,7 +284,8 @@ $(function() {
   const reloadClientData = function() {
     $('#ajax_spinner').show()
 
-    $.getJSON('/api/clients').done(function(data) {
+    let branchID = $('#branch_id').data('id')
+    $.getJSON('/api/clients?bid=' + branchID).done(function(data) {
       data.clients
       .filter(function(client) {return departmentIDs.includes(client.department_id)})
       .forEach(function(client) {
@@ -319,8 +320,5 @@ $(function() {
   }
 
   setInterval(reloadClientData, reloadRate)
-
-
-
 
 })

@@ -24,6 +24,9 @@ script src="/js/branch_ui_options.js"
 
 - units = level.is_a?(Department) ? [*departments] : [branch, *departments]
 
+- branch_id = branch ? branch.id : level.branch.id
+input[hidden id="branch_id" data-id="#{branch_id}"]
+
 - departments.each do |department|
   - adjust = department.options_self_or_inherited['time_limit'].to_i - 60
   input[hidden class="department_ids" id="dept#{department.id}" data-adjust="#{adjust}" data-id="#{department.id}" data-name="#{department.name}"]

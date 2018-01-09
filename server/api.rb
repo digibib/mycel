@@ -473,8 +473,12 @@ class API < Grape::API
           {:client => client.as_json}
         end
       else
+        bid = params['bid'].present? ? params['bid'].to_i : nil
+
         clients = []
         Client.includes(department: :branch).all.each do |client|
+          next if bid && client.department.branch_id != bid
+
           attribs =
           { branch_id: client.department.branch_id,
             is_connected: client.connected?,
