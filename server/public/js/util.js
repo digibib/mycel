@@ -47,7 +47,7 @@ Util.createStatusBar = function(data) {
       break;
       case 'available':
       icon = '/img/pc_blue.png'
-      title = 'Ledig&#013;Online siden: ' + new Date('onlineSince').toLocaleString('nb')
+      title = 'Ledig&#013;Online siden: ' + new Date(onlineSince).toLocaleString('nb')
       break;
       case 'disconnected':
       icon = '/img/pc_red.png'
