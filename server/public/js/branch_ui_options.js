@@ -99,16 +99,17 @@ $(document).ready(function () {
   $(':input.chk').change(function () {
     const mainTab = $(this).closest('.maintab')
 
-    if($(this).attr("checked"))
+    if ($(this).is(":checked"))
     {
       var id = $(this).attr("name").slice(0, -6);
-      mainTab.find("[name="+id+"opens]").attr("disabled", "disabled").removeClass("inputmissing");
-      mainTab.find("[name="+id+"closes]").attr("disabled", "disabled").removeClass("inputmissing");
+      mainTab.find("input[name='"+id+"opens']").prop("disabled", true).removeClass("inputmissing")
+      mainTab.find("[name='"+id+"closes']:first").prop("disabled", true).removeClass("inputmissing")
     } else {
       var id = $(this).attr("name").slice(0, -6);
-      mainTab.find("[name="+id+"opens]").removeAttr("disabled");
-      mainTab.find("[name="+id+"closes]").removeAttr("disabled");
+      mainTab.find("[name='"+id+"opens']:first").prop("disabled", false);
+      mainTab.find("input[name='"+id+"closes']:first").prop("disabled", false);
     }
+
   });
 
   $(':input.hour').setMask('29:59').keypress(function() {
