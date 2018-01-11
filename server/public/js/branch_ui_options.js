@@ -174,7 +174,7 @@ $(document).ready(function () {
         data: {
               opening_hours: {
               monday_opens: mainTab.find('input[name="monday_opens"]:first').val(),
-              monday_opens: mainTab.find('input[name="monday_closes"]:first').val(),
+              monday_closes: mainTab.find('input[name="monday_closes"]:first').val(),
               tuesday_opens: mainTab.find('input[name="tuesday_opens"]:first').val(),
               tuesday_closes: mainTab.find('input[name="tuesday_closes"]:first').val(),
               wednsday_opens: mainTab.find('input[name="wednsday_opens"]:first').val(),
