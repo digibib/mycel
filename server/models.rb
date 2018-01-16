@@ -571,6 +571,7 @@ class ClientEvent < ActiveRecord::Base
     end
   end
 
+  # TODO think this is deprecated now
   def self.create_downtime_series(client_id, no_of_days = 3)
     client = Client.find(client_id)
 
@@ -580,10 +581,10 @@ class ClientEvent < ActiveRecord::Base
     period_duration = no_of_days * 3600 * 1000 * 24
 
     events =
-      ConnectionEvent.omit_reboots
-      .where(client_id: client_id)
-      .where("ended >= '#{period_start}'")
-      .order('started asc')
+    ConnectionEvent.omit_reboots
+    .where(client_id: client_id)
+    .where("ended >= '#{period_start}'")
+    .order('started asc')
 
     data = []
 
@@ -616,10 +617,10 @@ class ClientEvent < ActiveRecord::Base
     period_duration = no_of_days * 3600 * 1000 * 24
 
     events =
-      ClientEvent.omit_reboots
-      .where(client_id: client_id)
-      .where("ended >= '#{period_start}'") # or ended = nil? #.where("ended >= '#{period_start}'")
-      .order('started asc')
+    ClientEvent.omit_reboots
+    .where(client_id: client_id)
+    .where("ended >= '#{period_start}'") # or ended = nil? #.where("ended >= '#{period_start}'")
+    .order('started asc')
 
     data = []
 
@@ -642,120 +643,142 @@ class ClientEvent < ActiveRecord::Base
     end
 
 
-    {period_start: period_start, period_duration: period_duration, events: data}
+    {period_start: period_start, period_duration: period_duration, events: data}.to_json
+  end
+
+  # converts opening schedule to an array of hashes
+  def self.get_opening_hours_array(department)
+    schedule = department.options.opening_hours || department.branch.options.opening_hours || department.branch.organization.options.opening_hours
+
+    opening_hours = []
+    wdays = %w[sunday monday tuesday wednsday thursday friday saturday]
+    wdays.each do |wday|
+      opens = schedule["#{wday}_opens"]
+      closes = schedule["#{wday}_closes"]
+      interval = closes && opens ? (closes - opens) / 60 : 0
+      opening_hours << {opens: opens, closes: closes, interval: interval}
+    end
+
+    opening_hours
+  end
+
+  def self.get_downtime_in_minutes(client, period_start, period_end, last = false)
+    events = client.connection_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
+
+    total_downtime = 0
+
+    # sets downtime if client has been down for the entire duration of the period
+    if events.size == 0 && (client.ts.nil? || client.ts < period_start)
+      total_downtime += period_end - period_start
+    end
+
+    # adds downtime from finished events
+    events.each do |event|
+      ended = event.ended > period_end ? period_end : event.ended
+      started = event.started < period_start ? period_start : event.started
+      total_downtime += (ended - started)
+    end
+
+
+    # adds downtime if client has been online during period but is currently offline
+    if last && events.size > 0 && !client.connected?
+      total_downtime += period_end - client.ts
+    end
+
+    total_downtime / 60
+  end
+
+  # difference is that this can be called in one go... mon-sun
+  def self.get_occupied_time_in_minutes(client, period_start, period_end)
+    events = client.logon_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
+
+    # adds time from finished events
+    occupied_time = events.inject(0) {|sum, event| sum + (event.ended - event.started) }
+
+    #TODO add time from unfinished session
+
+    occupied_time / 60
+  end
+
+  # calculates number of minutes(?) the department has been open durint the period
+  def self.get_accumulated_opening_time(schedule, period_start, period_end)
+    result = 0
+    tmp_date = period_start
+
+    while tmp_date <= period_end
+      result += schedule[tmp_date.wday][:interval]
+      tmp_date = tmp_date + 1.day
+    end
+
+    result
   end
 
 
-  def self.get_opening_hours_array(department)
-   schedule = department.options.opening_hours || department.branch.options.opening_hours || department.branch.organization.options.opening_hours
+  def self.create_branch_stats(branch, no_of_days = 3)
+    period_end = Time.now
+    period_start = period_end - no_of_days.days
 
-   opening_hours = []
-   wdays = %w[sunday monday tuesday wednsday thursday friday saturday]
-   wdays.each do |wday|
-     opens = schedule["#{wday}_opens"]
-     closes = schedule["#{wday}_closes"]
-     interval = closes && opens ? (closes - opens) / 60 : 0
-     opening_hours << {opens: opens, closes: closes, interval: interval}
-   end
+    results = []
 
-   opening_hours
- end
+    branch.departments.each do |department|
+      dept_results = {name: department.name}
+      client_results = []
 
- def self.get_downtime_in_minutes(client, period_start, period_end, last = false)
-   events = client.connection_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
+      opening_hours = get_opening_hours_array(department)
+      total = get_accumulated_opening_time(opening_hours, period_start, period_end)
 
-   total_downtime = 0
+      department.clients.each do |client|
+        client_results << client_stats_by_percent(client, opening_hours, period_start, period_end, total)
+      end
 
-   # sets downtime if client has been down for the entire duration of the period
-   if events.size == 0 && (client.ts.nil? || client.ts < period_start)
-     total_downtime += period_end - period_start
-   end
-
-   # adds downtime from finished events
-   events.each do |event|
-     ended = event.ended > period_end ? period_end : event.ended
-     started = event.started < period_start ? period_start : event.started
-     total_downtime += (ended - started)
-   end
-
-
-   # adds downtime if client has been online during period but is currently offline
-   if last && events.size > 0 && !client.connected?
-     total_downtime += period_end - client.ts
-   end
-
-   total_downtime / 60
- end
-
- # difference is that this can be called in one go... mon-sun
- def self.get_occupied_time_in_minutes(client, period_start, period_end)
-   events = client.logon_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
-
-   # adds time from finished events
-   occupied_time = events.inject(0) {|sum, event| sum + (event.ended - event.started) }
-
-   #TODO add time from unfinished session
-
-   occupied_time / 60
- end
-
- def self.get_accumulated_opening_time(schedule, period_start, period_end)
-   result = 0
-   tmp_date = period_start
-
-   while tmp_date <= period_end
-     result += schedule[tmp_date.wday][:interval]
-     tmp_date = tmp_date + 1.day
-   end
-
-   result
- end
-
-
- def self.create_stats(branch, no_of_days = 3)
-   period_end = Time.now
-   period_start = period_end - no_of_days.days
-
-   results = []
-
-   branch.departments.each do |department|
-     dept_results = {name: department.name}
-     client_results = []
-
-     opening_hours = get_opening_hours_array(department)
-     total = get_accumulated_opening_time(opening_hours, period_start, period_end)
-
-     department.clients.each do |client|
-       occupied_time = get_occupied_time_in_minutes(client, period_start, period_end)
-       occupied_time_percent = ((occupied_time * 100) / total).to_i
-
-       tmp_date = period_start
-       downtime = 0
-       while tmp_date <= period_end
-         oh = opening_hours[tmp_date.wday]
-         opens = oh[:opens]
-         closes = oh[:closes]
-
-         if opens && closes
-           opens = Time.new(tmp_date.year, tmp_date.month, tmp_date.day, opens.hour, opens.min, 0, 0)
-           closes = Time.new(tmp_date.year, tmp_date.month, tmp_date.day, closes.hour, closes.min, 0, 0)
-           is_last = (tmp_date + 1.day) >= period_end
-           downtime += get_downtime_in_minutes(client, opens, closes, is_last)
-         end
-
-         tmp_date = tmp_date + 1.day
-       end
-
-       uptime_percent = 100 - ((downtime * 100) / total).to_i
-       client_results << {client_id: client.id, client_name: client.name, occupied_time_percent: occupied_time_percent, uptime_percent: uptime_percent}
-     end
       results << dept_results.merge(clients: client_results)
-
-   end
+    end
 
     results
- end
+  end
 
+
+  def self.create_client_stats(client, no_of_days = 3)
+    period_end = Time.now
+    period_start = period_end - no_of_days.days
+
+    opening_hours = get_opening_hours_array(client.department)
+    total = get_accumulated_opening_time(opening_hours, period_start, period_end)
+
+    events = ""
+    client.connection_events.where("started >= '#{period_start}'").order("started DESC").each do |event|
+      events += event.to_title
+    end
+
+    {downtime_events: events}.merge(client_stats_by_percent(client, opening_hours, period_start, period_end, total))
+  end
+
+
+  def self.client_stats_by_percent(client, opening_hours, period_start, period_end, total)
+    occupied_time = get_occupied_time_in_minutes(client, period_start, period_end)
+    occupied_time_percent = ((occupied_time * 100) / total).to_i
+
+    tmp_date = period_start
+    downtime = 0
+
+    while tmp_date <= period_end
+      oh = opening_hours[tmp_date.wday]
+      opens = oh[:opens]
+      closes = oh[:closes]
+
+      if opens && closes
+        opens = Time.new(tmp_date.year, tmp_date.month, tmp_date.day, opens.hour, opens.min, 0, 0)
+        closes = Time.new(tmp_date.year, tmp_date.month, tmp_date.day, closes.hour, closes.min, 0, 0)
+        is_last = (tmp_date + 1.day) >= period_end
+        downtime += get_downtime_in_minutes(client, opens, closes, is_last)
+      end
+
+      tmp_date = tmp_date + 1.day
+    end
+
+    uptime_percent = 100 - ((downtime * 100) / total).to_i
+    {client_id: client.id, client_name: client.name, occupied_time_percent: occupied_time_percent, uptime_percent: uptime_percent}
+  end
 end
 
 

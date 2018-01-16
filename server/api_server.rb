@@ -107,6 +107,9 @@ class Server < Goliath::API
             [200, {}, slim(:branch_ui, locals: {level: level, selected_id: selected_id})]
           elsif path[1] == 'branch_stats'
             [200, {}, slim(:branch_stats, layout: false, locals: {branch: Branch.find(params['id'])})]
+          elsif path[1] == 'client_stats'
+            no_of_days = params['no_of_days'].present? && params['no_of_days'].to_i || 7
+            [200, {}, slim(:client_stats, layout: false, locals: {client: Client.find(params['id']), no_of_days: no_of_days})]
           elsif path[1] == 'chart'
             [200, {}, slim(:chart, layout: false, locals: {branches: Branch.order(:name).all})]
           elsif path[1] == 'wstest'

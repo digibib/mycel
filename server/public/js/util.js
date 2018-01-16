@@ -2,12 +2,12 @@
 
 function Util() {}
 
-Util.createStatusBar = function(data) {
+Util.createStatusBar = function(data, clientID, size = "small") {
     const periodStart = new Date(data.period_start)
     const periodDuration = data.period_duration
 
     const dayLabels = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
-    let bar = '<div class="statusbar">'
+    let bar = '<a href="#" data-featherlight="/client_stats?id=' + clientID + '"><div class="statusbar ' + size +  ' ">'
 
     data.events.forEach(function(event) {
       const start = new Date(event.start)
@@ -33,7 +33,7 @@ Util.createStatusBar = function(data) {
       + '</div>';
     })
 
-    bar += '</div>'
+    bar += '</div></a>'
 
     return bar
   }
