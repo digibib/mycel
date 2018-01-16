@@ -118,37 +118,7 @@ $(function() {
         },
         { // render downtime series into statusbar
           render: function ( data, type, row ) {
-            const periodStart = new Date(data.period_start)
-            const periodDuration = data.period_duration
-
-            const dayLabels = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
-            let bar = '<div class="statusbar">'
-
-            data.events.forEach(function(event) {
-              const start = new Date(event.start)
-              const end = new Date(event.end)
-
-              const from = dayLabels[start.getDay()] + ' ' + start.toLocaleTimeString('nb')
-              const to = dayLabels[end.getDay()] + ' ' + end.toLocaleTimeString('nb')
-
-              const diffInSeconds = Math.abs(end - start) / 1000
-              const days = Math.floor(diffInSeconds / 60 / 60 / 24)
-              const hours = Math.floor(diffInSeconds / 60 / 60 % 24)
-              const minutes = Math.floor(diffInSeconds / 60 % 60)
-
-              let duration = days > 0 ? days + 'd ' : ''
-              duration += hours > 0 ? hours + 't ' : ''
-              duration += minutes + 'm '
-
-              bar += '<div class="down" '
-              + 'style="left:' + ((start - periodStart) / periodDuration) * 100 + '%;width:' + (end - start) / periodDuration * 100  + '%" '
-              + 'title="Fra: ' + from + '\nTil: ' + to + '\nVarighet: ' + duration + '">'
-              + '</div>';
-            })
-
-            bar += '</div>'
-
-            return bar
+            return Util.createStatusBar(JSON.parse(data), row['id'])
           },
           targets: 1, orderable: false
         }

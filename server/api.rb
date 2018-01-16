@@ -312,7 +312,7 @@ class API < Grape::API
           events = events + event.to_title
         end
 
-        downtimes = ClientEvent.create_downtime_series(client.id)
+        downtimes = ClientEvent.create_occupied_series(client.id)
 
         # merge attributes and return
         h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name,

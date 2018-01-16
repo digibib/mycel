@@ -6,7 +6,7 @@ html
   h2 Oversikt for #{branch.name}
   OBS! Dette er en veldig tidlig prototype. Tallene kan vise tendenser, men er ikke nødvendigvis veldig nøyaktige ennå.
 
-  - data = ClientEvent.create_stats(branch)
+  - data = ClientEvent.create_branch_stats(branch)
   - data.each do |department|
     h4 #{department[:name]}
     ul

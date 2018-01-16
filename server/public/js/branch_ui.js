@@ -255,7 +255,7 @@ $(function() {
 
       let row = "<tr class='" + client.status + "' data-clientID='" + client.id + "' data-deptID='" + client.department_id + "'>"
       row += "<td class='status_client'>" + Util.createStatusCell(client.status, client.ts, client.online_since) + "</td>"
-      row += "<td class='status_bar'>" + Util.createStatusBar(client.offline_events) + "</td>"
+      row += "<td class='status_bar'>" + Util.createStatusBar(JSON.parse(client.offline_events), client.id) + "</td>"
       row += "<td>" + $('#dept' + client.department_id).data('name') + "</td>"
       row += "<td>" + client.name + "</td>"
       row += "<td class='current_user'>" + createUserCell(client.user) + "</td>"
