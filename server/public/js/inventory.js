@@ -109,13 +109,6 @@ $(function() {
 
           targets: 0, orderable: true
         },
-        { // render client title
-          render: function ( data, type, row ) {
-            return "<div title='" + row['title'] + "'>" + data + "</div>"
-          },
-
-          targets: 3, orderable: true
-        },
         { // render downtime series into statusbar
           render: function ( data, type, row ) {
             return Util.createStatusBar(JSON.parse(data), row['id'])

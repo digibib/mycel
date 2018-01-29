@@ -1,3 +1,4 @@
+#encoding: UTF-8
 require "em-synchrony/activerecord"
 require "./sip2.rb"
 require "./config/settings"
@@ -166,7 +167,6 @@ class Client < ActiveRecord::Base
   has_one :options, :as => :owner_options, :dependent => :destroy
   has_one :client_spec, :dependent => :destroy
 
-  #has_many :client_events, :dependent => :destroy
   has_many :connection_events, :dependent => :destroy
   has_many :logon_events, :dependent => :destroy
 
@@ -174,7 +174,7 @@ class Client < ActiveRecord::Base
 
   after_initialize :init, if: :new_record?
 
-  @@cut_off = 15*60
+  @@cut_off = 15*60 # determines when the client is flagged as disconnected
   scope :connected, -> { where("ts > ?", Time.now - @@cut_off) }
   scope :disconnected, -> { where("ts <= ?", Time.now - @@cut_off) }
 
@@ -196,7 +196,7 @@ class Client < ActiveRecord::Base
   end
 
   def connected?
-    ts.nil? ? false : ts > Time.now - @@cut_off
+    ts.blank? ? false : ts > Time.now - @@cut_off
   end
 
 
@@ -205,22 +205,28 @@ class Client < ActiveRecord::Base
       'occupied'
     elsif ts.nil?
       'unseen'
-    elsif not connected?
-      'disconnected'
-    else
+    elsif connected?
       'available'
+    else
+      'disconnected'
     end
   end
 
-  # called when api receives a keep_alive signal from a client that is not connected
-  def generate_offline_event
-    event = ConnectionEvent.new
-    event.client_id = self.id
-    event.started = self.ts
-    event.ended = Time.now
-    event.save
+
+  # called when api receives a keep_alive signal from a client
+  def update_timestamp
+    if !connected?
+      ConnectionEvent.generate_offline_event(id, ts)
+      update_attributes(online_since: Time.now)
+    end
+
+    touch(:ts)
   end
 
+  # called from the periodic timer in server.rb
+  # note that this does not check to see if current user and previous user
+  # are the same for on-going connections, and thus does not yield a correct
+  # count for # of total logins.
   def update_logon_events
     has_active_event = logon_events.present? && logon_events.last.present? && logon_events.last.ended.blank?
     has_active_user = user.present?
@@ -514,11 +520,14 @@ class ScreenResolution < ActiveRecord::Base
   has_one :client
 end
 
-
+# When a client that is not registered in the database tries to connect to
+# mycel, its registered with its MAC address as a request. The sole purpose
+# of this class is to allow quick registration of new clients via the UI.
 class Request < ActiveRecord::Base
   default_scope order('ts desc')
 end
 
+# Boot profiles for pixiecore. Currently not in use.
 class Profile < ActiveRecord::Base
 
 end
@@ -547,13 +556,14 @@ class ClientSpec < ActiveRecord::Base
 end
 
 
+#-------------------------------------------------------------------------
 class ClientEvent < ActiveRecord::Base
   belongs_to :client
   scope :omit_reboots, -> { where("not (HOUR(started) IN (3,4) AND TIMESTAMPDIFF(MINUTE,started, ended) < 120)") }
 
 
   # representation of the event for use in html title attribrutes. quick and dirty.
-  def to_title
+  def to_title(is_ongoing = false)
     duration = ended - started
     hours = (duration/3600).to_i
     hrs = hours > 0 ? "#{hours}t" : ""
@@ -564,47 +574,13 @@ class ClientEvent < ActiveRecord::Base
     if [3,4].include?(started.hour) && [3,4].include?(ended.hour) && started.mday == ended.mday
       ""
     else
+      label = is_ongoing ? 'Vært offline i' : 'Varighet'
       started_string = started.strftime('%e/%m %H:%M')
       ended_string = started.mday == ended.mday ? ended.strftime('%H:%M') : ended.strftime('%e/%m %H:%M')
 
-      "Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
+
+      "#{label}: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
     end
-  end
-
-  # TODO think this is deprecated now
-  def self.create_downtime_series(client_id, no_of_days = 3)
-    client = Client.find(client_id)
-
-    now = Time.now
-
-    period_start = now - no_of_days.days
-    period_duration = no_of_days * 3600 * 1000 * 24
-
-    events =
-    ConnectionEvent.omit_reboots
-    .where(client_id: client_id)
-    .where("ended >= '#{period_start}'")
-    .order('started asc')
-
-    data = []
-
-    # adds event if client has been down for the entire duration of the period
-    if events.size == 0 && (client.ts.nil? || client.ts < period_start)
-      data << {start: period_start, end: now, type: 'offline', titlestamp: client.ts}
-    end
-
-    # adds recorded events
-    events.each do |event|
-      started = event.started < period_start ? period_start : event.started
-      data << {start: started, end: event.ended, type: 'offline'}
-    end
-
-    # adds event if client has been online during period but is currently offline
-    if !client.connected? && (data.size > 0)
-      data << {start: client.ts, end: now, type: 'offline'} if client.ts.present? && client.ts >= period_start
-    end
-
-    {period_start: period_start, period_duration: period_duration, events: data}
   end
 
 
@@ -619,7 +595,7 @@ class ClientEvent < ActiveRecord::Base
     events =
     ClientEvent.omit_reboots
     .where(client_id: client_id)
-    .where("ended >= '#{period_start}'") # or ended = nil? #.where("ended >= '#{period_start}'")
+    .where("ended >= '#{period_start}'")
     .order('started asc')
 
     data = []
@@ -646,6 +622,7 @@ class ClientEvent < ActiveRecord::Base
     {period_start: period_start, period_duration: period_duration, events: data}.to_json
   end
 
+  # TODO move this somewhere proper
   # converts opening schedule to an array of hashes
   def self.get_opening_hours_array(department)
     schedule = department.options.opening_hours || department.branch.options.opening_hours || department.branch.organization.options.opening_hours
@@ -688,19 +665,24 @@ class ClientEvent < ActiveRecord::Base
     total_downtime / 60
   end
 
-  # difference is that this can be called in one go... mon-sun
+
   def self.get_occupied_time_in_minutes(client, period_start, period_end)
     events = client.logon_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
 
     # adds time from finished events
     occupied_time = events.inject(0) {|sum, event| sum + (event.ended - event.started) }
 
-    #TODO add time from unfinished session
+    #add time from unfinished session
+    if client.occupied?
+      cur_event = client.logon_events.last
+      occupied_time += Time.now - cur_event.started if cur_event.present? && cur_event.ended.blank?
+    end
 
     occupied_time / 60
   end
 
-  # calculates number of minutes(?) the department has been open durint the period
+  # calculates number of minutes(?) the department has been open during the period
+  # note: this does not factor in any changes in the opening schedule
   def self.get_accumulated_opening_time(schedule, period_start, period_end)
     result = 0
     tmp_date = period_start
@@ -745,9 +727,16 @@ class ClientEvent < ActiveRecord::Base
     opening_hours = get_opening_hours_array(client.department)
     total = get_accumulated_opening_time(opening_hours, period_start, period_end)
 
-    events = ""
+    events = []
+
+    if !client.connected?
+      temp_event = ConnectionEvent.new(client_id: client.id, started: client.ts, ended: Time.now)
+      events << temp_event.to_title(true)
+      events << "---------------"
+    end
+
     client.connection_events.where("started >= '#{period_start}'").order("started DESC").each do |event|
-      events += event.to_title
+      events << event.to_title
     end
 
     {downtime_events: events}.merge(client_stats_by_percent(client, opening_hours, period_start, period_end, total))
@@ -783,6 +772,9 @@ end
 
 
 class ConnectionEvent < ClientEvent
+  def self.generate_offline_event(client_id, client_ts)
+    event = create(client_id: client_id, started: client_ts, ended: Time.now)
+  end
 
 end
 
