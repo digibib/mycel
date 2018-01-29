@@ -143,15 +143,9 @@ class API < Grape::API
       if params[:mac].present?
         mac = params[:mac]
         client = Client.find_by_hwaddr(mac)
-        if client.present?
-          if not client.connected?
-            client.generate_offline_event
-            client.update_attributes(online_since: Time.now)
-          end
-
-          client.touch(:ts)
-        end
+        client.update_timestamp if client.present?
       end
+
       status 200
       [200, {'Connection' => "close"}, {message: "OK"}]
     end
@@ -309,17 +303,11 @@ class API < Grape::API
     get "/" do
       clients = []
       Client.inventory_view.all.each do |client|
-        # build title attribute string containing latest offline events
-        events = ""
-        client.connection_events.order("started DESC").each do |event|
-          events = events + event.to_title
-        end
-
         downtimes = ClientEvent.create_occupied_series(client.id)
 
         # merge attributes and return
         h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name,
-           specs: client.client_spec, title: events, downtimes: downtimes}
+           specs: client.client_spec, downtimes: downtimes}
         clients << client.attributes.merge(h)
       end
 

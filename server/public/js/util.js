@@ -7,7 +7,8 @@ Util.createStatusBar = function(data, clientID, size = "small") {
     const periodDuration = data.period_duration
 
     const dayLabels = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
-    let bar = '<a href="#" data-featherlight="/client_stats?id=' + clientID + '"><div class="statusbar ' + size +  ' ">'
+    let bar = '<a href="#" data-featherlight-loading="Vennligst vent..." data-featherlight="/client_stats?id='
+    bar += clientID + '"><div class="statusbar ' + size +  ' ">'
 
     data.events.forEach(function(event) {
       const start = new Date(event.start)

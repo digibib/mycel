@@ -3,18 +3,15 @@ html
   head
     meta charset='utf-8'
 
-  link href='/css/style.css' rel='stylesheet' type='text/css'
-  script src="/js/jquery.min.js"
-  script src="/js/util.js"
   script src="/js/client_stats.js"
 
   body[style='margin-top:10px;margin-left:10px;margin-bottom:10px;']
   div
     h2[style="display:inline-block"] Oversikt for #{client.name}
-    select[id="no_of_days_selector" style="margin-left:10px" hidden]
-      option[data-params="?id=#{client.id}&no_of_days=7"]Siste 7 dager
-      option[data-params="?id=#{client.id}&no_of_days=14"]Siste 14 dager
-      option[data-params="?id=#{client.id}&no_of_days=30"]Siste 30 dager
+    select[class="no_of_days_selector" style="margin-left:10px"]
+      option[data-clientid="#{client.id}" data-no_of_days="7"] Siste 7 dager
+      option[data-clientid="#{client.id}" data-no_of_days="14" selected=("selected" if no_of_days==14)] Siste 14 dager
+      option[data-clientid="#{client.id}" data-no_of_days="30" selected=("selected" if no_of_days==30)] Siste 30 dager
 
   div[id="client_data" height=15 data-status=client.status data-ts=client.ts data-online_since=client.online_since
     data-series=ClientEvent.create_occupied_series(client.id, no_of_days)]
@@ -22,3 +19,8 @@ html
   - data = ClientEvent.create_client_stats(client, no_of_days)
   h4 Oppetid: #{data[:uptime_percent]}%
   h4 Belegg: #{data[:occupied_time_percent]}%
+
+  - if data[:downtime_events].size > 0
+    h4 Nedetid:
+    - data[:downtime_events].each do |event|
+      #{event}

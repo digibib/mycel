@@ -11,4 +11,16 @@ $(function() {
   const statusImage = Util.createStatusCell(status, ts, onlineSince)
 
   $('#client_data').html(bar)
+
+  $('.no_of_days_selector').on("change", function() {
+    const clientID = $(this).find(':selected').data('clientid')
+    const noOfDays = $(this).find(':selected').data('no_of_days')
+
+    const url = "/client_stats?id=" + clientID + "&no_of_days=" + noOfDays
+
+    $.featherlight(url, {
+      beforeOpen: function() {$.featherlight.close()}
+    })
+  })
+
 })
