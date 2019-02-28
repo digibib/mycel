@@ -12,9 +12,9 @@ html
       div id="header"
         a href="/": img src="/img/logo.png" class="logo" alt="logo"
         div id="header-buttons"
-          ul
-            a[href="/clients"]: li[class="header"] KLIENTER
-            a[href="/users"]: li[class="header"] BRUKERE
+          ul            
+            - if admin.respond_to?(:superadmin?) and admin.superadmin?
+              a[href="/inventory"]: li[class="header"] INVENTORY
             a[href="/loggout"]: li[class="header"] LOGG UT
       div id="debug"
 

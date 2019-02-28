@@ -87,24 +87,18 @@ class Server < Goliath::API
             else
               [401, {}, slim(:forbidden)]
             end
-          elsif path[1] == 'users'
-            [200, {}, slim(:users, :locals => {:users => User.all,
-              :allowed_departments => Admin.find_by_username(env['admin']).allowed_departments})]
-          elsif path[1] == 'clients'
-            [200, {}, slim(:clients,
-                           :locals => {:admin => Admin.find_by_username(env['admin'])})]
           elsif path[1] == 'statistics'
             [200, {}, slim(:statistics)]
           elsif path[1] == 'inventory'
-            [200, {}, slim(:inventory, locals: {branches: Branch.order(:name).all})]
-          elsif path[1] == 'i' || path[1] == 'beta' || path[1] == 'filial'
+            [200, {}, slim(:inventory, locals: {admin: Admin.find_by_username(env['admin']), branches: Branch.order(:name).all})]
+          elsif path[1] == 'i' || path[1] == 'beta' || path[1] == 'filial' || path[1] == 'clients' || path[1] == 'users'
             adm = Admin.find_by_username(env['admin'])
             level = adm.owner_admins_type.safe_constantize.find(adm.owner_admins_id)
 
             bid = params['bid'].present? ? params['bid'].to_i : Organization.first.branches.first.id
             selected_id = level.is_a?(Organization) ? bid : nil
 
-            [200, {}, slim(:branch_ui, locals: {level: level, selected_id: selected_id})]
+            [200, {}, slim(:branch_ui, locals: {admin: adm, level: level, selected_id: selected_id})]
           elsif path[1] == 'branch_stats'
             [200, {}, slim(:branch_stats, layout: false, locals: {branch: Branch.find(params['id'])})]
           elsif path[1] == 'client_stats'
