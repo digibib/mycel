@@ -3,11 +3,6 @@ div class="main"
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
     == render :slim,  :'admin', :layout => false, :locals => {:screen_res => screen_res}
   - else
-    h2 Hva er dette?
-    p Nedenfor er et utkast til nytt og mer kompakt grensesnitt for å håndtere klienter.
-    p Fargekoder: Grønt betyr at klienten er opptatt av bruker, blått at maskinen er ledig, mens rødt
-    betyr at maskinen ikke har hatt kontakt med nettverket i løpet av det siste kvarteret.
-
     - level = admin.owner_admins_type.safe_constantize.find(admin.owner_admins_id)
 
     - bid = params['bid'].present? ? params['bid'].to_i : Organization.first.branches.first.id
