@@ -6,6 +6,7 @@ html
     link href='/css/style.css' rel='stylesheet' type='text/css'
     script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"
     script src="/js/meiomask.min.js"
+    script src="/js/featherlight.min.js"    
 
   body
     div class="container"
@@ -15,6 +16,7 @@ html
           ul            
             - if admin.respond_to?(:superadmin?) and admin.superadmin?
               a[href="/inventory"]: li[class="header"] INVENTORY
+            a[href="#" data-featherlight="/img/mycel-filialstyring.png"]: li[class="header"] HJELP
             a[href="/loggout"]: li[class="header"] LOGG UT
       div id="debug"
 
