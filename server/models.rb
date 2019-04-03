@@ -615,7 +615,8 @@ class ClientEvent < ActiveRecord::Base
 
     # adds event if client has been online during period but is currently offline
     if !client.connected? && (data.size > 0)
-      data << {start: client.ts, end: now, type: 'offline'} if client.ts.present? && client.ts >= period_start
+      start = client.ts < period_start ? period_start : client.ts
+      data << {start: start, end: now, type: 'offline'}
     end
 
 
