@@ -2,6 +2,8 @@
 
 function Util() {}
 
+const dateFormatter = new Intl.DateTimeFormat('no')
+
 Util.createStatusBar = function(data, clientID, size = "small") {
     const periodStart = new Date(data.period_start)
     const periodDuration = data.period_duration
@@ -14,8 +16,8 @@ Util.createStatusBar = function(data, clientID, size = "small") {
       const start = new Date(event.start)
       const end = new Date(event.end)
 
-      const from = dayLabels[start.getDay()] + ' ' + start.toLocaleTimeString('nb')
-      const to = dayLabels[end.getDay()] + ' ' + end.toLocaleTimeString('nb')
+      const from = dayLabels[start.getDay()] + ' ' + dateFormatter.format(start)
+      const to = dayLabels[end.getDay()] + ' ' + dateFormatter.format(end)
 
       const diffInSeconds = Math.abs(end - start) / 1000
       const days = Math.floor(diffInSeconds / 60 / 60 / 24)
