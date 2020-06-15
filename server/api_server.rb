@@ -29,7 +29,6 @@ Goliath::Request.log_block = proc do |env, response, elapsed_time|
       elapsed_time
     ]
 end
-
 class Server < Goliath::API
   include Goliath::Rack::Templates
   use Goliath::Rack::Params
