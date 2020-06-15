@@ -1,0 +1,45 @@
+table.stats
+  thead
+    tr
+      td.desc
+      td.usertype B
+      td.usertype G
+      td.usertype A
+      td.usertype Samlet
+  tbody
+    tr
+      td.desc Antall sesjoner
+      td.usertype -
+      td.usertype -
+      td.usertype -
+      td.usertype -
+    tr
+      td.desc Antall timer bruk
+      td.usertype -
+      td.usertype -
+      td.usertype -
+      td.usertype -
+    tr
+      td.desc Antall sesjoner per dag, gjennomsnitt*
+      td.usertype -
+      td.usertype -
+      td.usertype -
+      td.usertype -
+    tr
+      td.desc Antall timer bruk per dag, gjennomsnitt*
+      td.usertype -
+      td.usertype -
+      td.usertype -
+      td.usertype -
+    tr
+      td.desc Lengde på sesjon, gjennomsnitt i minutter
+      td.usertype -
+      td.usertype -
+      td.usertype -
+      td.usertype -
+    tr
+      td.desc Alder, gjennomsnitt
+      td.usertype -
+      td.usertype -
+      td.usertype -
+      td.usertype -

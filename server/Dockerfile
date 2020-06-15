@@ -24,3 +24,4 @@ RUN bundle install
 RUN mkdir /app
 WORKDIR /app
 ADD . /app
+COPY /views/template.stats_all /app/views/stats_all.slim
