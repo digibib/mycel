@@ -1,0 +1,51 @@
+version: '3.7'
+
+volumes:
+  db-data:
+  bundler-data:
+
+services:
+  mycel-api:
+    build: .
+    command: bundle exec ruby api_server.rb -e development -p 9000
+    volumes:
+      - .:/app
+      - bundler-data:/usr/local/bundle
+    environment:
+      USERNAME: mycel
+      PASSWORD: secret
+      SIP_HOST: siphost
+      SIP_PORT: 999
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mycel-db
+
+  mycel-server:
+    build: .
+    command: bundle exec ruby server.rb -e development -p 9001
+    volumes:
+      - .:/app
+      - bundler-data:/usr/local/bundle
+    environment:
+      USERNAME: mycel
+      PASSWORD: secret
+      SIP_HOST: siphost
+      SIP_PORT: 999
+    ports:
+      - "9001:9001"
+    depends_on:
+      - mycel-db
+
+  mycel-db:
+    image: mysql:5.5
+    ports:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: mycel
+      MYSQL_USER: mycel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db-data:/var/lib/mysql
+
