@@ -2,6 +2,7 @@ version: '3.7'
 
 volumes:
   db-data:
+  logs-data:
   bundler-data:
 
 services:
@@ -10,6 +11,7 @@ services:
     command: bundle exec ruby api_server.rb -e development -p 9000 -l logs/api.log
     volumes:
       - .:/app
+      - logs-data:/app/logs
       - bundler-data:/usr/local/bundle
     environment:
       USERNAME: mycel
@@ -26,6 +28,7 @@ services:
     command: bundle exec ruby server.rb -e development -p 9001 -l logs/server.log
     volumes:
       - .:/app
+      - logs-data:/app/logs
       - bundler-data:/usr/local/bundle
     environment:
       USERNAME: mycel
