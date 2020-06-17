@@ -53,6 +53,9 @@ services:
       - logs-data:/app/logs
       - bundler-data:/usr/local/bundle
     command: cron -f -l 2
+    environment:
+      USERNAME: ${MYCEL_USERNAME:-mycel}
+      PASSWORD: ${MYCEL_PASSWORD:-secret}
 
   mycel-db:
     image: mysql:5.5
