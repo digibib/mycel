@@ -119,8 +119,14 @@ class Server < Goliath::WebSocket
             #NB must be authenticated! i.e user object must exist
             client = env['client']
             user = env['user']
-            user.log_on client
-            #user.save
+            begin
+              user.log_on client
+              #user.save
+            rescue rescue Exception => e
+              env['user'] = nil
+              env.logger.error(e.message)
+              return
+            end
 
             env['timer'] = EM.add_periodic_timer(30) do
               Fiber.new do
