@@ -1,0 +1,14 @@
+doctype html
+html
+  head
+    meta charset='utf-8'
+
+  h2 Oversikt for #{branch.name}
+  OBS! Dette er en veldig tidlig prototype. Tallene kan vise tendenser, men er ikke nødvendigvis veldig nøyaktige ennå.
+
+  - data = ClientEvent.create_branch_stats(branch)
+  - data.each do |department|
+    h4 #{department[:name]}
+    ul
+      - department[:clients].each do |client|
+        li #{client[:client_name]} Oppetid: #{client[:uptime_percent]}% Belegg: #{client[:occupied_time_percent]}%

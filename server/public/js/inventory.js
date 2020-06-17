@@ -33,7 +33,7 @@ $(function() {
         search: 'Søk',
         processing: 'Vennligst vent...',
       },
-      order: [ [1, "asc"], [2, "asc"] ],
+      order: [ [2, "asc"], [3, "asc"] ],
       paging: false,
       processing: true,
       deferRender: true,
@@ -50,7 +50,8 @@ $(function() {
         }
       ],
       columns: [
-        { data: "status", className: status, orderData: 6},
+        { data: "status", className: 'status', orderData: 6},
+        { data: "downtimes", visible: true},
         { data: "branch_name"},
         { data: "name"},
         { data: "specs.cpu_family", defaultContent: "-"},
@@ -59,16 +60,23 @@ $(function() {
         { data: "status", visible: false}
       ],
 
+      // adding class to the TR for filtering by status. There are probably better
+      // ways to do this, but it works.
+      "rowCallback": function( row, data, index ) {
+        $(row).removeClass('occupied available unseen disconnected')
+        $(row).addClass(data.status)
+      },
+
       "columnDefs": [
         {
           targets: '_all',
           searchable: true
         },
 
-        // adding classes to the TRs for filtering. There are probably better
+        // adding class to the TR for filtering by branch. There are probably better
         // ways to do this, but it works.
         {
-          "targets": [0,1],
+          "targets": [2],
           "createdCell": function (td, cellData, rowData, row, col) {
             $(td).parent().addClass(cellData)
           }
@@ -101,21 +109,26 @@ $(function() {
 
           targets: 0, orderable: true
         },
-        { // render client title
+        { // render downtime series into statusbar
           render: function ( data, type, row ) {
-            return "<div title='" + row['title'] + "'>" + data + "</div>"
+            return Util.createStatusBar(JSON.parse(data), row['id'])
           },
-
-          targets: 2, orderable: true
+          targets: 1, orderable: false
         }
       ]
     });
   }
 
-  // $('#branch_selector, #status_selector').val('all')
+
   initializeTable()
-  let cb = function() {
+
+  const cb = function() {
     updatePage()
+    const table = $('#inventory_table').DataTable()
+    setInterval( function () {
+      table.ajax.reload(updatePage)
+    }, 5 * 60 * 1000);
   }
+
   $('#inventory_table').DataTable().ajax.url('/api/client_specs').load(cb)
 })

@@ -3,9 +3,12 @@ div class="main"
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
     == render :slim,  :'admin', :layout => false, :locals => {:screen_res => screen_res}
   - else
-    h2 Hva er dette?
-    p Mycel er et system for å administrere Deichmans publikumsmaskiner.
-    p Denne siden er kun for superbruker (IT-admin) - klikk deg inn på <a href="/clients">klienter</a> eller <a href="/users">brukere</a> for å administrere din avdeling/filial.
+    - level = admin.owner_admins_type.safe_constantize.find(admin.owner_admins_id)
+
+    - bid = params['bid'].present? ? params['bid'].to_i : Organization.first.branches.first.id
+    - selected_id = level.is_a?(Organization) ? bid : nil
+    == render :slim,  :'branch_ui', layout: false, locals: {level: level, selected_id: selected_id}
+
 
   - if admin.respond_to?(:superadmin?) and admin.superadmin?
     h2 Globale innstillinger

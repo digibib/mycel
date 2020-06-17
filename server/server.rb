@@ -20,6 +20,14 @@ module Goliath
       def run
         EM.add_periodic_timer(60) do
           Fiber.new do
+            Client.all.each do |client|
+              client.update_logon_events
+            end
+          end.resume
+        end
+
+        EM.add_periodic_timer(60) do
+          Fiber.new do
             # log format: type  active-users                 num-clients
             @logger.info "stats #{Client.joins(:user).count} #{Client.count}"
             for user in User.joins(:client).readonly(false).all
@@ -88,7 +96,7 @@ class Server < Goliath::WebSocket
           begin
             env['client'] ||= Client.find msg["client"]
             if msg["user"] == "Anonym"
-              env['user'] ||= AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
+              env['user'] ||= env['client'].user || AnonymousUser.create(:minutes=>env['client'].options_self_or_inherited['shorttime_limit'])
             else
               env['user'] ||= User.find_by_username msg["user"]
             end
@@ -96,6 +104,7 @@ class Server < Goliath::WebSocket
             env['user'] = nil
             env.logger.error(e.message)
             env.logger.error("trying to find this user: #{msg['user']}")
+            #env.logger.error(e.backtrace)
           end
 
 
@@ -111,7 +120,7 @@ class Server < Goliath::WebSocket
             client = env['client']
             user = env['user']
             user.log_on client
-            user.save
+            #user.save
 
             env['timer'] = EM.add_periodic_timer(30) do
               Fiber.new do
@@ -156,7 +165,7 @@ class Server < Goliath::WebSocket
             user = env['user']
             client = env['client']
             user.log_off
-            user.save
+            #user.save
             EM.cancel_timer(env['timer'])
             # log format:    type    who          who-id   who-age         action    where
             env.logger.info("event #{user.type} #{user.id} #{user.age_log} log-off #{client.log_friendly}")

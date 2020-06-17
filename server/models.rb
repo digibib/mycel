@@ -1,9 +1,13 @@
+#encoding: UTF-8
 require "em-synchrony/activerecord"
 require "./sip2.rb"
 require "./config/settings"
-
+#require 'logger'
 # initial settings
 ActiveRecord::Base.include_root_in_json = false
+
+#ActiveRecord::Base.logger = Logger.new(STDOUT)
+#config.log_level = :debug
 
 class Organization < ActiveRecord::Base
   self.table_name = "organization"
@@ -78,6 +82,7 @@ class Branch < ActiveRecord::Base
     hash.merge!(:options => self.options.as_json)
     hash.merge!(:options_inherited => self.organization.options.as_json)
     hash.merge!(:printers => self.printers.as_json)
+
     hash.except("organization_id")
   end
 
@@ -152,28 +157,29 @@ class Department < ActiveRecord::Base
 end
 
 class Client < ActiveRecord::Base
-
   belongs_to :department
 
   validates_presence_of :name, :hwaddr
   validates_uniqueness_of :name, :hwaddr
 
-  has_one :user, :inverse_of => :client, :autosave => true, dependent: :nullify
+  has_one :user, :inverse_of => :client, dependent: :nullify
   belongs_to :screen_resolution
   has_one :options, :as => :owner_options, :dependent => :destroy
   has_one :client_spec, :dependent => :destroy
-  has_many :client_events, :dependent => :destroy
+
+  has_many :connection_events, :dependent => :destroy
+  has_many :logon_events, :dependent => :destroy
 
   accepts_nested_attributes_for :options, :screen_resolution
 
   after_initialize :init, if: :new_record?
 
-  @@cut_off = 15*60
+  @@cut_off = 15*60 # determines when the client is flagged as disconnected
   scope :connected, -> { where("ts > ?", Time.now - @@cut_off) }
   scope :disconnected, -> { where("ts <= ?", Time.now - @@cut_off) }
 
   # optimized scope for the inventory page
-  scope :inventory_view, includes(:user, :client_spec, department: :branch)
+  scope :inventory_view, includes(:user, :client_spec, :options, department: :branch)
 
 
   def init
@@ -190,7 +196,7 @@ class Client < ActiveRecord::Base
   end
 
   def connected?
-    ts.nil? ? false : ts > Time.now - @@cut_off
+    ts.blank? ? false : ts > Time.now - @@cut_off
   end
 
 
@@ -199,30 +205,47 @@ class Client < ActiveRecord::Base
       'occupied'
     elsif ts.nil?
       'unseen'
-    elsif not connected?
-      'disconnected'
-    else
+    elsif connected?
       'available'
+    else
+      'disconnected'
     end
   end
 
 
-  # called when api receives a keep_alive signal from a client that is not connected
-  def generate_offline_event
-    event = ClientEvent.new
-    event.client_id = self.id
-    event.started = self.ts
-    event.ended = Time.now
-    event.save
+  # called when api receives a keep_alive signal from a client
+  def update_timestamp
+    if !connected?
+      ConnectionEvent.generate_offline_event(id, ts)
+      update_attributes(online_since: Time.now)
+    end
+
+    touch(:ts)
   end
 
+  # called from the periodic timer in server.rb
+  # note that this does not check to see if current user and previous user
+  # are the same for on-going connections, and thus does not yield a correct
+  # count for # of total logins.
+  def update_logon_events
+    has_active_event = logon_events.present? && logon_events.last.present? && logon_events.last.ended.blank?
+    has_active_user = user.present?
+
+    if has_active_event && !has_active_user
+      event = logon_events.last
+      event.ended = Time.now
+      event.save
+    elsif !has_active_event && has_active_user
+      LogonEvent.new({client_id: id}).save
+    end
+  end
 
   def log_friendly
     "\"#{self.branch.name}\" \"#{self.department.name}\" \"#{self.name}\" #{self.hwaddr}"
   end
 
   def options_self_or_inherited
-    dept = Department.find(self.department.id)
+    dept = department #Department.find(self.department.id)
     opt = {}
     self.options.attributes.each do |k,v|
       if self.options[k]
@@ -380,14 +403,11 @@ class User < ActiveRecord::Base
   end
 
   def log_on(c)
-    #return false if c.user
-    c.user.log_off if c.user
-    self.client = c
+    c.user = self unless c.user and c.user == self
   end
 
   def log_off
-    self.client.user = nil if (self.client and self.client.user)
-    self.client = nil
+    self.client.user = nil if client and client.user
   end
 
   def as_json(*args)
@@ -500,11 +520,14 @@ class ScreenResolution < ActiveRecord::Base
   has_one :client
 end
 
-
+# When a client that is not registered in the database tries to connect to
+# mycel, its registered with its MAC address as a request. The sole purpose
+# of this class is to allow quick registration of new clients via the UI.
 class Request < ActiveRecord::Base
   default_scope order('ts desc')
 end
 
+# Boot profiles for pixiecore. Currently not in use.
 class Profile < ActiveRecord::Base
 
 end
@@ -532,11 +555,15 @@ class ClientSpec < ActiveRecord::Base
   belongs_to :client
 end
 
+
+#-------------------------------------------------------------------------
 class ClientEvent < ActiveRecord::Base
   belongs_to :client
+  scope :omit_reboots, -> { where("not (HOUR(started) IN (3,4) AND TIMESTAMPDIFF(MINUTE,started, ended) < 120)") }
+
 
   # representation of the event for use in html title attribrutes. quick and dirty.
-  def to_title
+  def to_title(is_ongoing = false)
     duration = ended - started
     hours = (duration/3600).to_i
     hrs = hours > 0 ? "#{hours}t" : ""
@@ -547,13 +574,211 @@ class ClientEvent < ActiveRecord::Base
     if [3,4].include?(started.hour) && [3,4].include?(ended.hour) && started.mday == ended.mday
       ""
     else
+      label = is_ongoing ? 'Vært offline i' : 'Varighet'
       started_string = started.strftime('%e/%m %H:%M')
       ended_string = started.mday == ended.mday ? ended.strftime('%H:%M') : ended.strftime('%e/%m %H:%M')
 
-      "Varighet: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
-    end
 
+      "#{label}: #{duration_string} Periode: #{started_string}-#{ended_string}\n"
+    end
   end
 
+
+  def self.create_occupied_series(client_id, no_of_days = 3)
+    client = Client.find(client_id)
+
+    now = Time.now
+
+    period_start = now - no_of_days.days
+    period_duration = no_of_days * 3600 * 1000 * 24
+
+    events =
+    ClientEvent.omit_reboots
+    .where(client_id: client_id)
+    .where("ended >= '#{period_start}'")
+    .order('started asc')
+
+    data = []
+
+    # adds event if client has been down for the entire duration of the period
+    if events.size == 0 && (client.ts.nil? || client.ts < period_start)
+      data << {start: period_start, end: now, type: 'offline', titlestamp: client.ts}
+    end
+
+    # adds recorded events
+    events.each do |event|
+      started = event.started < period_start ? period_start : event.started
+      type = event.is_a?(ConnectionEvent) ? 'offline' : 'occupied'
+      ended = event.ended || now
+      data << {start: started, end: ended, type: type}
+    end
+
+    # adds event if client has been online during period but is currently offline
+    if !client.connected? && (data.size > 0)
+      start = client.ts < period_start ? period_start : client.ts
+      data << {start: start, end: now, type: 'offline'}
+    end
+
+
+    {period_start: period_start, period_duration: period_duration, events: data}.to_json
+  end
+
+  # TODO move this somewhere proper
+  # converts opening schedule to an array of hashes
+  def self.get_opening_hours_array(department)
+    schedule = department.options.opening_hours || department.branch.options.opening_hours || department.branch.organization.options.opening_hours
+
+    opening_hours = []
+    wdays = %w[sunday monday tuesday wednsday thursday friday saturday]
+    wdays.each do |wday|
+      opens = schedule["#{wday}_opens"]
+      closes = schedule["#{wday}_closes"]
+      interval = closes && opens ? (closes - opens) / 60 : 0
+      opening_hours << {opens: opens, closes: closes, interval: interval}
+    end
+
+    opening_hours
+  end
+
+  def self.get_downtime_in_minutes(client, period_start, period_end, last = false)
+    events = client.connection_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
+
+    total_downtime = 0
+
+    # sets downtime if client has been down for the entire duration of the period
+    if events.size == 0 && (client.ts.nil? || client.ts < period_start)
+      total_downtime += period_end - period_start
+    end
+
+    # adds downtime from finished events
+    events.each do |event|
+      ended = event.ended > period_end ? period_end : event.ended
+      started = event.started < period_start ? period_start : event.started
+      total_downtime += (ended - started)
+    end
+
+
+    # adds downtime if client has been online during period but is currently offline
+    if last && events.size > 0 && !client.connected?
+      total_downtime += period_end - client.ts
+    end
+
+    total_downtime / 60
+  end
+
+
+  def self.get_occupied_time_in_minutes(client, period_start, period_end)
+    events = client.logon_events.where("ended >= '#{period_start}' and started <= '#{period_end}'")
+
+    # adds time from finished events
+    occupied_time = events.inject(0) {|sum, event| sum + (event.ended - event.started) }
+
+    #add time from unfinished session
+    if client.occupied?
+      cur_event = client.logon_events.last
+      occupied_time += Time.now - cur_event.started if cur_event.present? && cur_event.ended.blank?
+    end
+
+    occupied_time / 60
+  end
+
+  # calculates number of minutes(?) the department has been open during the period
+  # note: this does not factor in any changes in the opening schedule
+  def self.get_accumulated_opening_time(schedule, period_start, period_end)
+    result = 0
+    tmp_date = period_start
+
+    while tmp_date <= period_end
+      result += schedule[tmp_date.wday][:interval]
+      tmp_date = tmp_date + 1.day
+    end
+
+    result
+  end
+
+
+  def self.create_branch_stats(branch, no_of_days = 3)
+    period_end = Time.now
+    period_start = period_end - no_of_days.days
+
+    results = []
+
+    branch.departments.each do |department|
+      dept_results = {name: department.name}
+      client_results = []
+
+      opening_hours = get_opening_hours_array(department)
+      total = get_accumulated_opening_time(opening_hours, period_start, period_end)
+
+      department.clients.each do |client|
+        client_results << client_stats_by_percent(client, opening_hours, period_start, period_end, total)
+      end
+
+      results << dept_results.merge(clients: client_results)
+    end
+
+    results
+  end
+
+
+  def self.create_client_stats(client, no_of_days = 3)
+    period_end = Time.now
+    period_start = period_end - no_of_days.days
+
+    opening_hours = get_opening_hours_array(client.department)
+    total = get_accumulated_opening_time(opening_hours, period_start, period_end)
+
+    events = []
+
+    if !client.connected?
+      temp_event = ConnectionEvent.new(client_id: client.id, started: client.ts, ended: Time.now)
+      events << temp_event.to_title(true)
+      events << "---------------"
+    end
+
+    client.connection_events.where("started >= '#{period_start}'").order("started DESC").each do |event|
+      events << event.to_title
+    end
+
+    {downtime_events: events}.merge(client_stats_by_percent(client, opening_hours, period_start, period_end, total))
+  end
+
+
+  def self.client_stats_by_percent(client, opening_hours, period_start, period_end, total)
+    occupied_time = get_occupied_time_in_minutes(client, period_start, period_end)
+    occupied_time_percent = ((occupied_time * 100) / total).to_i
+
+    tmp_date = period_start
+    downtime = 0
+
+    while tmp_date <= period_end
+      oh = opening_hours[tmp_date.wday]
+      opens = oh[:opens]
+      closes = oh[:closes]
+
+      if opens && closes
+        opens = Time.new(tmp_date.year, tmp_date.month, tmp_date.day, opens.hour, opens.min, 0, 0)
+        closes = Time.new(tmp_date.year, tmp_date.month, tmp_date.day, closes.hour, closes.min, 0, 0)
+        is_last = (tmp_date + 1.day) >= period_end
+        downtime += get_downtime_in_minutes(client, opens, closes, is_last)
+      end
+
+      tmp_date = tmp_date + 1.day
+    end
+
+    uptime_percent = 100 - ((downtime * 100) / total).to_i
+    {client_id: client.id, client_name: client.name, occupied_time_percent: occupied_time_percent, uptime_percent: uptime_percent}
+  end
+end
+
+
+class ConnectionEvent < ClientEvent
+  def self.generate_offline_event(client_id, client_ts)
+    event = create(client_id: client_id, started: client_ts, ended: Time.now)
+  end
+
+end
+
+class LogonEvent < ClientEvent
 
 end

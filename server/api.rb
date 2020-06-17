@@ -4,6 +4,7 @@ require 'resolv'
 
 require_relative 'config/pxe_settings.rb'
 
+
 # TODO put utility functions into module for mixin when API is finalized
 
 # utility function to check if there are changes in a suplied hash
@@ -52,12 +53,25 @@ def requires_superadmin
   end
 end
 
+# Very basic logging for the admin module
+def log_event(action_name, item, level)
+  if item.respond_to?('name')
+    name = item.name
+  elsif item.respond_to?('username')
+    name = item.username
+  else
+    name = "Ukjent navn"
+  end
+
+  env.logger.send(level, "ADMIN-HANDLING: #{action_name} #{item.class.name}: #{name} (id: #{item.id})")
+end
 
 def delete(class_name, id)
   klazz = class_name.constantize
 
   item = klazz.find(id)
   if item.destroy
+    log_event("Slettet", item, 'info')
     status 200
     {message: "OK. Slettet."}
   else
@@ -80,6 +94,8 @@ def create(class_name, params)
   item.attributes = item.attributes.merge(updates){|key, oldval, newval| key == "id" ? oldval : newval }
 
   if item.save
+    type = is_new ? "Opprettet" : "Endret"
+    log_event(type, item, 'info')
     status 200
     {message: "OK. Lagret.", id: item.id}
   else
@@ -124,15 +140,9 @@ class API < Grape::API
       if params[:mac].present?
         mac = params[:mac]
         client = Client.find_by_hwaddr(mac)
-        if client.present?
-          if not client.connected?
-            client.generate_offline_event
-            client.update_attributes(online_since: Time.now)
-          end
-
-          client.touch(:ts)
-        end
+        client.update_timestamp if client.present?
       end
+
       status 200
       [200, {'Connection' => "close"}, {message: "OK"}]
     end
@@ -290,20 +300,18 @@ class API < Grape::API
     get "/" do
       clients = []
       Client.inventory_view.all.each do |client|
-        # build title attribute string containing latest offline events
-        events = ""
-        client.client_events.order("started DESC").each do |event|
-          events = events + event.to_title
-        end
+        downtimes = ClientEvent.create_occupied_series(client.id)
 
         # merge attributes and return
-        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name, specs: client.client_spec, title: events}
+        h = {status: client.status, branch_id: client.branch.id, branch_name: client.branch.name,
+           specs: client.client_spec, downtimes: downtimes}
         clients << client.attributes.merge(h)
       end
 
       status 200
       {data: clients }
     end
+
 
     # TODO experimental and currently not in use. doesnt particularly belong under
     # this resource. can be removed.
@@ -314,7 +322,7 @@ class API < Grape::API
       clients.each do |client|
         data = []
 
-        client.client_events.each do |event|
+        client.connection_events.each do |event|
           data << [(event.started.to_time.to_r * 1000).round, 0]
           data << [(event.started.to_time.to_r * 1000).round, 1]
           data << [(event.ended.to_time.to_r * 1000).round, 1]
@@ -327,6 +335,41 @@ class API < Grape::API
       {series: series}.to_json
     end
 
+
+    # TODO move to client?
+    desc "returns a uptime series for the client"
+    get "/chart/uptime/:client_id" do
+      no_of_days = 12
+      duration = 12.days.to_i / 60
+
+      origin = Time.now - no_of_days.days
+      period_start = origin.strftime('%Y-%m-%d %H:%M:%S')
+
+      client = Client.find(params[:client_id])
+
+      events =
+        ClientEvent.where(client_id: params[:client_id])
+        .where("ended >= '#{period_start}'")
+        .order('started asc')
+
+      if events.size == 0
+        starting_status = client.connected?
+      else
+        starting_status = events.first.started <= period_start
+      end
+
+      data = []
+      events.each do |event|
+        data << {start: event.started, end: event.ended}
+      end
+
+      unless client.connected?
+        # add extra event, start = client.ts, end: now
+        # ending_status: client.connected?
+      end
+
+      {starting_status: starting_status, period_start: period_start, origin: origin, duration: duration, data: data}.to_json
+    end
 
 
 
@@ -415,14 +458,24 @@ class API < Grape::API
           {:client => client.as_json}
         end
       else
-        # merge in additional keys before return client list
+        bid = params['bid'].present? ? params['bid'].to_i : nil
+
         clients = []
         Client.includes(department: :branch).all.each do |client|
-          branch_id = {"branch_id" => client.branch.id, "is_connected" => client.connected?}
-          clients << client.attributes.merge(branch_id)
+          next if bid && client.department.branch_id != bid
+
+          attribs =
+          { branch_id: client.department.branch_id,
+            is_connected: client.connected?,
+            status: client.status,
+            offline_events: ClientEvent.create_occupied_series(client.id),
+            user: client.user
+          }
+
+          clients << client.attributes.merge(attribs)
         end
         status 200
-        {:clients => clients }
+        {clients: clients }
       end
     end
 
@@ -442,6 +495,7 @@ class API < Grape::API
       requires_superadmin
 
       form_data = params[:form_data].to_hash
+      is_new = form_data["id"].blank?
       client = form_data["id"].present? ? Client.find(form_data["id"]) : Client.new
 
       # select only the keys from params present in client.attributes
@@ -455,6 +509,8 @@ class API < Grape::API
       end
 
       if client.save
+        type = is_new ? "Opprettet" : "Endret"
+        log_event(type, client, 'info')
         Request.find(form_data["request_id"]).destroy if form_data["request_id"].present?
         status 200
         {message: "OK. Lagret."}
@@ -497,6 +553,22 @@ class API < Grape::API
     desc "returns all users"
     get "/" do
       {:users => User.all.as_json}
+    end
+
+    get '/search/by_username/:query_string' do
+      results = LibraryUser.inactive.where("name LIKE ?", "%#{params[:query_string]}%").pluck(:name)
+      results << GuestUser.inactive.where("username LIKE ?", "%#{params[:query_string]}%").pluck(:username)
+      results.flatten.to_json
+    end
+
+    get '/search/closest_match' do
+      query = params[:query]
+
+      user = LibraryUser.find_by_username(query) || GuestUser.find_by_name(query)
+      user = LibraryUser.inactive.where("name LIKE ?", "%#{query}%").first unless user
+      user = GuestUser.inactive.where("username LIKE ?", "%#{query}%").first unless user
+
+      user.to_json
     end
 
     desc "authenticates a user"

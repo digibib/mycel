@@ -27,8 +27,8 @@ $(document).ready(function () {
   // ** set input masks **
 
   $('input#user_minutes').setMask('999');
-  $('input#age_lower').setMask('99');
-  $('input#age_higher').setMask('99');
+  $('input#age_lower').setMask('999');
+  $('input#age_higher').setMask('999');
   $('input#minutes_limit').setMask('999');
   $('input#minutes_before_closing').setMask('99');
 
@@ -358,4 +358,3 @@ $(document).ready(function () {
 
 
 });
-

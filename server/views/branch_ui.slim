@@ -1,0 +1,123 @@
+script src="/js/featherlight.js"
+link href='/css/featherlight.css' rel='stylesheet' type='text/css'
+
+script src="/js/util.js"
+script src="/js/branch_ui.js"
+script src="/js/branch_ui_options.js"
+
+
+- if level.is_a?(Organization)
+  select id="branch_selector"
+    - level.branches.each do |branch|
+      - if branch.id == selected_id
+        option[data-bid="#{branch.id}" selected] #{branch.name}
+      - else
+        option[data-bid="#{branch.id}"] #{branch.name}
+
+  - branch = level.branches.find(selected_id)
+  - branch_name = branch.name
+  - departments = branch.departments
+- elsif level.is_a?(Branch)
+  - branch = level
+  - branch_name = branch.name
+  - departments = branch.departments
+- else
+  - branch = nil
+  - branch_name = level.name
+  - departments = [level]
+
+- units = level.is_a?(Department) ? [*departments] : [branch, *departments]
+
+- branch_id = branch ? branch.id : level.branch.id
+input[hidden id="branch_id" data-id="#{branch_id}"]
+
+- departments.each do |department|
+  - adjust = department.options_self_or_inherited['time_limit'].to_i - 60
+  input[hidden class="department_ids" id="dept#{department.id}" data-adjust="#{adjust}" data-id="#{department.id}" data-name="#{department.name}"]
+
+div style="padding-top: 20px; padding-bottom: 20px;"
+  span
+    h2 style="display:inline; text-decoration: underline;" #{branch_name}
+    img[src="/img/ajax-loader2.gif" id="ajax_spinner" hidden]
+    div style="float:right;" class="department_buttons"
+      button[class='active'] Alle
+      - departments.each do |department|
+          button[value="#{department.id}"] #{department.name}
+
+span
+  button[type='button' class='guest' id="adduser"]  = "Lag gjestebruker"
+  button[type='button' id="show_inactive_user_panel"]  = "Vis/skjul inaktive brukere"
+  button[type='button' id="show_settings_panel"]  = "Vis/skjul innstillinger"
+
+p
+
+div[id="inactive_user_panel" hidden]
+  label Brukernavn:
+  input[id="find_user_by_name" list="user_datalist" type="text" style="width: 300px" placeholder="Skriv inn brukernavn her..."]
+  datalist[id="user_datalist"]
+
+
+  table class="clients"
+    thead
+      tr
+        th type
+        th navn/nummer
+        th tid
+        th
+    tbody[id="inactive_user_body"]
+
+
+div class="divdot inputf"
+  span[class='info' id="user_saved_info" style="margin-left:20px"]
+  form id="add_user_form"
+    table class="userform"
+      tr
+        td brukernavn
+        td: input[type="text" id="username" class="required" maxlength="10"]
+        td passord
+        td: input[type="text" id="user_password" maxlength="10" class="required"]
+      tr
+        td alder
+        td: select[name="age" id="user_age"]
+          |<option value="20">voksen</option>
+          |<option value="10">barn</option>
+        td minutter
+        td: input[type="text" class="nr required" id="user_minutes"]
+      tr
+        td: button[type='button' id="usersave"]  = "Lagre bruker"
+        td: button[type='button' id="usercancel"]  = "Avbryt"
+        td:  button[type='button' id="userclear"]  = "Nullstill skjema"
+        td[id="user_form_response"]
+          span[class='error']
+
+
+div[id="settings_panel" hidden]
+  ul class="ubertabs"
+    - units.each do |unit|
+      li #{unit.name}
+
+  div class="uberpanes"
+    - units.each do |unit|
+      div class="uberpane"
+        == render :slim,  :'branch_ui_options', :layout => false, :locals => {:level => unit}
+
+
+
+div[id="server_status" style="color: red;" hidden]
+  span NB! Har ikke kontakt med serveren - listen er ikke oppdatert
+
+table id="user_table" class="clients"
+  thead
+    tr
+      th Status
+      th
+      th Avdeling
+      th Navn
+      th Bruker
+      th Tid
+      th
+      th
+    tbody
+
+- if branch
+  a[href="/branch_stats?id=#{branch.id}"] Oversikt (prototype)
