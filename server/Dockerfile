@@ -7,9 +7,7 @@ FROM ruby:1.9.3
 #  W: Failed to fetch http://http.debian.net/debian/dists/jessie-updates/InRelease
 #
 RUN sed -i '/jessie-updates/d' /etc/apt/sources.list
-
-# Install stuff.  Currently just the build essentials.
-RUN apt-get update -qq && apt-get install -y build-essential
+RUN apt-get update -qq && apt-get install -y build-essential sqlite3 cron && rm -rf /var/lib/apt/lists/*
 
 # Install Gems.  Use Bundler 1.17.3 as 2+ does not work with
 # Ruby 1.9.3.  Also update the rubygems to prevent frozen string
@@ -24,4 +22,6 @@ RUN bundle install
 RUN mkdir /app
 WORKDIR /app
 ADD . /app
+COPY crontab /etc/crontab
+RUN crontab /etc/crontab
 COPY /views/template.stats_all /app/views/stats_all.slim

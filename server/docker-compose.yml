@@ -8,7 +8,7 @@ volumes:
 services:
   mycel-api:
     build: .
-    command: bundle exec ruby api_server.rb -e development -p 9000 -l logs/api.log
+    command: bundle exec ruby api_server.rb -sv -e development -p 9000
     volumes:
       - .:/app
       - logs-data:/app/logs
@@ -27,7 +27,7 @@ services:
 
   mycel-server:
     build: .
-    command: bundle exec ruby server.rb -e development -p 9001 -l logs/server.log
+    command: bundle exec ruby server.rb -sv -e development -p 9001
     volumes:
       - .:/app
       - logs-data:/app/logs
@@ -43,6 +43,14 @@ services:
       - "9001:9001"
     depends_on:
       - mycel-db
+
+  scheduler:
+    build: .
+    volumes:
+      - .:/app
+      - logs-data:/app/logs
+      - bundler-data:/usr/local/bundle
+    command: cron -f -l 2
 
   mycel-db:
     image: mysql:5.5
