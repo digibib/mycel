@@ -24,8 +24,7 @@ services:
       - "9000:9000"
     depends_on:
       - mycel-db
-    restart_policy:
-      condition: on-failure
+    restart: on-failure
 
   mycel-server:
     build: .
@@ -45,8 +44,7 @@ services:
       - "9001:9001"
     depends_on:
       - mycel-db
-    restart_policy:
-      condition: on-failure
+    restart: on-failure
 
   scheduler:
     build: .
@@ -67,5 +65,4 @@ services:
       MYSQL_PASSWORD: ${MYCEL_PASSWORD:-secret}
     volumes:
       - db-data:/var/lib/mysql
-    restart_policy:
-      condition: on-failure
+    restart: on-failure
