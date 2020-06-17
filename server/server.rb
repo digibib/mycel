@@ -125,7 +125,6 @@ class Server < Goliath::WebSocket
             rescue Exception => e
               env['user'] = nil
               env.logger.error(e.message)
-              return
             end
 
             env['timer'] = EM.add_periodic_timer(30) do
