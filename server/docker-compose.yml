@@ -14,12 +14,12 @@ services:
       - logs-data:/app/logs
       - bundler-data:/usr/local/bundle
     environment:
-      USERNAME: "${MYCEL_USERNAME}:-mycel"
-      PASSWORD: "${MYCEL_PASSWORD}:-secret"
-      SIP_HOST: "${MYCEL_SIP_HOST}:-siphost"
-      SIP_PORT: "${MYCEL_SIP_PORT}:-999"
-      SIP_USER: "${MYCEL_SIP_USER}:-sipuser"
-      SIP_PASS: "${MYCEL_SIP_PASS}:-sippass"
+      USERNAME: ${MYCEL_USERNAME}:-mycel
+      PASSWORD: ${MYCEL_PASSWORD}:-secret
+      SIP_HOST: ${MYCEL_SIP_HOST}:-siphost
+      SIP_PORT: ${MYCEL_SIP_PORT}:-999
+      SIP_USER: ${MYCEL_SIP_USER}:-sipuser
+      SIP_PASS: ${MYCEL_SIP_PASS}:-sippass
     ports:
       - "9000:9000"
     depends_on:
@@ -33,12 +33,12 @@ services:
       - logs-data:/app/logs
       - bundler-data:/usr/local/bundle
     environment:
-      USERNAME: "${MYCEL_USERNAME}:-mycel"
-      PASSWORD: "${MYCEL_PASSWORD}:-secret"
-      SIP_HOST: "${MYCEL_SIP_HOST}:-siphost"
-      SIP_PORT: "${MYCEL_SIP_PORT}:-999"
-      SIP_USER: "${MYCEL_SIP_USER}:-sipuser"
-      SIP_PASS: "${MYCEL_SIP_PASS}:-sippass"
+      USERNAME: ${MYCEL_USERNAME}:-mycel
+      PASSWORD: ${MYCEL_PASSWORD}:-secret
+      SIP_HOST: ${MYCEL_SIP_HOST}:-siphost
+      SIP_PORT: ${MYCEL_SIP_PORT}:-999
+      SIP_USER: ${MYCEL_SIP_USER}:-sipuser
+      SIP_PASS: ${MYCEL_SIP_PASS}:-sippass
     ports:
       - "9001:9001"
     depends_on:
@@ -49,10 +49,10 @@ services:
     ports:
       - "3306"
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYCEL_PASSWORD}:-secret"
+      MYSQL_ROOT_PASSWORD: ${MYCEL_PASSWORD}:-secret
       MYSQL_DATABASE: mycel
-      MYSQL_USER: "${MYCEL_USERNAME}:-mycel"
-      MYSQL_PASSWORD: "${MYCEL_PASSWORD}:-secret"
+      MYSQL_USER: ${MYCEL_USERNAME}:-mycel
+      MYSQL_PASSWORD: ${MYCEL_PASSWORD}:-secret
     volumes:
       - db-data:/var/lib/mysql
 
