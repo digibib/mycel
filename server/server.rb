@@ -122,7 +122,7 @@ class Server < Goliath::WebSocket
             begin
               user.log_on client
               #user.save
-            rescue rescue Exception => e
+            rescue Exception => e
               env['user'] = nil
               env.logger.error(e.message)
               return
