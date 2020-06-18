@@ -254,8 +254,12 @@ class Client < ActiveRecord::Base
         opt[k] = dept.options_self_or_inherited[k]
       end
     end
-    oh = self.options.opening_hours.as_json || dept.options_self_or_inherited['opening_hours']
-    opt.merge! "opening_hours" => oh
+    begin
+      oh = self.options.opening_hours.as_json || dept.options_self_or_inherited['opening_hours']
+      opt.merge! "opening_hours" => oh
+    rescue Exception => e
+      STDERR.puts e.message
+    end
     opt.except("owner_options_id", "owner_options_type", "id")
   end
 
