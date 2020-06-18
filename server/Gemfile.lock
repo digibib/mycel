@@ -105,6 +105,7 @@ DEPENDENCIES
   activerecord (= 3.2.22.5)
   awesome_print
   clean_test
+  concurrent-ruby (= 1.1.6)
   em-synchrony (= 1.0.2)
   goliath (= 1.0.1)
   grape (= 0.2.2)
