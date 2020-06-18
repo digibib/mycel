@@ -91,7 +91,7 @@ class Server < Goliath::WebSocket
 
       def on_message(env, message)
         msg = JSON.parse(message)
-        #env.logger.debug("WS MESSAGE: #{msg}")
+        env.logger.debug("WS MESSAGE: #{msg}")
         Fiber.new do
           begin
             env['client'] ||= Client.find msg["client"]
