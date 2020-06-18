@@ -8,7 +8,7 @@ volumes:
 services:
   mycel-api:
     build: .
-    command: ruby api_server.rb -sv -e development -p 9000
+    command: bundle exec ruby api_server.rb -sv -e development -p 9000
     volumes:
       - .:/app
       - logs-data:/app/logs
@@ -28,7 +28,7 @@ services:
 
   mycel-server:
     build: .
-    command: ruby server.rb -sv -e development -p 9001
+    command: bundle exec ruby server.rb -sv -e development -p 9001
     volumes:
       - .:/app
       - logs-data:/app/logs
