@@ -17,7 +17,9 @@ WORKDIR /tmp
 RUN gem install rubygems-update -v 2.7.8
 RUN update_rubygems
 RUN gem install bundler -v 1.17.3
+#RUN bundle update activesupport
 RUN bundle install
+RUN gem install activerecord -v 3.2.22.5
 
 RUN mkdir /app
 WORKDIR /app
