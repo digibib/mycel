@@ -129,21 +129,26 @@ class Server < Goliath::WebSocket
 
             env['timer'] = EM.add_periodic_timer(30) do
               Fiber.new do
-                user.reload
+                begin
+                  user.reload
+                  broadcast = JSON.generate({:status => "ping",
+                                             :client => {:id => client.id,
+                                                         :dept_id => client.department.id},
+                                             :user => {:name => user.name,
+                                                       :username => user.username,
+                                                       :id => user.id,
+                                                       :minutes => user.minutes,
+                                                       :type => user.type_short}})
+
+                  env.channels['clients/'+client.id.to_s] << broadcast
+                  env.channels['departments/'+client.department.id.to_s] << broadcast
+                  env.channels['users/'] << broadcast
+                rescue Exception => e
+                  env['user'] = nil
+                  env.logger.error(e.message)
+                end
                 env['timer'].cancel if user.client.nil?
 
-                broadcast = JSON.generate({:status => "ping",
-                                           :client => {:id => client.id,
-                                                       :dept_id => client.department.id},
-                                           :user => {:name => user.name,
-                                                     :username => user.username,
-                                                     :id => user.id,
-                                                     :minutes => user.minutes,
-                                                     :type => user.type_short}})
-
-                env.channels['clients/'+client.id.to_s] << broadcast
-                env.channels['departments/'+client.department.id.to_s] << broadcast
-                env.channels['users/'] << broadcast
               end.resume
             end
 
