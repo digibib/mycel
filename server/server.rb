@@ -18,7 +18,7 @@ module Goliath
       end
 
       def run
-        EM.add_periodic_timer(60) do
+        EM.add_periodic_timer(20) do
           Fiber.new do
             Client.all.each do |client|
               client.update_logon_events
