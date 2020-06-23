@@ -42,6 +42,7 @@ services:
       SIP_PASS: ${MYCEL_SIP_PASS:-sippass}
     ports:
       - "9001:9001"
+    mem_limit: 2g
     depends_on:
       - mycel-db
     restart: on-failure
